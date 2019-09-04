@@ -1,5 +1,6 @@
 platform:
   - x64
+
 skip_commits:
   files:
     - "*.yml"
