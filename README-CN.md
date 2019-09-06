@@ -8,6 +8,7 @@
 [![Travis Build Status](https://travis-ci.org/aliyun/credentials-java.svg?branch=master)](https://travis-ci.org/aliyun/credentials-php)
 [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/6jxpwmhyfipagtge/branch/master?svg=true)](https://ci.appveyor.com/project/aliyun/credentials-java)
 [![codecov](https://codecov.io/gh/aliyun/credentials-java/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/credentials-java)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/aliyun/credentials-java/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/aliyun/credentials-java/?branch=master)
 
 Alibaba Cloud Credentials for Java 是帮助 Java 开发者管理凭据的工具。
 
