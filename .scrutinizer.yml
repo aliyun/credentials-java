@@ -1,0 +1,24 @@
+build:
+  nodes:
+    analysis:
+      tests:
+        override:
+        - java-scrutinizer-run
+
+filter:
+    excluded_paths:
+        - test/*
+
+build:
+    environment:
+        sdkman:
+            - maven
+
+
+build:
+  nodes:
+    my-tests:
+      tests:
+        override:
+          - ./run - tests.sh
+
