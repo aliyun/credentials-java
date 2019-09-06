@@ -56,7 +56,7 @@ public class Main {
 每个版本的详细更改记录在[发行说明](./ChangeLog.txt)中。
 
 ## 贡献
-提交 Pull Request 之前请阅读[贡献指南]()。
+提交 Pull Request 之前请阅读[贡献指南](./.github/PULL_REQUEST_TEMPLATE.md)。
 
 ## 相关
 * [阿里云服务 Regions & Endpoints](https://developer.aliyun.com/endpoints)
