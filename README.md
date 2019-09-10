@@ -61,7 +61,7 @@ public class Main {
 Detailed changes for each release are documented in the [release notes](./ChangeLog.txt).
 
 ## Contribution
-Please make sure to read the [Contributing Guide]() before making a pull request.
+Please make sure to read the [Contributing Guide](./.github/PULL_REQUEST_TEMPLATE.md) before making a pull request.
 
 ## References
 * [Alibaba Cloud Regions & Endpoints](https://developer.aliyun.com/endpoints)

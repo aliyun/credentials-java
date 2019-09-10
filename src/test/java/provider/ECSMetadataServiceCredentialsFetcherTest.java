@@ -116,6 +116,22 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         Assert.assertTrue(fetcher.fetch(client) instanceof EcsRamRoleCredential);
+
+
+        response = new HttpResponse("test");
+        response.setResponseCode(200);
+        response.setHttpContent(new String("{\"Code\":\"fail\",  \"AccessKeyId\":\"\", \"AccessKeySecret\":\"\"," +
+                "    \"SecurityToken\":\"\"}").getBytes(), "UTF-8", FormatType.JSON);
+        client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
+        try {
+            fetcher.fetch(client);
+            Assert.fail();
+        } catch (CredentialException e){
+            Assert.assertEquals("Invalid json got from ECS Metadata service.",
+                    e.getMessage());
+        }
+
     }
 
 }
