@@ -22,11 +22,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
 
     private static Wini getIni(String filePath) throws IOException {
         if (null == ini) {
-            synchronized (ProfileCredentialsProvider.class) {
-                if (null == ini) {
-                    ini = new Wini(new File(filePath));
-                }
-            }
+            ini = new Wini(new File(filePath));
         }
         return ini;
     }
