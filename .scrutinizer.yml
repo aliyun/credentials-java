@@ -1,0 +1,20 @@
+filter:
+  paths:
+    - src/main/java/
+  excluded_paths:
+    - 'src/*'
+build:
+  nodes:
+    analysis:
+      environment:
+        docker:
+          remote_engine: true
+      tests:
+        override:
+          - java-scrutinizer-run
+          -
+            command: java-sonar-run
+            use_website_config: true
+checks:
+  java:
+    code_rating: true
