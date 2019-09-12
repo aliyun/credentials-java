@@ -71,6 +71,9 @@ public class ProfileCredentialsProviderTest {
             Assert.assertEquals("The configured role_name is empty",
                     e.getCause().getLocalizedMessage());
         }
+        client.put(AuthConstant.INI_ACCESS_KEY_ID, AuthConstant.INI_TYPE_RAM);
+
+        client.put(AuthConstant.INI_ACCESS_KEY_ID,"test");
 
         client.clear();
         client.put(AuthConstant.INI_ACCESS_KEY_ID, AuthConstant.INI_TYPE_RAM);
@@ -140,6 +143,14 @@ public class ProfileCredentialsProviderTest {
             provider.getSTSGetSessionAccessKeyCredentials(client,factory);
             Assert.fail();
         } catch (Exception e) {
+            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+                    e.getMessage());
+        }
+        client.put("",AuthConstant.INI_PUBLIC_KEY_ID);
+        try {
+            provider.getSTSGetSessionAccessKeyCredentials(client,factory);
+            Assert.fail();
+        }catch (Exception e){
             Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
                     e.getMessage());
         }
