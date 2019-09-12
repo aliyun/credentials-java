@@ -83,7 +83,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
 
         response = new HttpResponse("test");
         response.setResponseCode(200);
-        response.setHttpContent(new String("{\"Code\":\"1\",  \"AccessKeyId\":\"\"}").getBytes(), "UTF-8", FormatType.JSON);
+        response.setHttpContent(new String("{\"Code\":\"1\"}").getBytes(), "UTF-8", FormatType.JSON);
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
@@ -96,15 +96,40 @@ public class ECSMetadataServiceCredentialsFetcherTest {
 
         response = new HttpResponse("test");
         response.setResponseCode(200);
-        response.setHttpContent(new String("{\"Code\":\"fail\",  \"AccessKeyId\":\"\", \"AccessKeySecret\":\"\"," +
-                "    \"SecurityToken\":\"\",  \"Expiration\":\"\"}").getBytes(), "UTF-8", FormatType.JSON);
+        response.setHttpContent(new String("{\"Code\":\"fail\",  \"AccessKeyId\":\"test\"}").getBytes(), "UTF-8", FormatType.JSON);
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e){
-            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service.",
+            Assert.assertEquals("Invalid json got from ECS Metadata service.",
+                    e.getMessage());
+        }
+        response = new HttpResponse("test");
+        response.setResponseCode(200);
+        response.setHttpContent(new String("{\"Code\":\"fail\",  \"AccessKeyId\":\"test\", \"AccessKeySecret\":\"test\"}").getBytes(), "UTF-8", FormatType.JSON);
+        client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
+        try {
+            fetcher.fetch(client);
+            Assert.fail();
+        } catch (CredentialException e){
+            Assert.assertEquals("Invalid json got from ECS Metadata service.",
+                    e.getMessage());
+        }
+
+        response = new HttpResponse("test");
+        response.setResponseCode(200);
+        response.setHttpContent(new String("{\"Code\":\"fail\",  \"AccessKeyId\":\"test\", \"AccessKeySecret\":\"test\"," +
+                "    \"SecurityToken\":\"test\"}").getBytes(), "UTF-8", FormatType.JSON);
+        client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
+        try {
+            fetcher.fetch(client);
+            Assert.fail();
+        } catch (CredentialException e){
+            Assert.assertEquals("Invalid json got from ECS Metadata service.",
                     e.getMessage());
         }
 
@@ -117,21 +142,19 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         Assert.assertTrue(fetcher.fetch(client) instanceof EcsRamRoleCredential);
 
-
         response = new HttpResponse("test");
         response.setResponseCode(200);
-        response.setHttpContent(new String("{\"Code\":\"fail\",  \"AccessKeyId\":\"\", \"AccessKeySecret\":\"\"," +
-                "    \"SecurityToken\":\"\"}").getBytes(), "UTF-8", FormatType.JSON);
+        response.setHttpContent(new String("{\"Code\":\"1111\",  \"AccessKeyId\":\"test\", " +
+                        "\"AccessKeySecret\":\"test\", \"SecurityToken\":\"test\",  \"Expiration\":\"2019-08-08T1:1:1Z\"}").getBytes(),
+                "UTF-8", FormatType.JSON);
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e){
-            Assert.assertEquals("Invalid json got from ECS Metadata service.",
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service.",
                     e.getMessage());
         }
-
     }
-
 }
