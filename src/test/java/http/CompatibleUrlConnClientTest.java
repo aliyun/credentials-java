@@ -16,8 +16,8 @@ public class CompatibleUrlConnClientTest {
     public void staticCompatibleGetResponseTest() throws IOException, KeyManagementException, NoSuchAlgorithmException {
         HttpRequest httpRequest = new HttpRequest("https://www.aliyun.com");
         httpRequest.setSysMethod(MethodType.GET);
-        httpRequest.setSysConnectTimeout(1000);
-        httpRequest.setSysReadTimeout(1000);
+        httpRequest.setSysConnectTimeout(10000);
+        httpRequest.setSysReadTimeout(10000);
         HttpResponse response = CompatibleUrlConnClient.compatibleGetResponse(httpRequest);
         Assert.assertNotNull(response);
 
