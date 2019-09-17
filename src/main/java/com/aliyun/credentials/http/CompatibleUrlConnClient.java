@@ -35,14 +35,14 @@ public class CompatibleUrlConnClient implements Closeable {
 
         try {
             httpConn.connect();
-
             content = httpConn.getInputStream();
             response = new HttpResponse(httpConn.getURL().toString());
-            parseHttpConn(response, httpConn, content);
+            parseHttpConn(response, httpConn, content, null);
             return response;
         } catch (IOException e) {
+            content = httpConn.getErrorStream();
             response = new HttpResponse(httpConn.getURL().toString());
-            response.setResponseMessage(e.getMessage());
+            parseHttpConn(response, httpConn, content, e);
             return response;
         } finally {
             if (content != null) {
@@ -113,9 +113,15 @@ public class CompatibleUrlConnClient implements Closeable {
         return httpConn;
     }
 
-    public void parseHttpConn(HttpResponse response, HttpURLConnection httpConn, InputStream content)
+    public void parseHttpConn(HttpResponse response, HttpURLConnection httpConn, InputStream content, Exception e)
             throws IOException, NoSuchAlgorithmException {
-        byte[] buff = readContent(content);
+        byte[] buff;
+        if (null != content) {
+            buff = readContent(content);
+        } else {
+            response.setResponseMessage(e.getMessage());
+            return;
+        }
         response.setResponseCode(httpConn.getResponseCode());
         response.setResponseMessage(httpConn.getResponseMessage());
         Map<String, List<String>> headers = httpConn.getHeaderFields();

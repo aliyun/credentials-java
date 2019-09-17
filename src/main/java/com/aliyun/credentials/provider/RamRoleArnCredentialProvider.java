@@ -4,6 +4,7 @@ package com.aliyun.credentials.provider;
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.RamRoleArnCredential;
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
@@ -103,10 +104,14 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        Map<String, String> credential = (Map<String,String>) map.get("Credentials");
-        long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();
-        return new RamRoleArnCredential(credential.get("AccessKeyId"), credential.get("AccessKeySecret"),
-                credential.get("SecurityToken"), expiration, this);
+        if (map.containsKey("Credentials")) {
+            Map<String, String> credential = (Map<String, String>) map.get("Credentials");
+            long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();
+            return new RamRoleArnCredential(credential.get("AccessKeyId"), credential.get("AccessKeySecret"),
+                    credential.get("SecurityToken"), expiration, this);
+        } else {
+            throw new CredentialException(gson.toJson(map));
+        }
     }
 
     public int getDurationSeconds() {
