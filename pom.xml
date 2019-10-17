@@ -6,8 +6,9 @@
 
     <groupId>com.aliyun</groupId>
     <artifactId>credentials-java</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.0.1</version>
     <packaging>jar</packaging>
+
     <name>credentials-java</name>
     <url>http://www.aliyun.com</url>
     <description>Alibaba Cloud Credentials for Java
@@ -30,10 +31,14 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-    <properties>
-        <powermock.version>2.0.2</powermock.version>
-        <mockito.version>3.0.0</mockito.version>
-    </properties>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <developers>
         <developer>
             <id>aliyunproducts</id>
@@ -41,6 +46,17 @@
             <email>aliyunsdk@aliyun.com</email>
         </developer>
     </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/aliyun/credentials-java.git</connection>
+        <developerConnection>scm:git:git@github.com:aliyun/credentials-java.git</developerConnection>
+        <url>https://github.com/aliyun/credentials-java</url>
+    </scm>
+
+    <properties>
+        <powermock.version>2.0.2</powermock.version>
+        <mockito.version>3.0.0</mockito.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -193,6 +209,20 @@
                     </formats>
                     <check />
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
