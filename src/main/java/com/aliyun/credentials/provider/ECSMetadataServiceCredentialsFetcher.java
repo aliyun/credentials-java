@@ -45,6 +45,10 @@ public class ECSMetadataServiceCredentialsFetcher {
         this.credentialUrl = new URL("http://" + metadataServiceHost + URL_IN_ECS_METADATA + roleName);
     }
 
+    public String fetchRoleName(CompatibleUrlConnClient client) throws CredentialException {
+        return getMetadata(client);
+    }
+
     public String getMetadata(CompatibleUrlConnClient client) throws CredentialException {
         HttpRequest request = new HttpRequest(credentialUrl.toString());
         request.setSysMethod(MethodType.GET);
@@ -58,6 +62,10 @@ public class ECSMetadataServiceCredentialsFetcher {
             throw new CredentialException("Failed to connect ECS Metadata Service: " + e.toString());
         } finally {
             client.close();
+        }
+
+        if (response.getResponseCode() == 404) {
+            throw new CredentialException("The role name was not found in the instance");
         }
 
         if (response.getResponseCode() != 200) {

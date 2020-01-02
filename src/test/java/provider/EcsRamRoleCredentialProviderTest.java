@@ -17,23 +17,6 @@ import static org.mockito.Mockito.when;
 
 public class EcsRamRoleCredentialProviderTest {
     @Test
-    public void constructorTest() throws MalformedURLException {
-        try {
-            new EcsRamRoleCredentialProvider("");
-            Assert.fail();
-        } catch (NullPointerException e) {
-            Assert.assertEquals("You must specifiy a valid role name.", e.getMessage());
-        }
-
-        try {
-            new EcsRamRoleCredentialProvider(new Configuration());
-            Assert.fail();
-        } catch (NullPointerException e) {
-            Assert.assertEquals("You must specifiy a valid role name.", e.getMessage());
-        }
-    }
-
-    @Test
     public void ecsRamRoleCredentialProviderTest() throws MalformedURLException, CredentialException, ParseException {
         EcsRamRoleCredentialProvider provider = new EcsRamRoleCredentialProvider("test");
         ECSMetadataServiceCredentialsFetcher fetcher = mock(ECSMetadataServiceCredentialsFetcher.class);

@@ -157,4 +157,25 @@ public class ECSMetadataServiceCredentialsFetcherTest {
                     e.getMessage());
         }
     }
+
+    @Test
+    public void fetchRoleNameTest() throws Exception {
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        HttpResponse response = mock(HttpResponse.class);
+        when(response.getResponseCode()).thenReturn(404);
+        when(client.syncInvoke(any())).thenReturn(response);
+        ECSMetadataServiceCredentialsFetcher fetcher = new ECSMetadataServiceCredentialsFetcher("");
+        try {
+            fetcher.fetchRoleName(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("The role name was not found in the instance", e.getMessage());
+        }
+
+        response = mock(HttpResponse.class);
+        when(response.getResponseCode()).thenReturn(200);
+        when(response.getHttpContent()).thenReturn("roleNameTest".getBytes("UTF-8"));
+        when(client.syncInvoke(any())).thenReturn(response);
+        Assert.assertEquals("roleNameTest", fetcher.fetchRoleName(client));
+    }
 }

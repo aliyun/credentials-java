@@ -14,17 +14,20 @@ public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProv
 
     private ECSMetadataServiceCredentialsFetcher fetcher;
 
-    public EcsRamRoleCredentialProvider(String roleName) throws MalformedURLException {
+    public EcsRamRoleCredentialProvider(String roleName) throws MalformedURLException, CredentialException {
         if (StringUtils.isEmpty(roleName)) {
-            throw new NullPointerException("You must specifiy a valid role name.");
+            CompatibleUrlConnClient client = new CompatibleUrlConnClient();
+            roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(roleName);
     }
 
 
-    public EcsRamRoleCredentialProvider(Configuration config) throws MalformedURLException {
+    public EcsRamRoleCredentialProvider(Configuration config) throws MalformedURLException, CredentialException {
         if (StringUtils.isEmpty(config.getRoleName())) {
-            throw new NullPointerException("You must specifiy a valid role name.");
+            CompatibleUrlConnClient client = new CompatibleUrlConnClient();
+            String roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
+            config.setRoleName(roleName);
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(config.getRoleName(), config.getConnectTimeout(), config.getReadTimeout());
     }

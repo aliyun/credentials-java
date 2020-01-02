@@ -37,7 +37,7 @@ public class DefaultCredentialsProviderTest {
             new DefaultCredentialsProvider();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Environment variable roleName('ALIBABA_CLOUD_ECS_METADATA') cannot be empty",
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
                     e.getMessage());
         }
 
