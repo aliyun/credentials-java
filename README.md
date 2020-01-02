@@ -8,8 +8,6 @@ English | [简体中文](./README-CN.md)
 [![codecov](https://codecov.io/gh/aliyun/credentials-java/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/credentials-java)
 [![Travis Build Status](https://travis-ci.org/aliyun/credentials-java.svg?branch=master)](https://travis-ci.org/aliyun/credentials-java)
 [![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/6jxpwmhyfipagtge/branch/master?svg=true)](https://ci.appveyor.com/project/aliyun/credentials-java)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/aliyun/credentials-java/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/aliyun/credentials-java/?branch=master)
-
 
 Alibaba Cloud Credentials for Java is a tool for Java developers to manage credentials.
 
@@ -71,4 +69,4 @@ Please make sure to read the [Contributing Guide](./.github/PULL_REQUEST_TEMPLAT
 ## License
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-Copyright 1999-2019 Alibaba Group Holding Ltd.
+Copyright 1999-2020 Alibaba Group Holding Ltd.
