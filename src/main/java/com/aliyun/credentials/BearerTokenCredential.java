@@ -25,9 +25,10 @@ public class BearerTokenCredential implements AlibabaCloudCredentials {
 
     @Override
     public String getType() {
-        return null;
+        return "bearer";
     }
 
+    @Override
     public String getBearerToken() {
         return bearerToken;
     }

@@ -40,4 +40,9 @@ public class AccessKeyCredential implements AlibabaCloudCredentials {
         return AuthConstant.ACCESS_KEY;
     }
 
+    @Override
+    public String getBearerToken() {
+        return null;
+    }
+
 }

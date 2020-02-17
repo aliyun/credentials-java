@@ -48,4 +48,9 @@ public class StsCredential implements AlibabaCloudCredentials {
     public String getType() {
         return AuthConstant.STS;
     }
+
+    @Override
+    public String getBearerToken() {
+        return null;
+    }
 }

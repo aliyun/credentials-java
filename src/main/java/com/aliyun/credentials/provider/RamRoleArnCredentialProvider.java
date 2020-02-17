@@ -9,6 +9,7 @@ import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
+import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.google.gson.Gson;
 
@@ -44,6 +45,12 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn());
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
+    }
+
+    public RamRoleArnCredentialProvider(Config config) {
+        this(config.accessKeyId, config.accessKeySecret, config.roleArn);
+        this.connectTimeout = config.connectTimeout;
+        this.readTimeout = config.timeout;
     }
 
     public RamRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn) {

@@ -7,6 +7,7 @@ import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
+import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.google.gson.Gson;
 
@@ -34,6 +35,12 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
         this(config.getPublicKeyId(), config.getPrivateKeyFile());
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
+    }
+
+    public RsaKeyPairCredentialProvider(Config config) {
+        this(config.publicKeyId, config.privateKeyFile);
+        this.connectTimeout = config.connectTimeout;
+        this.readTimeout = config.timeout;
     }
 
 
