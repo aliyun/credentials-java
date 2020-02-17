@@ -20,7 +20,7 @@ public class BearerTokenCredentialsTest {
         String newToken = "new Token";
         credentials.setBearerToken(newToken);
         Assert.assertEquals(newToken, credentials.getBearerToken());
-        Assert.assertNull(credentials.getType());
+        Assert.assertEquals("bearer", credentials.getType());
         Assert.assertNull(credentials.getSecurityToken());
     }
 }

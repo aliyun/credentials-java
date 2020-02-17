@@ -42,6 +42,11 @@ public class EcsRamRoleCredential implements AlibabaCloudCredentials {
         return AuthConstant.ECS_RAM_ROLE;
     }
 
+    @Override
+    public String getBearerToken() {
+        return null;
+    }
+
     public long getExpiration() {
         return expiration;
     }
