@@ -66,6 +66,11 @@ public class RamRoleArnCredential implements AlibabaCloudCredentials {
         return AuthConstant.RAM_ROLE_ARN;
     }
 
+    @Override
+    public String getBearerToken() {
+        return null;
+    }
+
     public long getExpiration() {
         refreshCredential();
         return expiration;

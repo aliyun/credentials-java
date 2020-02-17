@@ -5,6 +5,7 @@ import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
+import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.StringUtils;
 
 import java.net.MalformedURLException;
@@ -30,6 +31,15 @@ public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProv
             config.setRoleName(roleName);
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(config.getRoleName(), config.getConnectTimeout(), config.getReadTimeout());
+    }
+
+    public EcsRamRoleCredentialProvider(Config config) throws MalformedURLException, CredentialException {
+        if (StringUtils.isEmpty(config.roleName)) {
+            CompatibleUrlConnClient client = new CompatibleUrlConnClient();
+            String roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
+            config.roleName = roleName;
+        }
+        this.fetcher = new ECSMetadataServiceCredentialsFetcher(config.roleName, config.connectTimeout, config.timeout);
     }
 
     @Override

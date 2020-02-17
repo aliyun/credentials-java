@@ -9,4 +9,6 @@ public interface AlibabaCloudCredentials {
     public String getSecurityToken();
 
     public String getType();
+
+    public String getBearerToken();
 }

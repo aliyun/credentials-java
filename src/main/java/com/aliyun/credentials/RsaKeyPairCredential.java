@@ -42,6 +42,11 @@ public class RsaKeyPairCredential implements AlibabaCloudCredentials {
         return AuthConstant.RSA_KEY_PAIR;
     }
 
+    @Override
+    public String getBearerToken() {
+        return null;
+    }
+
     public long getExpiration() {
         return expiration;
     }
