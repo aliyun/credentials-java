@@ -14,6 +14,10 @@ public class Client {
     private AlibabaCloudCredentials cloudCredential;
 
     public Client(Config config) throws ParseException, CredentialException, IOException {
+        if (null == config) {
+            DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
+            this.cloudCredential = provider.getCredentials();
+        }
         this.cloudCredential = getCredential(config);
     }
 
