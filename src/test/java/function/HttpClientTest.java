@@ -9,8 +9,8 @@ public class HttpClientTest {
 
     @Test
     public void baseConnect() {
-        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(System.getenv("AccessKeyId"),
-                System.getenv("AccessKeySecret"), System.getenv("RAM_ARN"));
+        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(System.getenv("RAMAccessKeyId"),
+                System.getenv("RAMAccessKeySecret"), System.getenv("roleArn"));
         provider.setRegionId("cn-hangzhou");
         AlibabaCloudCredentials credentials = provider.getCredentials();
         Assert.assertNotNull(credentials.getSecurityToken());

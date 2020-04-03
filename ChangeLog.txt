@@ -1,3 +1,6 @@
+2020-04-02 Version: 0.1.1
+1.constructor supports null arguments
+
 2020-02-21 Version: 0.1.0
 1.update credentials for tea
 
