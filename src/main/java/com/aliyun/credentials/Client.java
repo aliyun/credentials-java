@@ -17,6 +17,7 @@ public class Client {
         if (null == config) {
             DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
             this.cloudCredential = provider.getCredentials();
+            return;
         }
         this.cloudCredential = getCredential(config);
     }
