@@ -67,3 +67,4 @@ public class CredentialTest {
         Assert.assertNull(credential.getCredential(config));
     }
 }
+
