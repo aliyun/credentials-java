@@ -72,3 +72,4 @@ public class Client {
         return this.cloudCredential.getBearerToken();
     }
 }
+
