@@ -1,3 +1,6 @@
+2020-07-17 Version: 0.2.0
+1.improve Config
+
 2020-06-16 Version: 0.1.2
 1.fix NullPointerException
 

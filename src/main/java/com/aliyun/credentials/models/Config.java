@@ -6,29 +6,29 @@ import com.aliyun.tea.TeaModel;
 public class Config extends TeaModel {
     @NameInMap("type")
     public String type = "default";
-    @NameInMap("access_key_id")
+    @NameInMap("accessKeyId")
     public String accessKeyId;
-    @NameInMap("access_key_secret")
+    @NameInMap("accessKeySecret")
     public String accessKeySecret;
-    @NameInMap("role_arn")
+    @NameInMap("roleArn")
     public String roleArn;
-    @NameInMap("role_session_name")
+    @NameInMap("roleSessionName")
     public String roleSessionName;
-    @NameInMap("private_key_file")
+    @NameInMap("privateKeyFile")
     public String privateKeyFile;
-    @NameInMap("public_key_id")
+    @NameInMap("publicKeyId")
     public String publicKeyId;
-    @NameInMap("role_name")
+    @NameInMap("roleName")
     public String roleName;
-    @NameInMap("bearer_token")
+    @NameInMap("bearerToken")
     public String bearerToken;
-    @NameInMap("security_token")
+    @NameInMap("securityToken")
     public String securityToken;
     @NameInMap("host")
     public String host;
-    @NameInMap("rad_time_out")
+    @NameInMap("readTimeout")
     public int timeout;
-    @NameInMap("connect_timeout")
+    @NameInMap("connectTimeout")
     public int connectTimeout;
     @NameInMap("proxy")
     public String proxy;
