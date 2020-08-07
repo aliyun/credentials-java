@@ -6,7 +6,7 @@
 
     <groupId>com.aliyun</groupId>
     <artifactId>credentials-java</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <packaging>jar</packaging>
 
     <name>credentials-java</name>
@@ -62,8 +62,7 @@
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>tea</artifactId>
-            <version>0.0.19</version>
-            <optional>true</optional>
+            <version>1.0.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
