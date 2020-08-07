@@ -2,6 +2,7 @@ package com.aliyun.credentials;
 
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.RefreshUtils;
 
 public class RsaKeyPairCredential implements AlibabaCloudCredentials {
 
@@ -22,13 +23,24 @@ public class RsaKeyPairCredential implements AlibabaCloudCredentials {
         this.provider = provider;
     }
 
+    public void refreshCredential() {
+        if (RefreshUtils.withShouldRefresh(this.expiration)) {
+            RsaKeyPairCredential credential = (RsaKeyPairCredential) RefreshUtils.getNewCredential(this.provider);
+            this.publicKeyId = credential.publicKeyId;
+            this.expiration = credential.expiration;
+            this.privateKeySecret = credential.privateKeySecret;
+        }
+    }
+
     @Override
     public String getAccessKeyId() {
+        refreshCredential();
         return publicKeyId;
     }
 
     @Override
     public String getAccessKeySecret() {
+        refreshCredential();
         return privateKeySecret;
     }
 

@@ -45,7 +45,7 @@ public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProv
     @Override
     public AlibabaCloudCredentials getCredentials() throws CredentialException, ParseException {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-        return fetcher.fetch(client);
+        return fetcher.fetch(client, this);
     }
 
     public ECSMetadataServiceCredentialsFetcher getFetcher() {

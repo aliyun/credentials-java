@@ -75,7 +75,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         return new String(response.getHttpContent());
     }
 
-    public EcsRamRoleCredential fetch(CompatibleUrlConnClient client) throws CredentialException, ParseException {
+    public EcsRamRoleCredential fetch(CompatibleUrlConnClient client, AlibabaCloudCredentialsProvider provider) throws CredentialException, ParseException {
         String jsonContent = getMetadata(client);
         JsonObject jsonObject = new JsonParser().parse(jsonContent).getAsJsonObject();
 
@@ -90,7 +90,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         }
         return new EcsRamRoleCredential(jsonObject.get("AccessKeyId").getAsString(), jsonObject.get(
                 "AccessKeySecret").getAsString(), jsonObject.get("SecurityToken").getAsString(), jsonObject.get(
-                "Expiration").getAsString());
+                "Expiration").getAsString(), provider);
     }
 
     public URL getCredentialUrl() {

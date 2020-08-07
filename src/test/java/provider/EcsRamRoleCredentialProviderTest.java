@@ -20,7 +20,7 @@ public class EcsRamRoleCredentialProviderTest {
     public void ecsRamRoleCredentialProviderTest() throws MalformedURLException, CredentialException, ParseException {
         EcsRamRoleCredentialProvider provider = new EcsRamRoleCredentialProvider("test");
         ECSMetadataServiceCredentialsFetcher fetcher = mock(ECSMetadataServiceCredentialsFetcher.class);
-        when(fetcher.fetch(any())).thenReturn(new EcsRamRoleCredential());
+        when(fetcher.fetch(any(), any())).thenReturn(new EcsRamRoleCredential());
         provider.setFetcher(fetcher);
         Assert.assertEquals(fetcher, provider.getFetcher());
         Assert.assertTrue(provider.getCredentials() instanceof  EcsRamRoleCredential);
