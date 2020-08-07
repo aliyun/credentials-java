@@ -32,6 +32,10 @@ public class Config extends TeaModel {
     public int connectTimeout;
     @NameInMap("proxy")
     public String proxy;
+    @NameInMap("policy")
+    public String policy;
+    @NameInMap("roleSessionExpiration")
+    public Integer roleSessionExpiration = 3600;
 
     public static Config build(java.util.Map<String, ?> map) throws Exception {
         Config self = new Config();
