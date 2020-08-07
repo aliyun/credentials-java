@@ -2,6 +2,7 @@ package com.aliyun.credentials;
 
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.RefreshUtils;
 
 public class RamRoleArnCredential implements AlibabaCloudCredentials {
 
@@ -20,22 +21,9 @@ public class RamRoleArnCredential implements AlibabaCloudCredentials {
         this.provider = provider;
     }
 
-    public boolean withShouldRefresh() {
-        return System.currentTimeMillis() >= (this.expiration - 180);
-    }
-
-    public RamRoleArnCredential getNewRamRoleArnCredential() {
-        try {
-            return (RamRoleArnCredential) provider.getCredentials();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     public void refreshCredential() {
-        if (withShouldRefresh()) {
-            RamRoleArnCredential credential = getNewRamRoleArnCredential();
+        if (RefreshUtils.withShouldRefresh(this.expiration)) {
+            RamRoleArnCredential credential = (RamRoleArnCredential) RefreshUtils.getNewCredential(this.provider);
             this.expiration = credential.getExpiration();
             this.accessKeyId = credential.getAccessKeyId();
             this.accessKeySecret = credential.getAccessKeySecret();

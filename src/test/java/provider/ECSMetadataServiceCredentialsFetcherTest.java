@@ -50,7 +50,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any())).thenThrow(new RuntimeException("test"));
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
@@ -61,7 +61,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=500",
@@ -74,7 +74,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Invalid json got from ECS Metadata service.",
@@ -87,7 +87,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Invalid json got from ECS Metadata service.",
@@ -100,7 +100,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Invalid json got from ECS Metadata service.",
@@ -112,7 +112,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Invalid json got from ECS Metadata service.",
@@ -126,7 +126,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Invalid json got from ECS Metadata service.",
@@ -140,7 +140,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
                 "UTF-8", FormatType.JSON);
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
-        Assert.assertTrue(fetcher.fetch(client) instanceof EcsRamRoleCredential);
+        Assert.assertTrue(fetcher.fetch(client, null) instanceof EcsRamRoleCredential);
 
         response = new HttpResponse("test");
         response.setResponseCode(200);
@@ -150,7 +150,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client);
+            fetcher.fetch(client, null);
             Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service.",

@@ -13,14 +13,6 @@ import static org.mockito.Mockito.when;
 
 
 public class RamRoleArnCredentialTest {
-    @Test
-    public void withShouldRefreshTest() {
-        RamRoleArnCredential credential = new RamRoleArnCredential(null, null, null, 0L, null);
-        Assert.assertTrue(credential.withShouldRefresh());
-
-        credential = new RamRoleArnCredential(null, null, null, 64090527132000L, null);
-        Assert.assertFalse(credential.withShouldRefresh());
-    }
 
     @Test
     public void ramRoleArnCredentialTest() throws CredentialException, IOException, ParseException {
@@ -38,9 +30,4 @@ public class RamRoleArnCredentialTest {
         Assert.assertEquals(AuthConstant.RAM_ROLE_ARN, credential.getType());
     }
 
-    @Test
-    public void getNewRamRoleArnCredentialTest(){
-        RamRoleArnCredential credential = new RamRoleArnCredential(null, null, null, 0, null);
-        Assert.assertNull(credential.getNewRamRoleArnCredential());
-    }
 }
