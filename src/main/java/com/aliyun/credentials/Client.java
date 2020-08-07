@@ -22,6 +22,10 @@ public class Client {
         this.cloudCredential = getCredential(config);
     }
 
+    public Client() throws ParseException, CredentialException, IOException {
+        this.cloudCredential = new DefaultCredentialsProvider().getCredentials();
+    }
+
     public AlibabaCloudCredentials getCredential(Config config) throws IOException, CredentialException, ParseException {
         switch (config.type) {
             case AuthConstant.ACCESS_KEY:
