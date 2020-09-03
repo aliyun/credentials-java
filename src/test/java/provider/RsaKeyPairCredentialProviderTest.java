@@ -4,10 +4,12 @@ import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.RsaKeyPairCredential;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
+import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.provider.RsaKeyPairCredentialProvider;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -45,7 +47,7 @@ public class RsaKeyPairCredentialProviderTest {
         HttpResponse response = new HttpResponse("test?test=test");
         response.setHttpContent(new String("{\"SessionAccessKey\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"SessionAccessKeyId\":\"test\"," +
                 "\"SessionAccessKeySecret\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
-        when(client.syncInvoke(any())).thenReturn(response);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
         Assert.assertTrue(provider.createCredential(client) instanceof RsaKeyPairCredential);
     }
 
