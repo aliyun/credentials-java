@@ -9,6 +9,7 @@ import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.provider.ECSMetadataServiceCredentialsFetcher;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -48,7 +49,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
     public void fetchTest() throws CredentialException, ParseException, IOException, NoSuchAlgorithmException, KeyManagementException {
         ECSMetadataServiceCredentialsFetcher fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test"));
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
-        when(client.syncInvoke(any())).thenThrow(new RuntimeException("test"));
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenThrow(new RuntimeException("test"));
         try {
             fetcher.fetch(client, null);
             Assert.fail();
@@ -163,7 +164,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = mock(HttpResponse.class);
         when(response.getResponseCode()).thenReturn(404);
-        when(client.syncInvoke(any())).thenReturn(response);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
         ECSMetadataServiceCredentialsFetcher fetcher = new ECSMetadataServiceCredentialsFetcher("");
         try {
             fetcher.fetchRoleName(client);
@@ -175,7 +176,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         response = mock(HttpResponse.class);
         when(response.getResponseCode()).thenReturn(200);
         when(response.getHttpContent()).thenReturn("roleNameTest".getBytes("UTF-8"));
-        when(client.syncInvoke(any())).thenReturn(response);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
         Assert.assertEquals("roleNameTest", fetcher.fetchRoleName(client));
     }
 }

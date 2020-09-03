@@ -1,3 +1,6 @@
+2020-09-03 Version: 0.2.3
+1.change jdk to 7
+
 2020-08-11 Version: 0.2.2
 1.improve credentials
 
