@@ -7,12 +7,12 @@ import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.ParseException;
+import java.util.Map;
 
 public class ECSMetadataServiceCredentialsFetcher {
     private static final String URL_IN_ECS_METADATA = "/latest/meta-data/ram/security-credentials/";
@@ -77,20 +77,13 @@ public class ECSMetadataServiceCredentialsFetcher {
 
     public EcsRamRoleCredential fetch(CompatibleUrlConnClient client, AlibabaCloudCredentialsProvider provider) throws CredentialException, ParseException {
         String jsonContent = getMetadata(client);
-        JsonObject jsonObject = new JsonParser().parse(jsonContent).getAsJsonObject();
+        Map<String, String> result = new Gson().fromJson(jsonContent, Map.class);
 
-        if (jsonObject.has("Code") && jsonObject.has("AccessKeyId") && jsonObject.has("AccessKeySecret") && jsonObject
-                .has("SecurityToken") && jsonObject.has("Expiration")) {
-        } else {
-            throw new CredentialException("Invalid json got from ECS Metadata service.");
-        }
-
-        if (!"Success".equals(jsonObject.get("Code").getAsString())) {
+        if (!"Success".equals(result.get("Code"))) {
             throw new CredentialException(ECS_METADAT_FETCH_ERROR_MSG);
         }
-        return new EcsRamRoleCredential(jsonObject.get("AccessKeyId").getAsString(), jsonObject.get(
-                "AccessKeySecret").getAsString(), jsonObject.get("SecurityToken").getAsString(), jsonObject.get(
-                "Expiration").getAsString(), provider);
+        return new EcsRamRoleCredential(result.get("AccessKeyId"), result.get("AccessKeySecret"),
+                result.get("SecurityToken"), result.get("Expiration"), provider);
     }
 
     public URL getCredentialUrl() {
