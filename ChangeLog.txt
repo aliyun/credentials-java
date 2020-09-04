@@ -1,3 +1,6 @@
+2020-09-04 Version: 0.2.4
+1.improve ECSMetadataServiceCredentialsFetcher
+
 2020-09-03 Version: 0.2.3
 1.change jdk to 7
 

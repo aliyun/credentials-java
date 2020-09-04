@@ -139,11 +139,15 @@ public class CompatibleUrlConnClient implements Closeable {
             response.putHeaderParameter(key, builder.toString());
         }
         String type = response.getHeaderValue("Content-Type");
-        response.setSysEncoding("UTF-8");
-        String[] split = type.split(";");
-        response.setHttpContentType(FormatType.mapAcceptToFormat(split[0].trim()));
-        String[] codings = split[1].split("=");
-        response.setSysEncoding(codings[1].trim().toUpperCase());
+        if (null != buff && null != type) {
+            response.setSysEncoding("UTF-8");
+            String[] split = type.split(";");
+            response.setHttpContentType(FormatType.mapAcceptToFormat(split[0].trim()));
+            if (split.length > 1 && split[1].contains("=")) {
+                String[] codings = split[1].split("=");
+                response.setSysEncoding(codings[1].trim().toUpperCase());
+            }
+        }
         response.setHttpContent(buff, response.getSysEncoding(), response.getHttpContentType());
     }
 
