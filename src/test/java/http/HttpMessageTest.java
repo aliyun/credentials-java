@@ -48,7 +48,7 @@ public class HttpMessageTest {
     }
 
     @Test
-    public void setGetTest() throws CredentialException, NoSuchAlgorithmException {
+    public void setGetTest() {
         HttpRequest request = new HttpRequest("test");
         request.setSysMethod(MethodType.PUT);
         Assert.assertTrue(MethodType.PUT == request.getSysMethod());

@@ -19,7 +19,7 @@ public class EcsRamRoleCredential implements AlibabaCloudCredentials {
     }
 
     public EcsRamRoleCredential(String accessKeyId, String accessKeySecret, String securityToken, String expiration,
-                                AlibabaCloudCredentialsProvider provider) throws ParseException {
+                                AlibabaCloudCredentialsProvider provider) {
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
         this.securityToken = securityToken;

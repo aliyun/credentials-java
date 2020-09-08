@@ -20,7 +20,7 @@ import java.util.Map;
 public class ProfileCredentialsProviderTest {
 
     @Test
-    public void getCredentialsTest() throws ParseException, IOException, CredentialException {
+    public void getCredentialsTest() {
         AuthUtils.setEnvironmentCredentialsFile("");
         ProfileCredentialsProvider provider = new ProfileCredentialsProvider();
         try {
@@ -130,7 +130,7 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    public void  getSTSGetSessionAccessKeyCredentialsTest() throws NoSuchMethodException{
+    public void  getSTSGetSessionAccessKeyCredentialsTest() {
         ProfileCredentialsProvider provider = new ProfileCredentialsProvider();
 
         CredentialsProviderFactory factory = new CredentialsProviderFactory();
@@ -175,7 +175,7 @@ public class ProfileCredentialsProviderTest {
 
     @Test
     public void createCredentialsProviderTest() throws
-            NoSuchMethodException, InvocationTargetException, IllegalAccessException, CredentialException, ParseException {
+            NoSuchMethodException, InvocationTargetException, IllegalAccessException, CredentialException {
         ProfileCredentialsProvider profileCredentialsProvider = new ProfileCredentialsProvider();
         Class<ProfileCredentialsProvider> providerClass = ProfileCredentialsProvider.class;
         Method createCredential = providerClass.getDeclaredMethod(

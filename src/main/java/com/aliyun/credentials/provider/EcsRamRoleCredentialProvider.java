@@ -15,7 +15,7 @@ public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProv
 
     private ECSMetadataServiceCredentialsFetcher fetcher;
 
-    public EcsRamRoleCredentialProvider(String roleName) throws MalformedURLException, CredentialException {
+    public EcsRamRoleCredentialProvider(String roleName) {
         if (StringUtils.isEmpty(roleName)) {
             CompatibleUrlConnClient client = new CompatibleUrlConnClient();
             roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
@@ -24,7 +24,7 @@ public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProv
     }
 
 
-    public EcsRamRoleCredentialProvider(Configuration config) throws MalformedURLException, CredentialException {
+    public EcsRamRoleCredentialProvider(Configuration config) {
         if (StringUtils.isEmpty(config.getRoleName())) {
             CompatibleUrlConnClient client = new CompatibleUrlConnClient();
             String roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
@@ -33,7 +33,7 @@ public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProv
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(config.getRoleName(), config.getConnectTimeout(), config.getReadTimeout());
     }
 
-    public EcsRamRoleCredentialProvider(Config config) throws MalformedURLException, CredentialException {
+    public EcsRamRoleCredentialProvider(Config config) {
         if (StringUtils.isEmpty(config.roleName)) {
             CompatibleUrlConnClient client = new CompatibleUrlConnClient();
             String roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
@@ -43,7 +43,7 @@ public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProv
     }
 
     @Override
-    public AlibabaCloudCredentials getCredentials() throws CredentialException, ParseException {
+    public AlibabaCloudCredentials getCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return fetcher.fetch(client, this);
     }

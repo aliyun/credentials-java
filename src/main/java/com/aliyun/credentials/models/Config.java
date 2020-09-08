@@ -1,7 +1,10 @@
 package com.aliyun.credentials.models;
 
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.tea.NameInMap;
 import com.aliyun.tea.TeaModel;
+
+import java.lang.reflect.InvocationTargetException;
 
 public class Config extends TeaModel {
     @NameInMap("type")
@@ -37,9 +40,13 @@ public class Config extends TeaModel {
     @NameInMap("roleSessionExpiration")
     public Integer roleSessionExpiration = 3600;
 
-    public static Config build(java.util.Map<String, ?> map) throws Exception {
+    public static Config build(java.util.Map<String, ?> map) {
         Config self = new Config();
-        return TeaModel.build(map, self);
+        try {
+            return TeaModel.build(map, self);
+        } catch (Exception e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
     }
 
 }

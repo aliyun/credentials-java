@@ -19,7 +19,7 @@ import java.text.ParseException;
 
 public class CredentialTest {
     @Test
-    public void credentialTest() throws ParseException, IOException, CredentialException {
+    public void credentialTest() {
         Configuration config = new Configuration();
         config.setType(AuthConstant.ACCESS_KEY);
         config.setAccessKeyId("123456");
@@ -32,7 +32,7 @@ public class CredentialTest {
     }
 
     @Test
-    public void getProviderTest() throws ParseException, IOException, CredentialException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void getProviderTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Configuration config = new Configuration();
         config.setType(AuthConstant.ACCESS_KEY);
         config.setRoleName("test");
@@ -55,7 +55,7 @@ public class CredentialTest {
     }
 
     @Test
-    public void getCredentialTest() throws Exception {
+    public void getCredentialTest() {
         Configuration config = new Configuration();
         config.setType(AuthConstant.STS);
         config.setAccessKeyId("test");

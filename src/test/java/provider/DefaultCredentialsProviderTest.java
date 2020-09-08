@@ -30,7 +30,7 @@ public class DefaultCredentialsProviderTest {
     }
 
     @Test
-    public void getCredentialsTest() throws CredentialException, IOException, ParseException {
+    public void getCredentialsTest() {
         DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
         AuthUtils.setEnvironmentECSMetaData("");
         try {

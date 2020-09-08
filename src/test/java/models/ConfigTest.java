@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class ConfigTest {
     @Test
-    public void buildTest() throws Exception{
+    public void buildTest() {
         Map<String, String> map = new HashMap<>();
         map.put("accessKeyId", "test");
         Config config = Config.build(map);

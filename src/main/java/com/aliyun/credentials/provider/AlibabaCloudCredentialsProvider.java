@@ -8,5 +8,5 @@ import java.text.ParseException;
 
 public interface AlibabaCloudCredentialsProvider {
 
-    public AlibabaCloudCredentials getCredentials() throws CredentialException, IOException, ParseException;
+    public AlibabaCloudCredentials getCredentials();
 }

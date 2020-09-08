@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class ECSMetadataServiceCredentialsFetcherTest {
     @Test
-    public void constructorTest() throws MalformedURLException {
+    public void constructorTest() {
         ECSMetadataServiceCredentialsFetcher fetcher = new ECSMetadataServiceCredentialsFetcher("test");
         Assert.assertEquals("http://100.100.100.200/latest/meta-data/ram/security-credentials/test",
                 fetcher.getCredentialUrl().toString());

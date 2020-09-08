@@ -9,7 +9,7 @@ import org.mockito.Mockito;
 public class RefreshUtilsTest {
 
     @Test
-    public void getNewCredentialTest() throws Exception{
+    public void getNewCredentialTest() {
         new RefreshUtils();
         EcsRamRoleCredentialProvider provider = Mockito.mock(EcsRamRoleCredentialProvider.class);
         Mockito.when(provider.getCredentials()).thenThrow(new RuntimeException("This exception is expected"));

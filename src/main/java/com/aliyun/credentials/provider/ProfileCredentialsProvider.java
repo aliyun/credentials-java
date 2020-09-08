@@ -7,6 +7,7 @@ import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.StringUtils;
+import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
 import org.ini4j.Wini;
 
@@ -28,7 +29,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     @Override
-    public AlibabaCloudCredentials getCredentials() throws CredentialException, IOException, ParseException {
+    public AlibabaCloudCredentials getCredentials() {
         String filePath = AuthUtils.getEnvironmentCredentialsFile();
         if (filePath == null) {
             filePath = AuthConstant.DEFAULT_CREDENTIALS_FILE_PATH;
@@ -68,7 +69,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     private AlibabaCloudCredentials createCredential(Map<String, String> clientConfig,
-                                                     CredentialsProviderFactory factory) throws CredentialException, IOException, ParseException {
+                                                     CredentialsProviderFactory factory) {
         String configType = clientConfig.get(AuthConstant.INI_TYPE);
         if (StringUtils.isEmpty(configType)) {
             throw new CredentialException("The configured client type is empty");
@@ -91,8 +92,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     private AlibabaCloudCredentials getSTSAssumeRoleSessionCredentials(Map<String, String> clientConfig,
-                                                                       CredentialsProviderFactory factory)
-            throws CredentialException {
+                                                                       CredentialsProviderFactory factory) {
         String accessKeyId = clientConfig.get(AuthConstant.INI_ACCESS_KEY_ID);
         String accessKeySecret = clientConfig.get(AuthConstant.INI_ACCESS_KEY_IDSECRET);
         String roleSessionName = clientConfig.get(AuthConstant.INI_ROLE_SESSION_NAME);
@@ -112,8 +112,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     public AlibabaCloudCredentials getSTSGetSessionAccessKeyCredentials(Map<String, String> clientConfig,
-                                                                        CredentialsProviderFactory factory)
-            throws CredentialException, IOException {
+                                                                        CredentialsProviderFactory factory) {
         String publicKeyId = clientConfig.get(AuthConstant.INI_PUBLIC_KEY_ID);
         String privateKeyFile = clientConfig.get(AuthConstant.INI_PRIVATE_KEY_FILE);
         if (StringUtils.isEmpty(privateKeyFile)) {
@@ -129,8 +128,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     private AlibabaCloudCredentials getInstanceProfileCredentials(Map<String, String> clientConfig,
-                                                                  CredentialsProviderFactory factory)
-            throws CredentialException, MalformedURLException, ParseException {
+                                                                  CredentialsProviderFactory factory) {
         String roleName = clientConfig.get(AuthConstant.INI_ROLE_NAME);
         if (StringUtils.isEmpty(roleName)) {
             throw new CredentialException("The configured role_name is empty");

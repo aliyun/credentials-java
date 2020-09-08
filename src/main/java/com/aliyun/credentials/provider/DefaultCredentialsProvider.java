@@ -17,7 +17,7 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
     private static final List<AlibabaCloudCredentialsProvider> USER_CONFIGURATION_PROVIDERS =
             new Vector<AlibabaCloudCredentialsProvider>();
 
-    public DefaultCredentialsProvider() throws CredentialException, MalformedURLException {
+    public DefaultCredentialsProvider() {
         defaultProviders.add(new SystemPropertiesCredentialsProvider());
         defaultProviders.add(new EnvironmentVariableCredentialsProvider());
         defaultProviders.add(new ProfileCredentialsProvider());
@@ -28,7 +28,7 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     @Override
-    public AlibabaCloudCredentials getCredentials() throws CredentialException, IOException, ParseException {
+    public AlibabaCloudCredentials getCredentials() {
         AlibabaCloudCredentials credential;
         if (USER_CONFIGURATION_PROVIDERS.size() > 0) {
             for (AlibabaCloudCredentialsProvider provider : USER_CONFIGURATION_PROVIDERS) {

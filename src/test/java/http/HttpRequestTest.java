@@ -45,7 +45,7 @@ public class HttpRequestTest {
     }
 
     @Test
-    public void getHttpContentStringTest() throws CredentialException, UnsupportedEncodingException, NoSuchAlgorithmException {
+    public void getHttpContentStringTest() throws CredentialException, UnsupportedEncodingException {
         HttpRequest request = new HttpRequest("test");
         request.setHttpContent("test".getBytes(), null, null);
         String content = request.getHttpContentString();
@@ -62,7 +62,8 @@ public class HttpRequestTest {
             request.getHttpContentString();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Can not parse response due to unsupported encoding.", e.getMessage());
+            System.out.println(e.getMessage());
+            Assert.assertEquals("Can not parse response due to unsupported encoding: hgbkjhkjh", e.getMessage());
         }
 
     }

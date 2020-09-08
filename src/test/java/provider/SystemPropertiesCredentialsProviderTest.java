@@ -14,7 +14,7 @@ import java.text.ParseException;
 public class SystemPropertiesCredentialsProviderTest {
 
     @Test
-    public void getCredentialsTest() throws CredentialException, IOException, ParseException {
+    public void getCredentialsTest() {
         SystemPropertiesCredentialsProvider provider = new SystemPropertiesCredentialsProvider();
         AuthUtils.setClientType("aa");
         Assert.assertNull(provider.getCredentials());

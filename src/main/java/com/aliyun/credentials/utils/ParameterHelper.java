@@ -1,5 +1,6 @@
 package com.aliyun.credentials.utils;
 
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.MethodType;
 
 import javax.crypto.Mac;
@@ -35,13 +36,17 @@ public class ParameterHelper {
         return df.format(date);
     }
 
-    public static Date getUTCDate(String date) throws ParseException {
+    public static Date getUTCDate(String date) {
         SimpleDateFormat df = new SimpleDateFormat(FORMAT_ISO8601);
         df.setTimeZone(new SimpleTimeZone(0, TIME_ZONE));
-        return df.parse(date);
+        try {
+            return df.parse(date);
+        } catch (ParseException e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
     }
 
-    public String composeStringToSign(MethodType method, Map<String, String> queries) throws UnsupportedEncodingException {
+    public String composeStringToSign(MethodType method, Map<String, String> queries) {
         String[] sortedKeys = queries.keySet().toArray(new String[]{});
         Arrays.sort(sortedKeys);
         StringBuilder canonicalizedQueryString = new StringBuilder();
@@ -62,14 +67,19 @@ public class ParameterHelper {
         return stringToSign.toString();
     }
 
-    public String signString(String stringToSign, String accessKeySecret) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
-        Mac mac = Mac.getInstance(ALGORITHM_NAME);
-        mac.init(new SecretKeySpec(accessKeySecret.getBytes(ENCODING), ALGORITHM_NAME));
-        byte[] signData = mac.doFinal(stringToSign.getBytes(ENCODING));
-        return DatatypeConverter.printBase64Binary(signData);
+    public String signString(String stringToSign, String accessKeySecret) {
+        try {
+            Mac mac = Mac.getInstance(ALGORITHM_NAME);
+            mac.init(new SecretKeySpec(accessKeySecret.getBytes(ENCODING), ALGORITHM_NAME));
+            byte[] signData = mac.doFinal(stringToSign.getBytes(ENCODING));
+            return DatatypeConverter.printBase64Binary(signData);
+        } catch (Exception e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
+
     }
 
-    public String composeUrl(String endpoint, Map<String, String> queries, String protocol) throws UnsupportedEncodingException {
+    public String composeUrl(String endpoint, Map<String, String> queries, String protocol) {
         Map<String, String> mapQueries = queries;
         StringBuilder urlBuilder = new StringBuilder("");
         urlBuilder.append(protocol);

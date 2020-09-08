@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 public class RamRoleArnCredentialTest {
 
     @Test
-    public void ramRoleArnCredentialTest() throws CredentialException, IOException, ParseException {
+    public void ramRoleArnCredentialTest() {
         AlibabaCloudCredentialsProvider provider = mock(AlibabaCloudCredentialsProvider.class);
         when(provider.getCredentials()).thenReturn(new RamRoleArnCredential("id", "secret",
                 "token", 64090527132000L, null));

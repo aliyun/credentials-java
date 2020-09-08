@@ -12,7 +12,7 @@ public class Credential {
 
     private AlibabaCloudCredentials cloudCredential;
 
-    public Credential(Configuration config) throws ParseException, CredentialException, IOException {
+    public Credential(Configuration config) {
         if (null == config) {
             DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
             this.cloudCredential = provider.getCredentials();
@@ -21,7 +21,7 @@ public class Credential {
         this.cloudCredential = getCredential(config);
     }
 
-    public AlibabaCloudCredentials getCredential(Configuration config) throws IOException, CredentialException, ParseException {
+    public AlibabaCloudCredentials getCredential(Configuration config) {
         switch (config.getType()) {
             case AuthConstant.ACCESS_KEY:
                 return new AccessKeyCredential(config.getAccessKeyId(), config.getAccessKeySecret());
@@ -32,7 +32,7 @@ public class Credential {
         }
     }
 
-    private AlibabaCloudCredentialsProvider getProvider(Configuration config) throws CredentialException, MalformedURLException {
+    private AlibabaCloudCredentialsProvider getProvider(Configuration config) {
         try {
             switch (config.getType()) {
                 case AuthConstant.ECS_RAM_ROLE:

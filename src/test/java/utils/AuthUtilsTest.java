@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class AuthUtilsTest {
     @Test
-    public void getPrivateKeyTest() throws IOException {
+    public void getPrivateKeyTest() {
         new AuthUtils();
         AuthUtils.setPrivateKey(null);
         String path = AuthUtils.class.getClassLoader().getResource("configTest.ini").getPath();

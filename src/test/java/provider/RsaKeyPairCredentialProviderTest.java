@@ -41,7 +41,7 @@ public class RsaKeyPairCredentialProviderTest {
     }
 
     @Test
-    public void createCredentialTest() throws NoSuchAlgorithmException, IOException, KeyManagementException {
+    public void createCredentialTest() {
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", "test");
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");

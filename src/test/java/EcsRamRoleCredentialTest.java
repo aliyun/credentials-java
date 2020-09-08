@@ -9,7 +9,7 @@ import java.text.ParseException;
 
 public class EcsRamRoleCredentialTest {
     @Test
-    public void constructorTest() throws ParseException {
+    public void constructorTest() {
         EcsRamRoleCredential credential = new EcsRamRoleCredential("id", "secret",
                 "token", "2222-08-22T12:12:12Z", null);
 
