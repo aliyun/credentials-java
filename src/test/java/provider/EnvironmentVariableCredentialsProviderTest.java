@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class EnvironmentVariableCredentialsProviderTest {
     @Test
-    public void getCredentialsTest() throws CredentialException {
+    public void getCredentialsTest() {
         new AuthConstant();
         EnvironmentVariableCredentialsProvider provider = new EnvironmentVariableCredentialsProvider();
         AuthUtils.setClientType("aa");

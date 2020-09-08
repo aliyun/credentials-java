@@ -21,7 +21,7 @@ public class ParameterHelperTest {
     }
 
     @Test
-    public void getISO8601Time() throws ParseException {
+    public void getISO8601Time() {
         Date d2 = ParameterHelper.getUTCDate("2018-12-18T16:39:38Z");
         Assert.assertEquals("2018-12-18T16:39:38Z", ParameterHelper.getISO8601Time(d2));
     }

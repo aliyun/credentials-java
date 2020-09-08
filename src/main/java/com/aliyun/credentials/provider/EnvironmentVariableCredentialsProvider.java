@@ -7,7 +7,7 @@ import com.aliyun.credentials.utils.AuthUtils;
 
 public class EnvironmentVariableCredentialsProvider implements AlibabaCloudCredentialsProvider {
     @Override
-    public AlibabaCloudCredentials getCredentials() throws CredentialException {
+    public AlibabaCloudCredentials getCredentials() {
         if (!"default".equals(AuthUtils.getClientType())) {
             return null;
         }

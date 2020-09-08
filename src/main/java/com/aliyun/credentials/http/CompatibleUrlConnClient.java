@@ -1,5 +1,7 @@
 package com.aliyun.credentials.http;
 
+import com.aliyun.credentials.exception.CredentialException;
+
 import javax.net.ssl.*;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
@@ -21,14 +23,14 @@ public class CompatibleUrlConnClient implements Closeable {
 
     }
 
-    public static HttpResponse compatibleGetResponse(HttpRequest request) throws IOException, NoSuchAlgorithmException, KeyManagementException {
+    public static HttpResponse compatibleGetResponse(HttpRequest request) {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         HttpResponse response = client.syncInvoke(request);
         client.close();
         return response;
     }
 
-    public HttpResponse syncInvoke(HttpRequest request) throws IOException, KeyManagementException, NoSuchAlgorithmException {
+    public HttpResponse syncInvoke(HttpRequest request) {
         InputStream content = null;
         HttpResponse response = null;
         HttpURLConnection httpConn = buildHttpConnection(request);
@@ -46,19 +48,27 @@ public class CompatibleUrlConnClient implements Closeable {
             return response;
         } finally {
             if (content != null) {
-                content.close();
+                try {
+                    content.close();
+                } catch (IOException e) {
+                    throw new CredentialException(e.getMessage(), e);
+                }
             }
             httpConn.disconnect();
         }
     }
 
 
-    public SSLSocketFactory createSSLSocketFactory() throws NoSuchAlgorithmException, KeyManagementException {
-        X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(null, new TrustManager[]{compositeX509TrustManager},
-                new java.security.SecureRandom());
-        return sslContext.getSocketFactory();
+    public SSLSocketFactory createSSLSocketFactory() {
+        try {
+            X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[]{compositeX509TrustManager},
+                    new java.security.SecureRandom());
+            return sslContext.getSocketFactory();
+        } catch (Exception e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
     }
 
 
@@ -73,28 +83,29 @@ public class CompatibleUrlConnClient implements Closeable {
     }
 
 
-    public HttpURLConnection initHttpConnection(URL url, HttpRequest request) throws IOException, KeyManagementException, NoSuchAlgorithmException {
-
-        SSLSocketFactory sslSocketFactory = createSSLSocketFactory();
-        HttpURLConnection httpConn;
-        if ("https".equalsIgnoreCase(url.getProtocol())) {
-            HttpsURLConnection httpsConn = (HttpsURLConnection) url.openConnection();
-            httpsConn.setSSLSocketFactory(sslSocketFactory);
-            httpsConn.setHostnameVerifier(new TrueHostnameVerifier());
-            httpConn = httpsConn;
-        } else {
-            httpConn = (HttpURLConnection) url.openConnection();
+    public HttpURLConnection initHttpConnection(URL url, HttpRequest request) {
+        try {
+            SSLSocketFactory sslSocketFactory = createSSLSocketFactory();
+            HttpURLConnection httpConn;
+            if ("https".equalsIgnoreCase(url.getProtocol())) {
+                HttpsURLConnection httpsConn = (HttpsURLConnection) url.openConnection();
+                httpsConn.setSSLSocketFactory(sslSocketFactory);
+                httpsConn.setHostnameVerifier(new TrueHostnameVerifier());
+                httpConn = httpsConn;
+            } else {
+                httpConn = (HttpURLConnection) url.openConnection();
+            }
+            httpConn.setRequestMethod(request.getSysMethod().toString());
+            httpConn.setInstanceFollowRedirects(false);
+            httpConn.setDoOutput(true);
+            httpConn.setDoInput(true);
+            httpConn.setUseCaches(false);
+            setConnectionTimeout(httpConn, request);
+            httpConn.setRequestProperty(ACCEPT_ENCODING, "identity");
+            return httpConn;
+        } catch (Exception e) {
+            throw new CredentialException(e.getMessage(), e);
         }
-
-
-        httpConn.setRequestMethod(request.getSysMethod().toString());
-        httpConn.setInstanceFollowRedirects(false);
-        httpConn.setDoOutput(true);
-        httpConn.setDoInput(true);
-        httpConn.setUseCaches(false);
-        setConnectionTimeout(httpConn, request);
-        httpConn.setRequestProperty(ACCEPT_ENCODING, "identity");
-        return httpConn;
     }
 
     public void setConnectionTimeout(HttpURLConnection httpConn, HttpRequest request) {
@@ -102,67 +113,75 @@ public class CompatibleUrlConnClient implements Closeable {
         httpConn.setReadTimeout(request.getSysReadTimeout());
     }
 
-    public HttpURLConnection buildHttpConnection(HttpRequest request) throws IOException, NoSuchAlgorithmException, KeyManagementException {
+    public HttpURLConnection buildHttpConnection(HttpRequest request) {
         checkHttpRequest(request);
         String strUrl = request.getSysUrl();
+        try {
+            URL url = new URL(strUrl);
 
-        URL url = new URL(strUrl);
-
-        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-        HttpURLConnection httpConn = initHttpConnection(url, request);
-        return httpConn;
+            System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+            HttpURLConnection httpConn = initHttpConnection(url, request);
+            return httpConn;
+        } catch (Exception e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
     }
 
-    public void parseHttpConn(HttpResponse response, HttpURLConnection httpConn, InputStream content, Exception e)
-            throws IOException, NoSuchAlgorithmException {
+    public void parseHttpConn(HttpResponse response, HttpURLConnection httpConn, InputStream content, Exception e) {
         byte[] buff;
-        if (null != content) {
-            buff = readContent(content);
-        } else {
-            response.setResponseMessage(e.getMessage());
-            return;
-        }
-        response.setResponseCode(httpConn.getResponseCode());
-        response.setResponseMessage(httpConn.getResponseMessage());
-        Map<String, List<String>> headers = httpConn.getHeaderFields();
-        for (Entry<String, List<String>> entry : headers.entrySet()) {
-            String key = entry.getKey();
-            if (null == key) {
-                continue;
+        try {
+            if (null != content) {
+                buff = readContent(content);
+            } else {
+                response.setResponseMessage(e.getMessage());
+                return;
             }
-            List<String> values = entry.getValue();
-            StringBuilder builder = new StringBuilder(values.get(0));
-            for (int i = 1; i < values.size(); i++) {
-                builder.append(",");
-                builder.append(values.get(i));
+            response.setResponseCode(httpConn.getResponseCode());
+            response.setResponseMessage(httpConn.getResponseMessage());
+            Map<String, List<String>> headers = httpConn.getHeaderFields();
+            for (Entry<String, List<String>> entry : headers.entrySet()) {
+                String key = entry.getKey();
+                if (null == key) {
+                    continue;
+                }
+                List<String> values = entry.getValue();
+                StringBuilder builder = new StringBuilder(values.get(0));
+                for (int i = 1; i < values.size(); i++) {
+                    builder.append(",");
+                    builder.append(values.get(i));
+                }
+                response.putHeaderParameter(key, builder.toString());
             }
-            response.putHeaderParameter(key, builder.toString());
-        }
-        String type = response.getHeaderValue("Content-Type");
-        if (null != buff && null != type) {
-            response.setSysEncoding("UTF-8");
-            String[] split = type.split(";");
-            response.setHttpContentType(FormatType.mapAcceptToFormat(split[0].trim()));
-            if (split.length > 1 && split[1].contains("=")) {
-                String[] codings = split[1].split("=");
-                response.setSysEncoding(codings[1].trim().toUpperCase());
+            String type = response.getHeaderValue("Content-Type");
+            if (null != buff && null != type) {
+                response.setSysEncoding("UTF-8");
+                String[] split = type.split(";");
+                response.setHttpContentType(FormatType.mapAcceptToFormat(split[0].trim()));
+                if (split.length > 1 && split[1].contains("=")) {
+                    String[] codings = split[1].split("=");
+                    response.setSysEncoding(codings[1].trim().toUpperCase());
+                }
             }
+            response.setHttpContent(buff, response.getSysEncoding(), response.getHttpContentType());
+        } catch (Exception exception) {
+            throw new CredentialException(exception.getMessage(), exception);
         }
-        response.setHttpContent(buff, response.getSysEncoding(), response.getHttpContentType());
     }
 
-    public byte[] readContent(InputStream content) throws IOException {
+    public byte[] readContent(InputStream content) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] buff = new byte[1024];
-
-        while (true) {
-            final int read = content.read(buff);
-            if (read == -1) {
-                break;
+        try {
+            while (true) {
+                final int read = content.read(buff);
+                if (read == -1) {
+                    break;
+                }
+                outputStream.write(buff, 0, read);
             }
-            outputStream.write(buff, 0, read);
+        } catch (IOException e) {
+            throw new CredentialException(e.getMessage(), e);
         }
-
         return outputStream.toByteArray();
     }
 

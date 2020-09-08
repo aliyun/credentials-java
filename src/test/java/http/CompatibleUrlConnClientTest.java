@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class CompatibleUrlConnClientTest {
     @Test
-    public void staticCompatibleGetResponseTest() throws IOException, KeyManagementException, NoSuchAlgorithmException {
+    public void staticCompatibleGetResponseTest() {
         HttpRequest httpRequest = new HttpRequest("https://www.aliyun.com");
         httpRequest.setSysMethod(MethodType.GET);
         httpRequest.setSysConnectTimeout(10000);

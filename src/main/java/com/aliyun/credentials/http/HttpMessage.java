@@ -50,7 +50,7 @@ public abstract class HttpMessage {
         return httpContent;
     }
 
-    public void setHttpContent(byte[] content, String encoding, FormatType format) throws NoSuchAlgorithmException {
+    public void setHttpContent(byte[] content, String encoding, FormatType format) {
         if (null == content) {
             this.headers.remove(CONTENT_MD5);
             this.headers.put(CONTENT_LENGTH, "0");
@@ -77,11 +77,14 @@ public abstract class HttpMessage {
         }
     }
 
-    public static String md5Sum(byte[] buff) throws NoSuchAlgorithmException {
-        MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] messageDigest = md.digest(buff);
-        return Base64Helper.encode(messageDigest);
-
+    public static String md5Sum(byte[] buff) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(buff);
+            return Base64Helper.encode(messageDigest);
+        } catch (Exception e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
     }
 
 
@@ -90,7 +93,7 @@ public abstract class HttpMessage {
     }
 
 
-    public String getHttpContentString() throws CredentialException {
+    public String getHttpContentString() {
         String stringContent = "";
         if (this.httpContent != null) {
             try {
@@ -100,10 +103,9 @@ public abstract class HttpMessage {
                     stringContent = new String(this.httpContent, this.encoding);
                 }
             } catch (UnsupportedEncodingException exp) {
-                throw new CredentialException("Can not parse response due to unsupported encoding.");
+                throw new CredentialException("Can not parse response due to unsupported encoding: " + exp.getMessage(), exp);
             }
         }
-
         return stringContent;
     }
 

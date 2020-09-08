@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 public class EcsRamRoleCredentialProviderTest {
     @Test
-    public void ecsRamRoleCredentialProviderTest() throws MalformedURLException, CredentialException, ParseException {
+    public void ecsRamRoleCredentialProviderTest() {
         EcsRamRoleCredentialProvider provider = new EcsRamRoleCredentialProvider("test");
         ECSMetadataServiceCredentialsFetcher fetcher = mock(ECSMetadataServiceCredentialsFetcher.class);
         when(fetcher.fetch(ArgumentMatchers.<CompatibleUrlConnClient>any(), ArgumentMatchers.<AlibabaCloudCredentialsProvider>any())).thenReturn(new EcsRamRoleCredential());

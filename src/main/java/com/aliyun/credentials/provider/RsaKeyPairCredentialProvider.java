@@ -68,7 +68,7 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
     }
 
     @SuppressWarnings("unchecked")
-    public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) throws Exception {
+    public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) {
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.setUrlParameter("Action", "GenerateSessionAccessKey");

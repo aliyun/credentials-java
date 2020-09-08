@@ -1,5 +1,7 @@
 package com.aliyun.credentials.utils;
 
+import com.aliyun.credentials.exception.CredentialException;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -13,7 +15,7 @@ public class AuthUtils {
     private static volatile String environmentCredentialsFile;
     private static volatile String privateKey;
 
-    public static String getPrivateKey(String filePath) throws IOException {
+    public static String getPrivateKey(String filePath) {
         FileInputStream in = null;
         byte[] buffer;
         try {
@@ -25,7 +27,11 @@ public class AuthUtils {
             e.printStackTrace();
         } finally {
             if (in != null) {
-                in.close();
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    throw new CredentialException(e.getMessage(), e);
+                }
             }
         }
         return privateKey;

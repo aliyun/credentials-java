@@ -24,7 +24,7 @@ public class ECSMetadataServiceCredentialsFetcher {
     private int readTimeout = 1000;
 
 
-    public ECSMetadataServiceCredentialsFetcher(String roleName, int connectionTimeout, int readTimeout) throws MalformedURLException {
+    public ECSMetadataServiceCredentialsFetcher(String roleName, int connectionTimeout, int readTimeout) {
         if (connectionTimeout > 1000) {
             this.connectionTimeout = connectionTimeout;
         }
@@ -35,21 +35,25 @@ public class ECSMetadataServiceCredentialsFetcher {
         setCredentialUrl();
     }
 
-    public ECSMetadataServiceCredentialsFetcher(String roleName) throws MalformedURLException {
+    public ECSMetadataServiceCredentialsFetcher(String roleName) {
         this.roleName = roleName;
         setCredentialUrl();
     }
 
 
-    private void setCredentialUrl() throws MalformedURLException {
-        this.credentialUrl = new URL("http://" + metadataServiceHost + URL_IN_ECS_METADATA + roleName);
+    private void setCredentialUrl() {
+        try {
+            this.credentialUrl = new URL("http://" + metadataServiceHost + URL_IN_ECS_METADATA + roleName);
+        } catch (MalformedURLException e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
     }
 
-    public String fetchRoleName(CompatibleUrlConnClient client) throws CredentialException {
+    public String fetchRoleName(CompatibleUrlConnClient client) {
         return getMetadata(client);
     }
 
-    public String getMetadata(CompatibleUrlConnClient client) throws CredentialException {
+    public String getMetadata(CompatibleUrlConnClient client) {
         HttpRequest request = new HttpRequest(credentialUrl.toString());
         request.setSysMethod(MethodType.GET);
         request.setSysConnectTimeout(connectionTimeout);
@@ -75,7 +79,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         return new String(response.getHttpContent());
     }
 
-    public EcsRamRoleCredential fetch(CompatibleUrlConnClient client, AlibabaCloudCredentialsProvider provider) throws CredentialException, ParseException {
+    public EcsRamRoleCredential fetch(CompatibleUrlConnClient client, AlibabaCloudCredentialsProvider provider) {
         String jsonContent = getMetadata(client);
         Map<String, String> result = new Gson().fromJson(jsonContent, Map.class);
 
