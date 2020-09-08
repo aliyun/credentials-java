@@ -1,3 +1,6 @@
+2020-09-08 Version: 0.2.5
+1.change checked exception to unchecked exception
+
 2020-09-04 Version: 0.2.4
 1.improve ECSMetadataServiceCredentialsFetcher
 
