@@ -221,7 +221,7 @@ Please make sure to read the [Contributing Guide](./.github/PULL_REQUEST_TEMPLAT
 
 ## References
 * [Alibaba Cloud Regions & Endpoints](https://developer.aliyun.com/endpoints)
-* [OpenAPI Explorer](https://api.aliyun.com/)
+* [OpenAPI Developer Portal](https://next.api.aliyun.com/)
 * [Latest Release](https://github.com/aliyun/aliyun-openapi-java-sdk)
 
 ## License
