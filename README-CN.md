@@ -102,6 +102,40 @@ public class DemoTest {
 }
 ```
 
+#### OIDCRoleArn
+通过指定[OIDC 角色][OIDC Role]，让凭证自动申请维护 STS Token。你可以通过为 `Policy` 赋值来限制获取到的 STS Token 的权限。
+
+```java
+import com.aliyun.credentials.Client;
+import com.aliyun.credentials.models.Config;
+
+public class DemoTest {
+    public static void main(String[] args) throws Exception{
+        Config config = new Config();
+        // 凭证类型
+        config.type = "oidc_role_arn";
+        // AccessKeyId
+        config.accessKeyId = "AccessKeyId";
+        // AccessKeySecret
+        config.accessKeySecret = "AccessKeySecret";
+        // 格式: acs:ram::用户Id:role/角色名
+        config.roleArn = "RoleArn";
+        // 格式: acs:ram::用户Id:oidc-provider/角色名
+        config.oidcProviderArn = "OIDCProviderArn";
+        // 格式: path
+        // OIDCTokenFilePath 可不设，但需要通过设置 ALIBABA_CLOUD_OIDC_TOKEN_FILE 来代替
+        config.oidcTokenFilePath = "/Users/xxx/xxx";
+        // 角色会话名称
+        config.roleSessionName = "RoleSessionName";
+        // 可选, 限制 STS Token 的权限
+        config.policy = "policy";
+        // 可选, 限制 STS Token 的有效时间
+        config.roleSessionExpiration = 3600;
+        Client client = new Client(config);
+    }
+}
+```
+
 #### EcsRamRole
 通过指定角色名称，让凭证自动申请维护 STS Token
 
@@ -204,6 +238,18 @@ role_session_name = session_name   # 选填
 type = rsa_key_pair                # 认证方式为 rsa_key_pair
 public_key_id = publicKeyId        # Public Key ID
 private_key_file = /your/pk.pem    # Private Key 文件
+
+[client4]                          # 命名为 `client4` 的配置
+enable = false                     # 不启用
+type = oidc_role_arn                # 认证方式为 oidc_role_arn
+region_id = cn-test                # 获取session用的region
+policy = test                      # 选填 指定权限
+access_key_id = foo
+access_key_secret = bar
+role_arn = role_arn
+oidc_provider_arn = oidc_provider_arn
+oidc_token_file_path = /xxx/xxx    # 可通过设置环境变量 ALIBABA_CLOUD_OIDC_TOKEN_FILE 来代替
+role_session_name = session_name   # 选填
 ```
 
 ## 问题

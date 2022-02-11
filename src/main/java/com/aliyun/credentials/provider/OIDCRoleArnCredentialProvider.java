@@ -3,19 +3,21 @@ package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.RamRoleArnCredential;
+import com.aliyun.credentials.OIDCRoleArnCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ParameterHelper;
+import com.aliyun.credentials.utils.StringUtils;
 import com.google.gson.Gson;
 
 import java.util.Map;
 
-public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProvider {
+public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsProvider {
 
     /**
      * Default duration for started sessions. Unit of Second
@@ -25,6 +27,10 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
      * The arn of the role to be assumed.
      */
     private String roleArn;
+    private String oidcProviderArn;
+
+    private String oidcToken;
+
     /**
      * An identifier for the assumed role session.
      */
@@ -41,29 +47,43 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
     private int connectTimeout = 1000;
     private int readTimeout = 1000;
 
-    public RamRoleArnCredentialProvider(Configuration config) {
-        this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn());
+    public OIDCRoleArnCredentialProvider(Configuration config) {
+        this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn(),
+                config.getOIDCProviderArn(), config.getOIDCTokenFilePath());
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
     }
 
-    public RamRoleArnCredentialProvider(Config config) {
-        this(config.accessKeyId, config.accessKeySecret, config.roleArn);
+    public OIDCRoleArnCredentialProvider(Config config) {
+        this(config.accessKeyId, config.accessKeySecret, config.roleArn, config.oidcProviderArn, config.oidcTokenFilePath);
         this.connectTimeout = config.connectTimeout;
         this.readTimeout = config.timeout;
         this.policy = config.policy;
         this.durationSeconds = config.roleSessionExpiration;
     }
 
-    public RamRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn) {
+    public OIDCRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn,
+                                         String oidcProviderArn, String oidcTokenFilePath) {
         this.roleArn = roleArn;
+        this.oidcProviderArn = oidcProviderArn;
+        if (!StringUtils.isEmpty(oidcTokenFilePath)) {
+            this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
+        }
+        if (StringUtils.isEmpty(this.oidcToken)) {
+            String tokenFile = System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
+            if(StringUtils.isEmpty(tokenFile)){
+                throw new CredentialException("OIDCTokenFilePath is not exists and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null." );
+            }
+            this.oidcToken = AuthUtils.getOIDCToken(tokenFile);
+        }
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
     }
 
-    public RamRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleSessionName,
-                                        String roleArn, String regionId, String policy) {
-        this(accessKeyId, accessKeySecret, roleArn);
+    public OIDCRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleSessionName,
+                                         String roleArn, String oidcProviderArn, String oidcTokenFilePath,
+                                         String regionId, String policy) {
+        this(accessKeyId, accessKeySecret, roleArn, oidcProviderArn, oidcTokenFilePath);
         this.roleSessionName = roleSessionName;
         this.regionId = regionId;
         this.policy = policy;
@@ -91,11 +111,13 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
     public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) {
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
-        httpRequest.setUrlParameter("Action", "AssumeRole");
+        httpRequest.setUrlParameter("Action", "AssumeRoleWithOIDC");
         httpRequest.setUrlParameter("Format", "JSON");
         httpRequest.setUrlParameter("Version", "2015-04-01");
         httpRequest.setUrlParameter("DurationSeconds", String.valueOf(durationSeconds));
         httpRequest.setUrlParameter("RoleArn", this.roleArn);
+        httpRequest.setUrlParameter("OIDCProviderArn", this.oidcProviderArn);
+        httpRequest.setUrlParameter("OIDCToken", this.oidcToken);
         httpRequest.setUrlParameter("AccessKeyId", this.accessKeyId);
         httpRequest.setUrlParameter("RegionId", this.regionId);
         httpRequest.setUrlParameter("RoleSessionName", this.roleSessionName);
@@ -113,11 +135,10 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        System.out.println(map);
         if (map.containsKey("Credentials")) {
             Map<String, String> credential = (Map<String, String>) map.get("Credentials");
             long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();
-            return new RamRoleArnCredential(credential.get("AccessKeyId"), credential.get("AccessKeySecret"),
+            return new OIDCRoleArnCredential(credential.get("AccessKeyId"), credential.get("AccessKeySecret"),
                     credential.get("SecurityToken"), expiration, this);
         } else {
             throw new CredentialException(gson.toJson(map));
@@ -134,6 +155,14 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
 
     public String getRoleArn() {
         return roleArn;
+    }
+
+    public String getOIDCProviderArn() {
+        return oidcProviderArn;
+    }
+
+    public String getOIDCToken() {
+        return oidcToken;
     }
 
     public String getRoleSessionName() {

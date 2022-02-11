@@ -48,6 +48,8 @@ public class Client {
                     return new RamRoleArnCredentialProvider(config);
                 case AuthConstant.RSA_KEY_PAIR:
                     return new RsaKeyPairCredentialProvider(config);
+                case AuthConstant.OIDC_ROLE_ARN:
+                    return new OIDCRoleArnCredentialProvider(config);
                 default:
             }
         } catch (Exception e) {

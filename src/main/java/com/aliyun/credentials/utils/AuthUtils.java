@@ -2,9 +2,7 @@ package com.aliyun.credentials.utils;
 
 import com.aliyun.credentials.exception.CredentialException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 
 
 public class AuthUtils {
@@ -14,6 +12,7 @@ public class AuthUtils {
     private static volatile String environmentECSMetaData;
     private static volatile String environmentCredentialsFile;
     private static volatile String privateKey;
+    private static volatile String OIDCToken;
 
     public static String getPrivateKey(String filePath) {
         FileInputStream in = null;
@@ -35,6 +34,35 @@ public class AuthUtils {
             }
         }
         return privateKey;
+    }
+
+    public static String getOIDCToken(String OIDCTokenFilePath) {
+        FileInputStream in = null;
+        byte[] buffer;
+        File file = new File(OIDCTokenFilePath);
+        if (!file.exists() || !file.isFile()) {
+            throw new CredentialException("OIDCTokenFilePath " + OIDCTokenFilePath + " is not exists.");
+        }
+        if(!file.canRead()){
+            throw new CredentialException("OIDCTokenFilePath " + OIDCTokenFilePath + " cannot be read.");
+        }
+        try {
+            in = new FileInputStream(file);
+            buffer = new byte[in.available()];
+            in.read(buffer);
+            OIDCToken = new String(buffer, "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    throw new CredentialException(e.getMessage(), e);
+                }
+            }
+        }
+        return OIDCToken;
     }
 
     public static void setClientType(String clientType) {
