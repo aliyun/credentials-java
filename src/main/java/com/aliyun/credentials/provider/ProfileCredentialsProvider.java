@@ -83,6 +83,9 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
         if (AuthConstant.INI_TYPE_RAM.equals(configType)) {
             return getInstanceProfileCredentials(clientConfig, factory);
         }
+        if (AuthConstant.INI_TYPE_OIDC.equals(configType)) {
+            return getSTSOIDCRoleSessionCredentials(clientConfig, factory);
+        }
         String accessKeyId = clientConfig.get(AuthConstant.INI_ACCESS_KEY_ID);
         String accessKeySecret = clientConfig.get(AuthConstant.INI_ACCESS_KEY_IDSECRET);
         if (StringUtils.isEmpty(accessKeyId) || StringUtils.isEmpty(accessKeySecret)) {
@@ -108,6 +111,31 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
         RamRoleArnCredentialProvider provider =
                 factory.createCredentialsProvider(new RamRoleArnCredentialProvider(accessKeyId,
                         accessKeySecret, roleSessionName, roleArn, regionId, policy));
+        return provider.getCredentials();
+    }
+
+    private AlibabaCloudCredentials getSTSOIDCRoleSessionCredentials(Map<String, String> clientConfig,
+                                                                     CredentialsProviderFactory factory) {
+        String accessKeyId = clientConfig.get(AuthConstant.INI_ACCESS_KEY_ID);
+        String accessKeySecret = clientConfig.get(AuthConstant.INI_ACCESS_KEY_IDSECRET);
+        String roleSessionName = clientConfig.get(AuthConstant.INI_ROLE_SESSION_NAME);
+        String roleArn = clientConfig.get(AuthConstant.INI_ROLE_ARN);
+        String OIDCProviderArn = clientConfig.get(AuthConstant.INI_OIDC_PROVIDER_ARN);
+        String OIDCTokenFilePath = clientConfig.get(AuthConstant.INI_OIDC_TOKEN_FILE_PATH);
+        String regionId = clientConfig.get(AuthConstant.DEFAULT_REGION);
+        String policy = clientConfig.get(AuthConstant.INI_POLICY);
+        if (StringUtils.isEmpty(accessKeyId) || StringUtils.isEmpty(accessKeySecret)) {
+            throw new CredentialException("The configured access_key_id or access_key_secret is empty");
+        }
+        if (StringUtils.isEmpty(roleArn)) {
+            throw new CredentialException("The configured role_arn is empty");
+        }
+        if (StringUtils.isEmpty(OIDCProviderArn)) {
+            throw new CredentialException("The configured oidc_provider_arn is empty");
+        }
+        OIDCRoleArnCredentialProvider provider =
+                factory.createCredentialsProvider(new OIDCRoleArnCredentialProvider(accessKeyId,
+                        accessKeySecret, roleSessionName, roleArn, OIDCProviderArn, OIDCTokenFilePath, regionId, policy));
         return provider.getCredentials();
     }
 

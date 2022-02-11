@@ -16,6 +16,8 @@ public class Configuration {
     private String certFile;
     private String certPassword;
     private String proxy;
+    private String oidcProviderArn;
+    private String oidcTokenFilePath;
 
     public String getType() {
         return type;
@@ -135,5 +137,21 @@ public class Configuration {
 
     public void setProxy(String proxy) {
         this.proxy = proxy;
+    }
+
+    public String getOIDCProviderArn() {
+        return oidcProviderArn;
+    }
+
+    public void setOIDCProviderArn(String oidcProviderArn) {
+        this.oidcProviderArn = oidcProviderArn;
+    }
+
+    public String getOIDCTokenFilePath() {
+        return oidcTokenFilePath;
+    }
+
+    public void setOIDCTokenFilePath(String oidcTokenFilePath) {
+        this.oidcTokenFilePath = oidcTokenFilePath;
     }
 }

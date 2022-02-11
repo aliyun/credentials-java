@@ -106,6 +106,40 @@ public class DemoTest {
 }
 ```
 
+#### OIDCRoleArn
+By specifying [OIDC Role][OIDC Role], the credential will be able to automatically request maintenance of STS Token. If you want to limit the permissions([How to make a policy][policy]) of STS Token, you can assign value for `Policy`.
+
+```java
+import com.aliyun.credentials.Client;
+import com.aliyun.credentials.models.Config;
+
+public class DemoTest {
+    public static void main(String[] args) throws Exception{
+        Config config = new Config();
+        // Which type of credential you want        
+        config.type = "oidc_role_arn";
+        // AccessKeyId of your account
+        config.accessKeyId = "AccessKeyId";
+        // AccessKeySecret of your account
+        config.accessKeySecret = "AccessKeySecret";
+        // Format: acs:ram::USER_Id:role/ROLE_NAME
+        config.roleArn = "RoleArn";
+        // Format: acs:ram::USER_Id:oidc-provider/ROLE_NAME
+        config.oidcProviderArn = "OIDCProviderArn";
+        // Format: path
+        // OIDCTokenFilePath can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE
+        config.oidcTokenFilePath = "/Users/xxx/xxx";
+        // Role Session Name
+        config.roleSessionName = "RoleSessionName";
+        // Not required, limit the permissions of STS Token
+        config.policy = "policy";
+        // Not required, limit the Valid time of STS Token
+        config.roleSessionExpiration = 3600;
+        Client client = new Client(config);
+    }
+}
+```
+
 #### EcsRamRole
 By specifying the role name, the credential will be able to automatically request maintenance of STS Token.
 
@@ -207,6 +241,18 @@ role_session_name = session_name   # optional
 type = rsa_key_pair                # Certification type: rsa_key_pair
 public_key_id = publicKeyId        # Public Key ID
 private_key_file = /your/pk.pem    # Private Key file
+
+[client4]                          # configuration that is named as `client4`
+enable = false                     # Disable
+type = oidc_role_arn                # Certification type: oidc_role_arn
+region_id = cn-test                 
+policy = test                      # optional Specify permissions
+access_key_id = foo                
+access_key_secret = bar            
+role_arn = role_arn
+oidc_provider_arn = oidc_provider_arn
+oidc_token_file_path = /xxx/xxx    # can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE              
+role_session_name = session_name   # optional
 ```
 
 
