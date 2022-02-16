@@ -18,6 +18,7 @@ public class Configuration {
     private String proxy;
     private String oidcProviderArn;
     private String oidcTokenFilePath;
+    private String credentialsURI;
 
     public String getType() {
         return type;
@@ -153,5 +154,13 @@ public class Configuration {
 
     public void setOIDCTokenFilePath(String oidcTokenFilePath) {
         this.oidcTokenFilePath = oidcTokenFilePath;
+    }
+
+    public String getCredentialsURI() {
+        return credentialsURI;
+    }
+
+    public void setCredentialsURI(String credentialsURI) {
+        this.credentialsURI = credentialsURI;
     }
 }

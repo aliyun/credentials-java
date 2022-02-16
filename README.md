@@ -180,6 +180,25 @@ public class DemoTest {
 }
 ```
 
+#### URLCredential
+By specifying the url, the credential will be able to automatically request maintenance of STS Token.
+
+```java
+import com.aliyun.credentials.Client;
+import com.aliyun.credentials.models.Config;
+
+public class DemoTest {
+    public static void main(String[] args) throws Exception {
+        Config config = new Config();
+        // Which type of credential you want
+        config.type = "credentials_uri";
+        // Format: http url
+        config.credentialsURI = "http://xxx";
+        Client client = new Client(config);
+    }
+}
+```
+
 #### Bearer Token
 If credential is required by the Cloud Call Centre (CCC), please apply for Bearer Token maintenance by yourself.
 
