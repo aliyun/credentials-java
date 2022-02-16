@@ -21,10 +21,10 @@ public class OIDCRoleArnCredentialProviderTest {
         OIDCRoleArnCredentialProvider provider;
         try {
             provider = new OIDCRoleArnCredentialProvider("id", "secret",
-                    "name", "arn", "providerArn", "tokenFile", "region", "policy");
+                    "name", "arn", "providerArn", "", "region", "policy");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: OIDCTokenFilePath tokenFile is not exists.",
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: OIDCTokenFilePath is not exists and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.",
                     e.toString());
         }
         String filePath = OIDCRoleArnCredentialProviderTest.class.getClassLoader().
@@ -38,7 +38,7 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("secret", provider.getAccessKeySecret());
         Assert.assertEquals("arn", provider.getRoleArn());
         Assert.assertEquals("providerArn", provider.getOIDCProviderArn());
-        Assert.assertEquals("OIDCToken", provider.getOIDCToken());
+        Assert.assertTrue(provider.getOIDCTokenFilePath().contains("OIDCToken.txt"));
     }
 
     @Test
@@ -66,8 +66,10 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getAccessKeyId());
         Assert.assertEquals("test", provider.getAccessKeySecret());
         Assert.assertEquals("test", provider.getRoleArn());
-        Assert.assertEquals("OIDCToken", provider.getOIDCToken());
+        Assert.assertTrue(provider.getOIDCTokenFilePath().contains("OIDCToken.txt"));
+        Assert.assertNull(provider.getOIDCToken());
         Assert.assertNull(provider.getCredentials());
+        Assert.assertEquals("OIDCToken", provider.getOIDCToken());
     }
 
     @Test

@@ -113,7 +113,6 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        System.out.println(map);
         if (map.containsKey("Credentials")) {
             Map<String, String> credential = (Map<String, String>) map.get("Credentials");
             long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();

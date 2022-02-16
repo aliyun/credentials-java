@@ -30,6 +30,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
     private String oidcProviderArn;
 
     private String oidcToken;
+    private String oidcTokenFilePath;
 
     /**
      * An identifier for the assumed role session.
@@ -67,14 +68,13 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         this.roleArn = roleArn;
         this.oidcProviderArn = oidcProviderArn;
         if (!StringUtils.isEmpty(oidcTokenFilePath)) {
-            this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
-        }
-        if (StringUtils.isEmpty(this.oidcToken)) {
+            this.oidcTokenFilePath = oidcTokenFilePath;
+        } else {
             String tokenFile = System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
-            if(StringUtils.isEmpty(tokenFile)){
-                throw new CredentialException("OIDCTokenFilePath is not exists and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null." );
+            if (StringUtils.isEmpty(tokenFile)) {
+                throw new CredentialException("OIDCTokenFilePath is not exists and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
             }
-            this.oidcToken = AuthUtils.getOIDCToken(tokenFile);
+            this.oidcTokenFilePath = tokenFile;
         }
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
@@ -109,6 +109,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
 
     @SuppressWarnings("unchecked")
     public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) {
+        this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.setUrlParameter("Action", "AssumeRoleWithOIDC");
@@ -163,6 +164,10 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
 
     public String getOIDCToken() {
         return oidcToken;
+    }
+
+    public String getOIDCTokenFilePath() {
+        return oidcTokenFilePath;
     }
 
     public String getRoleSessionName() {
