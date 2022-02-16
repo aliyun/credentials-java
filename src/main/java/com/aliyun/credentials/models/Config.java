@@ -43,6 +43,8 @@ public class Config extends TeaModel {
     public String oidcProviderArn;
     @NameInMap("oidcTokenFilePath")
     public String oidcTokenFilePath;
+    @NameInMap("credentialsURI")
+    public String credentialsURI;
 
     public static Config build(java.util.Map<String, ?> map) {
         Config self = new Config();

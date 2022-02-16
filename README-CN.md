@@ -176,6 +176,25 @@ public class DemoTest {
 }
 ```
 
+#### URLCredential
+通过指定提供凭证的自定义网络服务地址，让凭证自动申请维护 STS Token
+
+```java
+import com.aliyun.credentials.Client;
+import com.aliyun.credentials.models.Config;
+
+public class DemoTest {
+    public static void main(String[] args) throws Exception {
+        Config config = new Config();
+        // 凭证类型
+        config.type = "credentials_uri";
+        // 提供凭证的 URL
+        config.credentialsURI = "http://xxx";
+        Client client = new Client(config);
+    }
+}
+```
+
 #### Bearer Token
 如呼叫中心(CCC)需用此凭证，请自行申请维护 Bearer Token。
 
