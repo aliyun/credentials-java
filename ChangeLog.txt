@@ -1,3 +1,7 @@
+2022-02-16 Version: 0.2.6
+1.support OIDCRoleArn credential.
+2.support url credential.
+
 2020-09-08 Version: 0.2.5
 1.change checked exception to unchecked exception
 
