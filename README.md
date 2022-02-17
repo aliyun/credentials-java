@@ -192,7 +192,7 @@ public class DemoTest {
         Config config = new Config();
         // Which type of credential you want
         config.type = "credentials_uri";
-        // Format: http url. `credentialsURI` can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE
+        // Format: http url. `credentialsURI` can be replaced by setting environment variable: ALIBABA_CLOUD_CREDENTIALS_URI
         config.credentialsURI = "http://xxx";
         Client client = new Client(config);
     }
