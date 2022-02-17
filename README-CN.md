@@ -188,7 +188,7 @@ public class DemoTest {
         Config config = new Config();
         // 凭证类型
         config.type = "credentials_uri";
-        // 提供凭证的 URL
+        // 提供凭证的 URL，可不设，但需要通过设置 ALIBABA_CLOUD_CREDENTIALS_URI 来代替
         config.credentialsURI = "http://xxx";
         Client client = new Client(config);
     }

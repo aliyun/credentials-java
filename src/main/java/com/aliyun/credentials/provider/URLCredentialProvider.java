@@ -26,20 +26,24 @@ public class URLCredentialProvider implements AlibabaCloudCredentialsProvider {
     private int connectTimeout = 1000;
     private int readTimeout = 1000;
 
+    public URLCredentialProvider() {
+        this(System.getenv("ALIBABA_CLOUD_CREDENTIALS_URI"));
+    }
+
     public URLCredentialProvider(String credentialsURI) {
         if (StringUtils.isEmpty(credentialsURI)) {
-            throw new CredentialException("URL cannot be null.");
+            throw new CredentialException("Credential URI cannot be null.");
         }
         try {
             this.credentialsURI = new URL(credentialsURI);
         } catch (MalformedURLException e) {
-            throw new CredentialException("URL is not valid.");
+            throw new CredentialException("Credential URI is not valid.");
         }
     }
 
     public URLCredentialProvider(URL credentialsURI) {
         if (credentialsURI == null) {
-            throw new CredentialException("URL cannot be null.");
+            throw new CredentialException("Credential URI cannot be null.");
         }
         this.credentialsURI = credentialsURI;
     }

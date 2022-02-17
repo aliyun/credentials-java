@@ -14,14 +14,14 @@ public class URLCredentialProviderTest {
             provider = new URLCredentialProvider("");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: URL cannot be null.",
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI cannot be null.",
                     e.toString());
         }
         try {
             provider = new URLCredentialProvider("url");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: URL is not valid.",
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI is not valid.",
                     e.toString());
         }
         provider = new URLCredentialProvider("http://test");
@@ -41,7 +41,7 @@ public class URLCredentialProviderTest {
             provider = new URLCredentialProvider("url");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: URL is not valid.",
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI is not valid.",
                     e.toString());
         }
         config.setCredentialsURI("http://10.10.10.10");
