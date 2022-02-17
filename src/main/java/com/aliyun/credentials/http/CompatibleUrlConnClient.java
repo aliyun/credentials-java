@@ -3,10 +3,7 @@ package com.aliyun.credentials.http;
 import com.aliyun.credentials.exception.CredentialException;
 
 import javax.net.ssl.*;
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -18,6 +15,7 @@ import java.util.Map.Entry;
 public class CompatibleUrlConnClient implements Closeable {
 
     protected static final String ACCEPT_ENCODING = "Accept-Encoding";
+    protected static final String CONTENT_TYPE = "Content-Type";
 
     public CompatibleUrlConnClient() {
 
@@ -37,6 +35,12 @@ public class CompatibleUrlConnClient implements Closeable {
 
         try {
             httpConn.connect();
+            if (request.getHttpContent() != null) {
+                DataOutputStream dos = new DataOutputStream(httpConn.getOutputStream());
+                dos.write(request.getHttpContent());
+                dos.flush();
+                dos.close();
+            }
             content = httpConn.getInputStream();
             response = new HttpResponse(httpConn.getURL().toString());
             parseHttpConn(response, httpConn, content, null);
@@ -102,6 +106,9 @@ public class CompatibleUrlConnClient implements Closeable {
             httpConn.setUseCaches(false);
             setConnectionTimeout(httpConn, request);
             httpConn.setRequestProperty(ACCEPT_ENCODING, "identity");
+            if (request.getHttpContent() != null) {
+                httpConn.setRequestProperty(CONTENT_TYPE, request.getSysHeaders().get(CONTENT_TYPE));
+            }
             return httpConn;
         } catch (Exception e) {
             throw new CredentialException(e.getMessage(), e);

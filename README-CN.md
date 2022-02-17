@@ -120,7 +120,7 @@ public class DemoTest {
         config.accessKeySecret = "AccessKeySecret";
         // 格式: acs:ram::用户Id:role/角色名
         config.roleArn = "RoleArn";
-        // 格式: acs:ram::用户Id:oidc-provider/角色名
+        // 格式: acs:ram::用户Id:oidc-provider/OIDC身份提供商名称
         config.oidcProviderArn = "OIDCProviderArn";
         // 格式: path
         // OIDCTokenFilePath 可不设，但需要通过设置 ALIBABA_CLOUD_OIDC_TOKEN_FILE 来代替
@@ -260,11 +260,11 @@ private_key_file = /your/pk.pem    # Private Key 文件
 
 [client4]                          # 命名为 `client4` 的配置
 enable = false                     # 不启用
-type = oidc_role_arn                # 认证方式为 oidc_role_arn
+type = oidc_role_arn               # 认证方式为 oidc_role_arn
 region_id = cn-test                # 获取session用的region
 policy = test                      # 选填 指定权限
-access_key_id = foo
-access_key_secret = bar
+access_key_id = foo                # 选填
+access_key_secret = bar            # 选填
 role_arn = role_arn
 oidc_provider_arn = oidc_provider_arn
 oidc_token_file_path = /xxx/xxx    # 可通过设置环境变量 ALIBABA_CLOUD_OIDC_TOKEN_FILE 来代替

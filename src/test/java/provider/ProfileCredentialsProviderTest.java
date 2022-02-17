@@ -143,7 +143,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured access_key_id or access_key_secret is empty",
+            Assert.assertEquals("The configured role_arn is empty",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -152,7 +152,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured access_key_id or access_key_secret is empty",
+            Assert.assertEquals("The configured role_arn is empty",
                     e.getCause().getLocalizedMessage());
         }
         try {

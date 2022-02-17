@@ -5,16 +5,17 @@ import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.OIDCRoleArnCredential;
 import com.aliyun.credentials.exception.CredentialException;
-import com.aliyun.credentials.http.CompatibleUrlConnClient;
-import com.aliyun.credentials.http.HttpRequest;
-import com.aliyun.credentials.http.HttpResponse;
-import com.aliyun.credentials.http.MethodType;
+import com.aliyun.credentials.http.*;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.StringUtils;
 import com.google.gson.Gson;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsProvider {
@@ -108,29 +109,49 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
     }
 
     @SuppressWarnings("unchecked")
-    public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) {
+    public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
         this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.setUrlParameter("Action", "AssumeRoleWithOIDC");
         httpRequest.setUrlParameter("Format", "JSON");
         httpRequest.setUrlParameter("Version", "2015-04-01");
-        httpRequest.setUrlParameter("DurationSeconds", String.valueOf(durationSeconds));
-        httpRequest.setUrlParameter("RoleArn", this.roleArn);
-        httpRequest.setUrlParameter("OIDCProviderArn", this.oidcProviderArn);
-        httpRequest.setUrlParameter("OIDCToken", this.oidcToken);
-        httpRequest.setUrlParameter("AccessKeyId", this.accessKeyId);
         httpRequest.setUrlParameter("RegionId", this.regionId);
-        httpRequest.setUrlParameter("RoleSessionName", this.roleSessionName);
-        if (policy != null) {
-            httpRequest.setUrlParameter("Policy", this.policy);
+        Map<String, String> body = new HashMap<String, String>();
+        body.put("DurationSeconds", String.valueOf(durationSeconds));
+        body.put("RoleArn", this.roleArn);
+        body.put("OIDCProviderArn", this.oidcProviderArn);
+        body.put("OIDCToken", this.oidcToken);
+        body.put("RoleSessionName", this.roleSessionName);
+        body.put("Policy", this.policy);
+        StringBuilder content = new StringBuilder();
+        boolean first = true;
+        for (Map.Entry<String, String> entry : body.entrySet()) {
+            if (StringUtils.isEmpty(entry.getValue())) {
+                continue;
+            }
+            if (first) {
+                first = false;
+            } else {
+                content.append("&");
+            }
+            content.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+            content.append("=");
+            content.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
         }
-        httpRequest.setSysMethod(MethodType.GET);
+        httpRequest.setHttpContent(content.toString().getBytes("UTF-8"),"UTF-8", FormatType.FORM);
+        if (!StringUtils.isEmpty(this.accessKeyId) && !StringUtils.isEmpty(this.accessKeySecret)) {
+            httpRequest.setUrlParameter("AccessKeyId", this.accessKeyId);
+            Map<String, String> paramsToSign = new HashMap<String, String>();
+            paramsToSign.putAll(httpRequest.getUrlParameters());
+            paramsToSign.putAll(body);
+            String strToSign = parameterHelper.composeStringToSign(MethodType.POST, paramsToSign);
+            String signature = parameterHelper.signString(strToSign, this.accessKeySecret + "&");
+            httpRequest.setUrlParameter("Signature", signature);
+        }
+        httpRequest.setSysMethod(MethodType.POST);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
-        String strToSign = parameterHelper.composeStringToSign(MethodType.GET, httpRequest.getUrlParameters());
-        String signature = parameterHelper.signString(strToSign, this.accessKeySecret + "&");
-        httpRequest.setUrlParameter("Signature", signature);
         httpRequest.setSysUrl(parameterHelper.composeUrl("sts.aliyuncs.com", httpRequest.getUrlParameters(),
                 "https"));
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
