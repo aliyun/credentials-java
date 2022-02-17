@@ -118,9 +118,9 @@ public class DemoTest {
         Config config = new Config();
         // Which type of credential you want        
         config.type = "oidc_role_arn";
-        // AccessKeyId of your account
+        // `accessKeyId` is optional
         config.accessKeyId = "AccessKeyId";
-        // AccessKeySecret of your account
+        // `accessKeySecret` is optional
         config.accessKeySecret = "AccessKeySecret";
         // Format: acs:ram::USER_Id:role/ROLE_NAME
         config.roleArn = "RoleArn";
