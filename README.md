@@ -124,7 +124,7 @@ public class DemoTest {
         config.accessKeySecret = "AccessKeySecret";
         // Format: acs:ram::USER_Id:role/ROLE_NAME
         config.roleArn = "RoleArn";
-        // Format: acs:ram::USER_Id:oidc-provider/ROLE_NAME
+        // Format: acs:ram::USER_Id:oidc-provider/OIDC Providers 
         config.oidcProviderArn = "OIDCProviderArn";
         // Format: path
         // OIDCTokenFilePath can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE
@@ -263,11 +263,11 @@ private_key_file = /your/pk.pem    # Private Key file
 
 [client4]                          # configuration that is named as `client4`
 enable = false                     # Disable
-type = oidc_role_arn                # Certification type: oidc_role_arn
+type = oidc_role_arn               # Certification type: oidc_role_arn
 region_id = cn-test                 
 policy = test                      # optional Specify permissions
-access_key_id = foo                
-access_key_secret = bar            
+access_key_id = foo                # optional
+access_key_secret = bar            # optional
 role_arn = role_arn
 oidc_provider_arn = oidc_provider_arn
 oidc_token_file_path = /xxx/xxx    # can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE              

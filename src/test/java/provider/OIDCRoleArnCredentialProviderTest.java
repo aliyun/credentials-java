@@ -47,6 +47,7 @@ public class OIDCRoleArnCredentialProviderTest {
         config.setAccessKeyId("test");
         config.setAccessKeySecret("test");
         config.setRoleArn("test");
+        config.setOIDCProviderArn("test");
         config.setConnectTimeout(2000);
         config.setReadTimeout(2000);
         OIDCRoleArnCredentialProvider provider;
@@ -66,6 +67,7 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getAccessKeyId());
         Assert.assertEquals("test", provider.getAccessKeySecret());
         Assert.assertEquals("test", provider.getRoleArn());
+        Assert.assertEquals("test", provider.getOIDCProviderArn());
         Assert.assertTrue(provider.getOIDCTokenFilePath().contains("OIDCToken.txt"));
         Assert.assertNull(provider.getOIDCToken());
         Assert.assertNull(provider.getCredentials());

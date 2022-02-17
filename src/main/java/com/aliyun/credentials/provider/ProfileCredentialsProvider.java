@@ -124,9 +124,6 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
         String OIDCTokenFilePath = clientConfig.get(AuthConstant.INI_OIDC_TOKEN_FILE_PATH);
         String regionId = clientConfig.get(AuthConstant.DEFAULT_REGION);
         String policy = clientConfig.get(AuthConstant.INI_POLICY);
-        if (StringUtils.isEmpty(accessKeyId) || StringUtils.isEmpty(accessKeySecret)) {
-            throw new CredentialException("The configured access_key_id or access_key_secret is empty");
-        }
         if (StringUtils.isEmpty(roleArn)) {
             throw new CredentialException("The configured role_arn is empty");
         }
