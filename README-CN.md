@@ -114,9 +114,9 @@ public class DemoTest {
         Config config = new Config();
         // 凭证类型
         config.type = "oidc_role_arn";
-        // AccessKeyId
+        // AccessKeyId，可选参数
         config.accessKeyId = "AccessKeyId";
-        // AccessKeySecret
+        // AccessKeySecret，可选参数
         config.accessKeySecret = "AccessKeySecret";
         // 格式: acs:ram::用户Id:role/角色名
         config.roleArn = "RoleArn";
