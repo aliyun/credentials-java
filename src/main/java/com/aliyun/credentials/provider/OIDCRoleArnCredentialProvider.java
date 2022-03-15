@@ -52,12 +52,14 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
     public OIDCRoleArnCredentialProvider(Configuration config) {
         this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn(),
                 config.getOIDCProviderArn(), config.getOIDCTokenFilePath());
+        this.roleSessionName = config.getRoleSessionName();
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
     }
 
     public OIDCRoleArnCredentialProvider(Config config) {
         this(config.accessKeyId, config.accessKeySecret, config.roleArn, config.oidcProviderArn, config.oidcTokenFilePath);
+        this.roleSessionName = config.roleSessionName;
         this.connectTimeout = config.connectTimeout;
         this.readTimeout = config.timeout;
         this.policy = config.policy;
@@ -73,7 +75,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         } else {
             String tokenFile = System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
             if (StringUtils.isEmpty(tokenFile)) {
-                throw new CredentialException("OIDCTokenFilePath is not exists and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
+                throw new CredentialException("OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
             }
             this.oidcTokenFilePath = tokenFile;
         }

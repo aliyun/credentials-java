@@ -43,12 +43,14 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
 
     public RamRoleArnCredentialProvider(Configuration config) {
         this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn());
+        this.roleSessionName = config.getRoleSessionName();
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
     }
 
     public RamRoleArnCredentialProvider(Config config) {
         this(config.accessKeyId, config.accessKeySecret, config.roleArn);
+        this.roleSessionName = config.roleSessionName;
         this.connectTimeout = config.connectTimeout;
         this.readTimeout = config.timeout;
         this.policy = config.policy;
