@@ -1,3 +1,6 @@
+2022-03-15 Version: 0.2.8
+1.support roleSessionName for config.
+
 2022-02-17 Version: 0.2.7
 1.change OIDCRoleArn request method.
 2.support env ALIBABA_CLOUD_OIDC_TOKEN_FILE for url credential.
