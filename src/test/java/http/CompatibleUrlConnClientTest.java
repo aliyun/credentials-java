@@ -10,6 +10,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Locale;
 
 public class CompatibleUrlConnClientTest {
     @Test
@@ -26,7 +27,7 @@ public class CompatibleUrlConnClientTest {
         httpRequest.setSysConnectTimeout(1);
         httpRequest.setSysReadTimeout(1);
         response = CompatibleUrlConnClient.compatibleGetResponse(httpRequest);
-        Assert.assertEquals("connect timed out", response.getResponseMessage());
+        Assert.assertEquals("connect timed out", response.getResponseMessage().toLowerCase(Locale.ROOT));
 
         httpRequest = new HttpRequest(null);
         try {
