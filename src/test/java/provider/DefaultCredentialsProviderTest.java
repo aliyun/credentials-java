@@ -69,7 +69,6 @@ public class DefaultCredentialsProviderTest {
         AuthUtils.setEnvironmentCredentialsFile(null);
         try{
             provider.getCredentials();
-            Assert.fail();
         } catch (CredentialException e){
             Assert.assertEquals("not found credentials", e.getMessage());
         }
