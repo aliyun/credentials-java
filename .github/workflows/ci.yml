@@ -22,5 +22,9 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Test
         run: mvn test -B
+        env:
+          RAMAccessKeyId: ${{ secrets.RAMACCESSKEYID }}
+          RAMAccessKeySecret: ${{ secrets.RAMACCESSKEYSECRET }}
+          roleArn: ${{ secrets.ROLEARN }}
       - name: CodeCov
           run: bash <(curl -s https://codecov.io/bash) -cF unittest
