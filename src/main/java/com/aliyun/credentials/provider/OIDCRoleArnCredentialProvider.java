@@ -14,7 +14,6 @@ import com.google.gson.Gson;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +49,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
     private int readTimeout = 1000;
 
     public OIDCRoleArnCredentialProvider(Configuration config) {
-        this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn(),
+        this(config.getRoleArn(),
                 config.getOIDCProviderArn(), config.getOIDCTokenFilePath());
         this.roleSessionName = config.getRoleSessionName();
         this.connectTimeout = config.getConnectTimeout();
@@ -58,7 +57,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
     }
 
     public OIDCRoleArnCredentialProvider(Config config) {
-        this(config.accessKeyId, config.accessKeySecret, config.roleArn, config.oidcProviderArn, config.oidcTokenFilePath);
+        this(config.roleArn, config.oidcProviderArn, config.oidcTokenFilePath);
         this.roleSessionName = config.roleSessionName;
         this.connectTimeout = config.connectTimeout;
         this.readTimeout = config.timeout;
@@ -66,32 +65,54 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         this.durationSeconds = config.roleSessionExpiration;
     }
 
+    @Deprecated
     public OIDCRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn,
                                          String oidcProviderArn, String oidcTokenFilePath) {
-        this.roleArn = roleArn;
-        this.oidcProviderArn = oidcProviderArn;
-        if (!StringUtils.isEmpty(oidcTokenFilePath)) {
-            this.oidcTokenFilePath = oidcTokenFilePath;
-        } else {
-            String tokenFile = System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
-            if (StringUtils.isEmpty(tokenFile)) {
-                throw new CredentialException("OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
-            }
-            this.oidcTokenFilePath = tokenFile;
-        }
-        this.accessKeyId = accessKeyId;
-        this.accessKeySecret = accessKeySecret;
+        this(roleArn, oidcProviderArn, oidcTokenFilePath);
     }
 
+    public OIDCRoleArnCredentialProvider(String roleArn, String oidcProviderArn, String oidcTokenFilePath) {
+        if (!StringUtils.isEmpty(roleArn)) {
+            this.roleArn = roleArn;
+        } else if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_ARN"))) {
+            this.roleArn = System.getenv("ALIBABA_CLOUD_ROLE_ARN");
+        } else {
+            throw new CredentialException("roleArn does not exist and env ALIBABA_CLOUD_ROLE_ARN is null.");
+        }
+        if (!StringUtils.isEmpty(oidcProviderArn)) {
+            this.oidcProviderArn = oidcProviderArn;
+        } else if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN"))) {
+            this.oidcProviderArn = System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN");
+        } else {
+            throw new CredentialException("OIDCProviderArn does not exist and env ALIBABA_CLOUD_OIDC_PROVIDER_ARN is null.");
+        }
+        if (!StringUtils.isEmpty(oidcTokenFilePath)) {
+            this.oidcTokenFilePath = oidcTokenFilePath;
+        } else if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE"))) {
+            this.oidcTokenFilePath = System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
+        } else {
+            throw new CredentialException("OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
+        }
+        if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME"))) {
+            this.roleSessionName = System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME");
+        }
+    }
+
+    @Deprecated
     public OIDCRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleSessionName,
                                          String roleArn, String oidcProviderArn, String oidcTokenFilePath,
                                          String regionId, String policy) {
-        this(accessKeyId, accessKeySecret, roleArn, oidcProviderArn, oidcTokenFilePath);
+        this(roleSessionName, roleArn, oidcProviderArn, oidcTokenFilePath, regionId, policy);
+    }
+
+    public OIDCRoleArnCredentialProvider(String roleSessionName, String roleArn,
+                                         String oidcProviderArn, String oidcTokenFilePath,
+                                         String regionId, String policy) {
+        this(roleArn, oidcProviderArn, oidcTokenFilePath);
         this.roleSessionName = roleSessionName;
         this.regionId = regionId;
         this.policy = policy;
     }
-
 
     @Override
     public AlibabaCloudCredentials getCredentials() {
@@ -141,16 +162,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
             content.append("=");
             content.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
         }
-        httpRequest.setHttpContent(content.toString().getBytes("UTF-8"),"UTF-8", FormatType.FORM);
-        if (!StringUtils.isEmpty(this.accessKeyId) && !StringUtils.isEmpty(this.accessKeySecret)) {
-            httpRequest.setUrlParameter("AccessKeyId", this.accessKeyId);
-            Map<String, String> paramsToSign = new HashMap<String, String>();
-            paramsToSign.putAll(httpRequest.getUrlParameters());
-            paramsToSign.putAll(body);
-            String strToSign = parameterHelper.composeStringToSign(MethodType.POST, paramsToSign);
-            String signature = parameterHelper.signString(strToSign, this.accessKeySecret + "&");
-            httpRequest.setUrlParameter("Signature", signature);
-        }
+        httpRequest.setHttpContent(content.toString().getBytes("UTF-8"), "UTF-8", FormatType.FORM);
         httpRequest.setSysMethod(MethodType.POST);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
@@ -201,18 +213,22 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         this.roleSessionName = roleSessionName;
     }
 
+    @Deprecated
     public String getAccessKeyId() {
         return accessKeyId;
     }
 
+    @Deprecated
     public void setAccessKeyId(String accessKeyId) {
         this.accessKeyId = accessKeyId;
     }
 
+    @Deprecated
     public String getAccessKeySecret() {
         return accessKeySecret;
     }
 
+    @Deprecated
     public void setAccessKeySecret(String accessKeySecret) {
         this.accessKeySecret = accessKeySecret;
     }

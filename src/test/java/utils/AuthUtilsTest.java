@@ -4,8 +4,6 @@ import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 
 public class AuthUtilsTest {
     @Test
@@ -39,6 +37,27 @@ public class AuthUtilsTest {
         AuthUtils.setEnvironmentECSMetaData("test");
         Assert.assertEquals("test", AuthUtils.getEnvironmentECSMetaData());
         AuthUtils.setEnvironmentECSMetaData(null);
+        Assert.assertFalse(AuthUtils.environmentEnableOIDC());
+
+        Assert.assertNull(AuthUtils.getEnvironmentRoleArn());
+        AuthUtils.setEnvironmentRoleArn("test");
+        Assert.assertEquals("test", AuthUtils.getEnvironmentRoleArn());
+        Assert.assertFalse(AuthUtils.environmentEnableOIDC());
+
+        Assert.assertNull(AuthUtils.getEnvironmentOIDCProviderArn());
+        AuthUtils.setEnvironmentOIDCProviderArn("test");
+        Assert.assertEquals("test", AuthUtils.getEnvironmentOIDCProviderArn());
+        Assert.assertFalse(AuthUtils.environmentEnableOIDC());
+
+        Assert.assertNull(AuthUtils.getEnvironmentOIDCTokenFilePath());
+        AuthUtils.setEnvironmentOIDCTokenFilePath("test");
+        Assert.assertEquals("test", AuthUtils.getEnvironmentOIDCTokenFilePath());
+        Assert.assertTrue(AuthUtils.environmentEnableOIDC());
+
+        AuthUtils.setEnvironmentRoleArn(null);
+        AuthUtils.setEnvironmentOIDCProviderArn(null);
+        AuthUtils.setEnvironmentOIDCTokenFilePath(null);
+        Assert.assertFalse(AuthUtils.environmentEnableOIDC());
     }
 
     @Test

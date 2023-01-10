@@ -5,9 +5,6 @@ import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.utils.AuthUtils;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -20,6 +17,12 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
     public DefaultCredentialsProvider() {
         defaultProviders.add(new SystemPropertiesCredentialsProvider());
         defaultProviders.add(new EnvironmentVariableCredentialsProvider());
+        if (AuthUtils.environmentEnableOIDC()) {
+            defaultProviders.add(new OIDCRoleArnCredentialProvider(
+                    AuthUtils.getEnvironmentRoleArn()
+                    , AuthUtils.getEnvironmentOIDCProviderArn()
+                    , AuthUtils.getEnvironmentOIDCTokenFilePath()));
+        }
         defaultProviders.add(new ProfileCredentialsProvider());
         String roleName = AuthUtils.getEnvironmentECSMetaData();
         if (roleName != null) {

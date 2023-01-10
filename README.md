@@ -118,13 +118,11 @@ public class DemoTest {
         Config config = new Config();
         // Which type of credential you want        
         config.type = "oidc_role_arn";
-        // `accessKeyId` is optional
-        config.accessKeyId = "AccessKeyId";
-        // `accessKeySecret` is optional
-        config.accessKeySecret = "AccessKeySecret";
         // Format: acs:ram::USER_Id:role/ROLE_NAME
+        // roleArn can be replaced by setting environment variable: ALIBABA_CLOUD_ROLE_ARN
         config.roleArn = "RoleArn";
         // Format: acs:ram::USER_Id:oidc-provider/OIDC Providers 
+        // oidcProviderArn can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_PROVIDER_ARN
         config.oidcProviderArn = "OIDCProviderArn";
         // Format: path
         // OIDCTokenFilePath can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE
@@ -266,10 +264,8 @@ enable = false                     # Disable
 type = oidc_role_arn               # Certification type: oidc_role_arn
 region_id = cn-test                 
 policy = test                      # optional Specify permissions
-access_key_id = foo                # optional
-access_key_secret = bar            # optional
-role_arn = role_arn
-oidc_provider_arn = oidc_provider_arn
+role_arn = role_arn                # can be replaced by setting environment variable: ALIBABA_CLOUD_ROLE_ARN
+oidc_provider_arn = oidc_provider_arn # can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_PROVIDER_ARN
 oidc_token_file_path = /xxx/xxx    # can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE              
 role_session_name = session_name   # optional
 ```

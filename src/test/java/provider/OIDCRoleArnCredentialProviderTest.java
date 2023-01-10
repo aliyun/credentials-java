@@ -21,11 +21,28 @@ public class OIDCRoleArnCredentialProviderTest {
     public void constructorTest() {
         OIDCRoleArnCredentialProvider provider;
         try {
+            provider = new OIDCRoleArnCredentialProvider("", "", "");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: " +
+                            "roleArn does not exist and env ALIBABA_CLOUD_ROLE_ARN is null.",
+                    e.toString());
+        }
+        try {
+            provider = new OIDCRoleArnCredentialProvider("arn", "", "");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: " +
+                            "OIDCProviderArn does not exist and env ALIBABA_CLOUD_OIDC_PROVIDER_ARN is null.",
+                    e.toString());
+        }
+        try {
             provider = new OIDCRoleArnCredentialProvider("id", "secret",
                     "name", "arn", "providerArn", "", "region", "policy");
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.",
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: " +
+                            "OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.",
                     e.toString());
         }
         String filePath = OIDCRoleArnCredentialProviderTest.class.getClassLoader().
@@ -35,8 +52,8 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("name", provider.getRoleSessionName());
         Assert.assertEquals("region", provider.getRegionId());
         Assert.assertEquals("policy", provider.getPolicy());
-        Assert.assertEquals("id", provider.getAccessKeyId());
-        Assert.assertEquals("secret", provider.getAccessKeySecret());
+        Assert.assertNull(provider.getAccessKeyId());
+        Assert.assertNull(provider.getAccessKeySecret());
         Assert.assertEquals("arn", provider.getRoleArn());
         Assert.assertEquals("providerArn", provider.getOIDCProviderArn());
         Assert.assertTrue(provider.getOIDCTokenFilePath().contains("OIDCToken.txt"));
@@ -53,8 +70,8 @@ public class OIDCRoleArnCredentialProviderTest {
         provider = new OIDCRoleArnCredentialProvider(config);
         Assert.assertEquals(2000, provider.getConnectTimeout());
         Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals("test", provider.getAccessKeyId());
-        Assert.assertEquals("test", provider.getAccessKeySecret());
+        Assert.assertNull(provider.getAccessKeyId());
+        Assert.assertNull(provider.getAccessKeySecret());
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getOIDCProviderArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
@@ -75,8 +92,8 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals(2000, provider.getConnectTimeout());
         Assert.assertEquals(2000, provider.getReadTimeout());
         Assert.assertEquals(1000, provider.getDurationSeconds());
-        Assert.assertEquals("test", provider.getAccessKeyId());
-        Assert.assertEquals("test", provider.getAccessKeySecret());
+        Assert.assertNull(provider.getAccessKeyId());
+        Assert.assertNull(provider.getAccessKeySecret());
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getOIDCProviderArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
@@ -107,8 +124,8 @@ public class OIDCRoleArnCredentialProviderTest {
         provider.setPolicy("test");
         Assert.assertEquals(2000, provider.getConnectTimeout());
         Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals("test", provider.getAccessKeyId());
-        Assert.assertEquals("test", provider.getAccessKeySecret());
+        Assert.assertNull(provider.getAccessKeyId());
+        Assert.assertNull(provider.getAccessKeySecret());
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getOIDCProviderArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
@@ -121,6 +138,8 @@ public class OIDCRoleArnCredentialProviderTest {
     @Test
     public void createCredentialTest() {
         Configuration config = new Configuration();
+        config.setRoleArn("test");
+        config.setOIDCProviderArn("test");
         config.setOIDCTokenFilePath(OIDCRoleArnCredentialProviderTest.class.getClassLoader().
                 getResource("OIDCToken.txt").getPath());
         OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(config);
@@ -136,7 +155,7 @@ public class OIDCRoleArnCredentialProviderTest {
     public void getSetTest() {
         String filePath = OIDCRoleArnCredentialProviderTest.class.getClassLoader().
                 getResource("OIDCToken.txt").getPath();
-        OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(null, null, null, null, filePath);
+        OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(null, null, "test", "test", filePath);
         provider.setConnectTimeout(888);
         Assert.assertEquals(888, provider.getConnectTimeout());
 
