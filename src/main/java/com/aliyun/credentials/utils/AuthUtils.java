@@ -11,6 +11,9 @@ public class AuthUtils {
     private static volatile String environmentAccesskeySecret;
     private static volatile String environmentECSMetaData;
     private static volatile String environmentCredentialsFile;
+    private static volatile String environmentRoleArn;
+    private static volatile String environmentOIDCProviderArn;
+    private static volatile String environmentOIDCTokenFilePath;
     private static volatile String privateKey;
     private static volatile String OIDCToken;
 
@@ -43,7 +46,7 @@ public class AuthUtils {
         if (!file.exists() || !file.isFile()) {
             throw new CredentialException("OIDCTokenFilePath " + OIDCTokenFilePath + " is not exists.");
         }
-        if(!file.canRead()){
+        if (!file.canRead()) {
             throw new CredentialException("OIDCTokenFilePath " + OIDCTokenFilePath + " cannot be read.");
         }
         try {
@@ -117,6 +120,48 @@ public class AuthUtils {
         } else {
             return AuthUtils.environmentECSMetaData;
         }
+    }
+
+    public static void setEnvironmentRoleArn(String environmentRoleArn) {
+        AuthUtils.environmentRoleArn = environmentRoleArn;
+    }
+
+    public static String getEnvironmentRoleArn() {
+        if (null == AuthUtils.environmentRoleArn) {
+            return System.getenv("ALIBABA_CLOUD_ROLE_ARN");
+        } else {
+            return AuthUtils.environmentRoleArn;
+        }
+    }
+
+    public static void setEnvironmentOIDCProviderArn(String environmentOIDCProviderArn) {
+        AuthUtils.environmentOIDCProviderArn = environmentOIDCProviderArn;
+    }
+
+    public static String getEnvironmentOIDCProviderArn() {
+        if (null == AuthUtils.environmentOIDCProviderArn) {
+            return System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN");
+        } else {
+            return AuthUtils.environmentOIDCProviderArn;
+        }
+    }
+
+    public static void setEnvironmentOIDCTokenFilePath(String environmentOIDCTokenFilePath) {
+        AuthUtils.environmentOIDCTokenFilePath = environmentOIDCTokenFilePath;
+    }
+
+    public static String getEnvironmentOIDCTokenFilePath() {
+        if (null == AuthUtils.environmentOIDCTokenFilePath) {
+            return System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
+        } else {
+            return AuthUtils.environmentOIDCTokenFilePath;
+        }
+    }
+
+    public static boolean environmentEnableOIDC() {
+        return !StringUtils.isEmpty(getEnvironmentRoleArn())
+                && !StringUtils.isEmpty(getEnvironmentOIDCProviderArn())
+                && !StringUtils.isEmpty(getEnvironmentOIDCTokenFilePath());
     }
 
     public static String getEnvironmentCredentialsFile() {

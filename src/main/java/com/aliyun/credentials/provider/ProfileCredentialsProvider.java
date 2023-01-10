@@ -116,8 +116,6 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
 
     private AlibabaCloudCredentials getSTSOIDCRoleSessionCredentials(Map<String, String> clientConfig,
                                                                      CredentialsProviderFactory factory) {
-        String accessKeyId = clientConfig.get(AuthConstant.INI_ACCESS_KEY_ID);
-        String accessKeySecret = clientConfig.get(AuthConstant.INI_ACCESS_KEY_IDSECRET);
         String roleSessionName = clientConfig.get(AuthConstant.INI_ROLE_SESSION_NAME);
         String roleArn = clientConfig.get(AuthConstant.INI_ROLE_ARN);
         String OIDCProviderArn = clientConfig.get(AuthConstant.INI_OIDC_PROVIDER_ARN);
@@ -131,8 +129,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
             throw new CredentialException("The configured oidc_provider_arn is empty");
         }
         OIDCRoleArnCredentialProvider provider =
-                factory.createCredentialsProvider(new OIDCRoleArnCredentialProvider(accessKeyId,
-                        accessKeySecret, roleSessionName, roleArn, OIDCProviderArn, OIDCTokenFilePath, regionId, policy));
+                factory.createCredentialsProvider(new OIDCRoleArnCredentialProvider(roleSessionName, roleArn, OIDCProviderArn, OIDCTokenFilePath, regionId, policy));
         return provider.getCredentials();
     }
 

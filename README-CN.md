@@ -114,13 +114,11 @@ public class DemoTest {
         Config config = new Config();
         // 凭证类型
         config.type = "oidc_role_arn";
-        // AccessKeyId，可选参数
-        config.accessKeyId = "AccessKeyId";
-        // AccessKeySecret，可选参数
-        config.accessKeySecret = "AccessKeySecret";
         // 格式: acs:ram::用户Id:role/角色名
+        // roleArn 可不设，但需要通过设置 ALIBABA_CLOUD_ROLE_ARN 来代替
         config.roleArn = "RoleArn";
         // 格式: acs:ram::用户Id:oidc-provider/OIDC身份提供商名称
+        // oidcProviderArn 可不设，但需要通过设置 ALIBABA_CLOUD_OIDC_PROVIDER_ARN 来代替
         config.oidcProviderArn = "OIDCProviderArn";
         // 格式: path
         // OIDCTokenFilePath 可不设，但需要通过设置 ALIBABA_CLOUD_OIDC_TOKEN_FILE 来代替
@@ -263,10 +261,8 @@ enable = false                     # 不启用
 type = oidc_role_arn               # 认证方式为 oidc_role_arn
 region_id = cn-test                # 获取session用的region
 policy = test                      # 选填 指定权限
-access_key_id = foo                # 选填
-access_key_secret = bar            # 选填
-role_arn = role_arn
-oidc_provider_arn = oidc_provider_arn
+role_arn = role_arn                # 可通过设置环境变量 ALIBABA_CLOUD_ROLE_ARN 来代替
+oidc_provider_arn = oidc_provider_arn # 可通过设置环境变量 ALIBABA_CLOUD_OIDC_PROVIDER_ARN 来代替
 oidc_token_file_path = /xxx/xxx    # 可通过设置环境变量 ALIBABA_CLOUD_OIDC_TOKEN_FILE 来代替
 role_session_name = session_name   # 选填
 ```
