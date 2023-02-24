@@ -54,5 +54,8 @@ public class ConfigurationTest {
 
         config.setRoleSessionName("15");
         Assert.assertEquals("15", config.getRoleSessionName());
+
+        config.setSTSEndpoint("www.aliyun.com");
+        Assert.assertEquals("www.aliyun.com", config.getSTSEndpoint());
     }
 }

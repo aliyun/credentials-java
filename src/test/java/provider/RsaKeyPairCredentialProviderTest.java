@@ -6,16 +6,12 @@ import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
+import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.provider.RsaKeyPairCredentialProvider;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,10 +28,27 @@ public class RsaKeyPairCredentialProviderTest {
         Assert.assertEquals(2000, provider.getReadTimeout());
         Assert.assertEquals("test", provider.getPrivateKey());
         Assert.assertEquals("test", provider.getPublicKeyId());
+        config.setSTSEndpoint("sts.cn-hangzhou.aliyuncs.com");
+        provider = new RsaKeyPairCredentialProvider(config);
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+
+        Config config1 = new Config();
+        config1.publicKeyId = "test";
+        config1.privateKeyFile = "test";
+        config1.connectTimeout = 2000;
+        config1.timeout = 2000;
+        provider = new RsaKeyPairCredentialProvider(config1);
+        Assert.assertEquals(2000, provider.getConnectTimeout());
+        Assert.assertEquals(2000, provider.getReadTimeout());
+        Assert.assertEquals("test", provider.getPrivateKey());
+        Assert.assertEquals("test", provider.getPublicKeyId());
+        config1.STSEndpoint = "sts.cn-hangzhou.aliyuncs.com";
+        provider = new RsaKeyPairCredentialProvider(config);
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
     }
 
     @Test
-    public void getCredentialsTest(){
+    public void getCredentialsTest() {
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider(null, null);
         Assert.assertNull(provider.getCredentials());
     }
@@ -52,7 +65,7 @@ public class RsaKeyPairCredentialProviderTest {
     }
 
     @Test
-    public void getSet(){
+    public void getSet() {
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", "test");
         provider.setConnectTimeout(888);
         Assert.assertEquals(888, provider.getConnectTimeout());
@@ -71,5 +84,8 @@ public class RsaKeyPairCredentialProviderTest {
 
         provider.setPublicKeyId("test");
         Assert.assertEquals("test", provider.getPublicKeyId());
+
+        provider.setSTSEndpoint("www.aliyun.com");
+        Assert.assertEquals("www.aliyun.com", provider.getSTSEndpoint());
     }
 }

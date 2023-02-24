@@ -76,6 +76,9 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getOIDCProviderArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertNull(provider.getPolicy());
+        config.setSTSEndpoint("sts.cn-hangzhou.aliyuncs.com");
+        provider = new OIDCRoleArnCredentialProvider(config);
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
 
         Config config1 = new Config();
         config1.accessKeyId = "test";
@@ -98,6 +101,9 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getOIDCProviderArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertEquals("test", provider.getPolicy());
+        config1.STSEndpoint = "sts.cn-hangzhou.aliyuncs.com";
+        provider = new OIDCRoleArnCredentialProvider(config);
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
     }
 
     @Test
@@ -179,6 +185,9 @@ public class OIDCRoleArnCredentialProviderTest {
 
         provider.setAccessKeySecret("test");
         Assert.assertEquals("test", provider.getAccessKeySecret());
+
+        provider.setSTSEndpoint("www.aliyun.com");
+        Assert.assertEquals("www.aliyun.com", provider.getSTSEndpoint());
     }
 
 }

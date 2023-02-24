@@ -9,6 +9,7 @@ import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.ParameterHelper;
+import com.aliyun.credentials.utils.StringUtils;
 import com.google.gson.Gson;
 
 import java.util.Map;
@@ -31,16 +32,27 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
     private int connectTimeout = 1000;
     private int readTimeout = 1000;
 
+    /**
+     * Endpoint of RAM OpenAPI
+     */
+    private String STSEndpoint = "sts.aliyuncs.com";
+
     public RsaKeyPairCredentialProvider(Configuration config) {
         this(config.getPublicKeyId(), config.getPrivateKeyFile());
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
+        if (!StringUtils.isEmpty(config.getSTSEndpoint())) {
+            this.STSEndpoint = config.getSTSEndpoint();
+        }
     }
 
     public RsaKeyPairCredentialProvider(Config config) {
         this(config.publicKeyId, config.privateKeyFile);
         this.connectTimeout = config.connectTimeout;
         this.readTimeout = config.timeout;
+        if (!StringUtils.isEmpty(config.STSEndpoint)) {
+            this.STSEndpoint = config.STSEndpoint;
+        }
     }
 
 
@@ -83,12 +95,12 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
         httpRequest.setSysMethod(MethodType.GET);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
-        httpRequest.setSysUrl(parameterHelper.composeUrl("sts.aliyuncs.com", httpRequest.getUrlParameters(),
+        httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
                 "https"));
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        Map<String, String> credential = (Map<String,String>) map.get("SessionAccessKey");
+        Map<String, String> credential = (Map<String, String>) map.get("SessionAccessKey");
         long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();
         return new RsaKeyPairCredential(credential.get("SessionAccessKeyId"), credential.get("SessionAccessKeySecret"),
                 expiration, this);
@@ -141,5 +153,13 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
 
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public String getSTSEndpoint() {
+        return STSEndpoint;
+    }
+
+    public void setSTSEndpoint(String STSEndpoint) {
+        this.STSEndpoint = STSEndpoint;
     }
 }

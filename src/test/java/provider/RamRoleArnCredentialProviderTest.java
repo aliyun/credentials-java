@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +48,9 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertNull(provider.getPolicy());
+        config.setSTSEndpoint("sts.cn-hangzhou.aliyuncs.com");
+        provider = new RamRoleArnCredentialProvider(config);
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
 
         Config config1 = new Config();
         config1.accessKeyId = "test";
@@ -69,6 +71,9 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertEquals("test", provider.getPolicy());
+        config1.STSEndpoint = "sts.cn-hangzhou.aliyuncs.com";
+        provider = new RamRoleArnCredentialProvider(config);
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
     }
 
     @Test
@@ -129,6 +134,9 @@ public class RamRoleArnCredentialProviderTest {
 
         provider.setAccessKeySecret("test");
         Assert.assertEquals("test", provider.getAccessKeySecret());
+
+        provider.setSTSEndpoint("www.aliyun.com");
+        Assert.assertEquals("www.aliyun.com", provider.getSTSEndpoint());
     }
 
 }

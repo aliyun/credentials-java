@@ -11,6 +11,7 @@ import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.ParameterHelper;
+import com.aliyun.credentials.utils.StringUtils;
 import com.google.gson.Gson;
 
 import java.util.Map;
@@ -41,11 +42,19 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
     private int connectTimeout = 1000;
     private int readTimeout = 1000;
 
+    /**
+     * Endpoint of RAM OpenAPI
+     */
+    private String STSEndpoint = "sts.aliyuncs.com";
+
     public RamRoleArnCredentialProvider(Configuration config) {
         this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn());
         this.roleSessionName = config.getRoleSessionName();
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
+        if (!StringUtils.isEmpty(config.getSTSEndpoint())) {
+            this.STSEndpoint = config.getSTSEndpoint();
+        }
     }
 
     public RamRoleArnCredentialProvider(Config config) {
@@ -55,6 +64,9 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         this.readTimeout = config.timeout;
         this.policy = config.policy;
         this.durationSeconds = config.roleSessionExpiration;
+        if (!StringUtils.isEmpty(config.STSEndpoint)) {
+            this.STSEndpoint = config.STSEndpoint;
+        }
     }
 
     public RamRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn) {
@@ -110,7 +122,7 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         String strToSign = parameterHelper.composeStringToSign(MethodType.GET, httpRequest.getUrlParameters());
         String signature = parameterHelper.signString(strToSign, this.accessKeySecret + "&");
         httpRequest.setUrlParameter("Signature", signature);
-        httpRequest.setSysUrl(parameterHelper.composeUrl("sts.aliyuncs.com", httpRequest.getUrlParameters(),
+        httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
                 "https"));
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
@@ -191,5 +203,13 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
 
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public String getSTSEndpoint() {
+        return STSEndpoint;
+    }
+
+    public void setSTSEndpoint(String STSEndpoint) {
+        this.STSEndpoint = STSEndpoint;
     }
 }
