@@ -1,13 +1,9 @@
 package com.aliyun.credentials;
 
-import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.text.ParseException;
 
 public class Client {
 

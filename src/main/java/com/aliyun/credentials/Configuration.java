@@ -19,6 +19,7 @@ public class Configuration {
     private String oidcProviderArn;
     private String oidcTokenFilePath;
     private String credentialsURI;
+    private String STSEndpoint;
 
     public String getType() {
         return type;
@@ -162,5 +163,13 @@ public class Configuration {
 
     public void setCredentialsURI(String credentialsURI) {
         this.credentialsURI = credentialsURI;
+    }
+
+    public String getSTSEndpoint() {
+        return STSEndpoint;
+    }
+
+    public void setSTSEndpoint(String STSEndpoint) {
+        this.STSEndpoint = STSEndpoint;
     }
 }

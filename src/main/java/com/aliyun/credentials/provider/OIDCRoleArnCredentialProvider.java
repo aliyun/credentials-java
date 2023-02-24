@@ -48,12 +48,20 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
     private int connectTimeout = 1000;
     private int readTimeout = 1000;
 
+    /**
+     * Endpoint of RAM OpenAPI
+     */
+    private String STSEndpoint = "sts.aliyuncs.com";
+
     public OIDCRoleArnCredentialProvider(Configuration config) {
         this(config.getRoleArn(),
                 config.getOIDCProviderArn(), config.getOIDCTokenFilePath());
         this.roleSessionName = config.getRoleSessionName();
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
+        if (!StringUtils.isEmpty(config.getSTSEndpoint())) {
+            this.STSEndpoint = config.getSTSEndpoint();
+        }
     }
 
     public OIDCRoleArnCredentialProvider(Config config) {
@@ -63,6 +71,9 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         this.readTimeout = config.timeout;
         this.policy = config.policy;
         this.durationSeconds = config.roleSessionExpiration;
+        if (!StringUtils.isEmpty(config.STSEndpoint)) {
+            this.STSEndpoint = config.STSEndpoint;
+        }
     }
 
     @Deprecated
@@ -166,7 +177,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         httpRequest.setSysMethod(MethodType.POST);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
-        httpRequest.setSysUrl(parameterHelper.composeUrl("sts.aliyuncs.com", httpRequest.getUrlParameters(),
+        httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
                 "https"));
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
@@ -263,5 +274,13 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
 
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public String getSTSEndpoint() {
+        return STSEndpoint;
+    }
+
+    public void setSTSEndpoint(String STSEndpoint) {
+        this.STSEndpoint = STSEndpoint;
     }
 }
