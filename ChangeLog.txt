@@ -1,3 +1,6 @@
+2023-02-24 Version: 0.2.11
+1.support user-defined sts endpoint.
+
 2023-02-01 Version: 0.2.10
 1.support oidc credential in credential chain.
 2.support env ALIBABA_CLOUD_ROLE_ARN/ALIBABA_CLOUD_OIDC_PROVIDER_ARN/ALIBABA_CLOUD_ROLE_SESSION_NAME for oidc credential.
