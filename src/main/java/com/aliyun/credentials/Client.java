@@ -22,6 +22,10 @@ public class Client {
         this.cloudCredential = new DefaultCredentialsProvider().getCredentials();
     }
 
+    public Client(AlibabaCloudCredentialsProvider provider) {
+        this.cloudCredential = provider.getCredentials();
+    }
+
     public AlibabaCloudCredentials getCredential(Config config) {
         switch (config.type) {
             case AuthConstant.ACCESS_KEY:
