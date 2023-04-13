@@ -1,3 +1,6 @@
+2023-04-13 Version: 0.2.12
+1.feat: assign provider to credentials.
+
 2023-02-24 Version: 0.2.11
 1.support user-defined sts endpoint.
 
