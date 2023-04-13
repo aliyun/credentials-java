@@ -29,6 +29,19 @@ public class ClientTest {
         Assert.assertEquals("654321", credential.getAccessKeySecret());
         Assert.assertEquals(AuthConstant.ACCESS_KEY, credential.getType());
         Assert.assertNull(credential.getSecurityToken());
+
+        try {
+            credential = new Client();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("not found credentials", e.getMessage());
+        }
+        try {
+            credential = new Client(new DefaultCredentialsProvider());
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("not found credentials", e.getMessage());
+        }
     }
 
     @Test
