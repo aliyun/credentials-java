@@ -1,4 +1,5 @@
 import com.aliyun.credentials.EcsRamRoleCredential;
+import com.aliyun.credentials.models.Credential;
 import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
@@ -26,14 +27,20 @@ public class EcsRamRoleCredentialTest {
     }
 
     @Test
-    public void refreshCredentialTest() throws Exception {
+    public void refreshCredentialTest() throws Exception{
         EcsRamRoleCredentialProvider provider = Mockito.mock(EcsRamRoleCredentialProvider.class);
-        EcsRamRoleCredential result = new EcsRamRoleCredential("test", "test", "",
-                "2222-01-28T15:15:56Z", null);
-        Mockito.when(provider.getCredentials()).thenReturn(result);
 
-        EcsRamRoleCredential credential = new EcsRamRoleCredential("id", "id", "",
-                "2019-01-28T15:15:56Z", provider);
-        Assert.assertEquals("test", credential.getAccessKeyId());
+        Credential credential = Credential.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("")
+                .type(AuthConstant.ECS_RAM_ROLE)
+                .expiration(64090527132000L)
+                .build();
+        Mockito.when(provider.getCredentials()).thenReturn(credential);
+
+        EcsRamRoleCredential newCredential = new EcsRamRoleCredential("id", "id", "",
+                "2019-01-28T15:15:56Z",provider);
+        Assert.assertEquals("test", newCredential.getAccessKeyId());
     }
 }

@@ -1,14 +1,13 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.AccessKeyCredential;
-import com.aliyun.credentials.AlibabaCloudCredentials;
+import com.aliyun.credentials.models.Credential;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.StringUtils;
 
 public class SystemPropertiesCredentialsProvider implements AlibabaCloudCredentialsProvider {
     @Override
-    public AlibabaCloudCredentials getCredentials() {
+    public Credential getCredentials() {
         if (!"default".equals(AuthUtils.getClientType())) {
             return null;
         }
@@ -17,6 +16,9 @@ public class SystemPropertiesCredentialsProvider implements AlibabaCloudCredenti
         if (StringUtils.isEmpty(accessKeyId) || StringUtils.isEmpty(accessKeySecret)) {
             return null;
         }
-        return new AccessKeyCredential(accessKeyId, accessKeySecret);
+        return Credential.builder()
+                .accessKeyId(accessKeyId)
+                .accessKeySecret(accessKeySecret)
+                .build();
     }
 }

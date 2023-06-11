@@ -1,23 +1,24 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.URLCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-public class URLCredentialProvider implements AlibabaCloudCredentialsProvider {
+public class URLCredentialProvider extends SessionCredentialsProvider {
 
     private URL credentialsURI;
     /**
@@ -26,11 +27,14 @@ public class URLCredentialProvider implements AlibabaCloudCredentialsProvider {
     private int connectTimeout = 1000;
     private int readTimeout = 1000;
 
+    @Deprecated
     public URLCredentialProvider() {
         this(System.getenv("ALIBABA_CLOUD_CREDENTIALS_URI"));
     }
 
+    @Deprecated
     public URLCredentialProvider(String credentialsURI) {
+        super(new BuilderImpl());
         if (StringUtils.isEmpty(credentialsURI)) {
             throw new CredentialException("Credential URI cannot be null.");
         }
@@ -41,27 +45,46 @@ public class URLCredentialProvider implements AlibabaCloudCredentialsProvider {
         }
     }
 
+    @Deprecated
     public URLCredentialProvider(URL credentialsURI) {
+        super(new BuilderImpl());
         if (credentialsURI == null) {
             throw new CredentialException("Credential URI cannot be null.");
         }
         this.credentialsURI = credentialsURI;
     }
 
+    @Deprecated
     public URLCredentialProvider(Configuration config) {
         this(config.getCredentialsURI());
         this.connectTimeout = config.getConnectTimeout();
         this.readTimeout = config.getReadTimeout();
     }
 
+    @Deprecated
     public URLCredentialProvider(Config config) {
         this(config.credentialsURI);
         this.connectTimeout = config.connectTimeout;
         this.readTimeout = config.timeout;
     }
 
+    private URLCredentialProvider(BuilderImpl builder) {
+        super(builder);
+        try {
+            this.credentialsURI = new URL(Validate.notNull(builder.credentialsURI, "Credentials URI is not valid."));
+        } catch (MalformedURLException e) {
+            throw new CredentialException("Credential URI is not valid.");
+        }
+        this.connectTimeout = builder.connectionTimeout;
+        this.readTimeout = builder.readTimeout;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
     @Override
-    public AlibabaCloudCredentials getCredentials() {
+    public RefreshResult<Credential> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         HttpRequest request = new HttpRequest(this.credentialsURI.toString());
         request.setSysMethod(MethodType.GET);
@@ -94,8 +117,16 @@ public class URLCredentialProvider implements AlibabaCloudCredentialsProvider {
         }
         if (map.containsKey("Code") && map.get("Code").equals("Success")) {
             long expiration = ParameterHelper.getUTCDate(map.get("Expiration")).getTime();
-            return new URLCredential(map.get("AccessKeyId"), map.get("AccessKeySecret"),
-                    map.get("SecurityToken"), expiration, this);
+            Credential credential = Credential.builder()
+                    .accessKeyId(map.get("AccessKeyId"))
+                    .accessKeySecret(map.get("AccessKeySecret"))
+                    .securityToken(map.get("SecurityToken"))
+                    .type(AuthConstant.URL_STS)
+                    .expiration(expiration)
+                    .build();
+            return RefreshResult.builder(credential)
+                    .staleTime(getStaleTime(expiration))
+                    .build();
         } else {
             throw new CredentialException(gson.toJson(map));
         }
@@ -119,5 +150,52 @@ public class URLCredentialProvider implements AlibabaCloudCredentialsProvider {
 
     public void setReadTimeout(int readTimeout) {
         this.readTimeout = readTimeout;
+    }
+
+    public interface Builder extends SessionCredentialsProvider.Builder<URLCredentialProvider, Builder> {
+        Builder credentialsURI(URL credentialsURI);
+
+        Builder credentialsURI(String credentialsURI);
+
+        Builder connectionTimeout(int connectionTimeout);
+
+        Builder readTimeout(int readTimeout);
+
+        @Override
+        URLCredentialProvider build();
+    }
+
+    private static final class BuilderImpl
+            extends SessionCredentialsProvider.BuilderImpl<URLCredentialProvider, Builder>
+            implements Builder {
+
+        private String credentialsURI = System.getenv("ALIBABA_CLOUD_CREDENTIALS_URI");
+        private int connectionTimeout = 1000;
+        private int readTimeout = 1000;
+
+        public Builder credentialsURI(URL credentialsURI) {
+            this.credentialsURI = credentialsURI.toString();
+            return this;
+        }
+
+        public Builder credentialsURI(String credentialsURI) {
+            this.credentialsURI = credentialsURI;
+            return this;
+        }
+
+        public Builder connectionTimeout(int connectionTimeout) {
+            this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+
+        public Builder readTimeout(int readTimeout) {
+            this.readTimeout = readTimeout;
+            return this;
+        }
+
+        @Override
+        public URLCredentialProvider build() {
+            return new URLCredentialProvider(this);
+        }
     }
 }

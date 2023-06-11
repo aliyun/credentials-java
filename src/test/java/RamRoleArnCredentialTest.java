@@ -1,28 +1,32 @@
 import com.aliyun.credentials.RamRoleArnCredential;
-import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
+import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import org.mockito.Mockito;
 
 public class RamRoleArnCredentialTest {
 
     @Test
     public void ramRoleArnCredentialTest() {
-        AlibabaCloudCredentialsProvider provider = mock(AlibabaCloudCredentialsProvider.class);
-        when(provider.getCredentials()).thenReturn(new RamRoleArnCredential("id", "secret",
-                "token", 64090527132000L, null));
+        RamRoleArnCredentialProvider provider = Mockito.mock(RamRoleArnCredentialProvider.class);
+        Credential credential = Credential.builder()
+                .accessKeyId("id")
+                .accessKeySecret("secret")
+                .securityToken("token")
+                .type(AuthConstant.RAM_ROLE_ARN)
+                .expiration(64090527132000L)
+                .build();
+        Mockito.when(provider.getCredentials()).thenReturn(credential);
 
-        RamRoleArnCredential credential = new RamRoleArnCredential("idTest", "secretTest",
+        RamRoleArnCredential newCredential = new RamRoleArnCredential("idTest", "secretTest",
                 "tokenTest", 0L, provider);
-        credential.refreshCredential();
-        Assert.assertEquals("id", credential.getAccessKeyId());
-        Assert.assertEquals("secret", credential.getAccessKeySecret());
-        Assert.assertEquals(64090527132000L, credential.getExpiration());
-        Assert.assertEquals("token", credential.getSecurityToken());
-        Assert.assertEquals(AuthConstant.RAM_ROLE_ARN, credential.getType());
+        Assert.assertEquals("id", newCredential.getAccessKeyId());
+        Assert.assertEquals("secret", newCredential.getAccessKeySecret());
+        Assert.assertEquals(64090527132000L, newCredential.getExpiration());
+        Assert.assertEquals("token", newCredential.getSecurityToken());
+        Assert.assertEquals(AuthConstant.RAM_ROLE_ARN, newCredential.getType());
     }
 
 }

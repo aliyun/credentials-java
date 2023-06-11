@@ -1,20 +1,22 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.RsaKeyPairCredential;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 
 import java.util.Map;
 
-public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProvider {
+public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
 
     /**
      * Default duration for started sessions. Unit of Second
@@ -23,6 +25,7 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
 
     private String publicKeyId;
     private String privateKey;
+    private String privateKeyFile;
     private String regionId = "cn-hangzhou";
 
     /**
@@ -36,6 +39,7 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
      */
     private String STSEndpoint = "sts.aliyuncs.com";
 
+    @Deprecated
     public RsaKeyPairCredentialProvider(Configuration config) {
         this(config.getPublicKeyId(), config.getPrivateKeyFile());
         this.connectTimeout = config.getConnectTimeout();
@@ -45,6 +49,7 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
         }
     }
 
+    @Deprecated
     public RsaKeyPairCredentialProvider(Config config) {
         this(config.publicKeyId, config.privateKeyFile);
         this.connectTimeout = config.connectTimeout;
@@ -54,20 +59,36 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
         }
     }
 
-
+    @Deprecated
     public RsaKeyPairCredentialProvider(String publicKeyId, String privateKey) {
+        super(new BuilderImpl());
         this.publicKeyId = publicKeyId;
         this.privateKey = privateKey;
     }
 
+    private RsaKeyPairCredentialProvider(BuilderImpl builder) {
+        super(builder);
+        this.durationSeconds = builder.durationSeconds;
+        this.regionId = builder.regionId;
+        this.connectTimeout = builder.connectionTimeout;
+        this.readTimeout = builder.readTimeout;
+        this.STSEndpoint = builder.STSEndpoint;
+        this.publicKeyId = Validate.notNull(builder.publicKeyId, "PublicKeyId must not be null.");
+        this.privateKeyFile = Validate.notNull(builder.privateKeyFile, "privateKeyFile must not be null.");
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
 
     @Override
-    public AlibabaCloudCredentials getCredentials() {
+    public RefreshResult<Credential> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return createCredential(client);
     }
 
-    public AlibabaCloudCredentials createCredential(CompatibleUrlConnClient client) {
+    public RefreshResult<Credential> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
@@ -79,7 +100,10 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
     }
 
     @SuppressWarnings("unchecked")
-    public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) {
+    public RefreshResult<Credential> getNewSessionCredentials(CompatibleUrlConnClient client) {
+        if (!StringUtils.isEmpty(this.privateKeyFile)) {
+            this.privateKey = AuthUtils.getOIDCToken(this.privateKeyFile);
+        }
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.setUrlParameter("Action", "GenerateSessionAccessKey");
@@ -99,11 +123,17 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        Map<String, String> credential = (Map<String, String>) map.get("SessionAccessKey");
-        long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();
-        return new RsaKeyPairCredential(credential.get("SessionAccessKeyId"), credential.get("SessionAccessKeySecret"),
-                expiration, this);
-
+        Map<String, String> result = (Map<String, String>) map.get("SessionAccessKey");
+        long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
+        Credential credential = Credential.builder()
+                .accessKeyId(result.get("SessionAccessKeyId"))
+                .accessKeySecret(result.get("SessionAccessKeySecret"))
+                .type(AuthConstant.RSA_KEY_PAIR)
+                .expiration(expiration)
+                .build();
+        return RefreshResult.builder(credential)
+                .staleTime(getStaleTime(expiration))
+                .build();
     }
 
     public int getDurationSeconds() {
@@ -160,5 +190,81 @@ public class RsaKeyPairCredentialProvider implements AlibabaCloudCredentialsProv
 
     public void setSTSEndpoint(String STSEndpoint) {
         this.STSEndpoint = STSEndpoint;
+    }
+
+    public interface Builder extends SessionCredentialsProvider.Builder<RsaKeyPairCredentialProvider, Builder> {
+        Builder durationSeconds(int durationSeconds);
+
+        Builder regionId(String regionId);
+
+        Builder connectionTimeout(int connectionTimeout);
+
+        Builder readTimeout(int readTimeout);
+
+        Builder STSEndpoint(String STSEndpoint);
+
+        Builder publicKeyId(String publicKeyId);
+
+        Builder privateKeyFile(String privateKeyFile);
+
+        @Override
+        RsaKeyPairCredentialProvider build();
+    }
+
+    private static final class BuilderImpl
+            extends SessionCredentialsProvider.BuilderImpl<RsaKeyPairCredentialProvider, Builder>
+            implements Builder {
+
+        private int durationSeconds = 3600;
+
+        private String regionId = "cn-hangzhou";
+
+        private int connectionTimeout = 1000;
+        private int readTimeout = 1000;
+        private String STSEndpoint = "sts.aliyuncs.com";
+        private String publicKeyId;
+        private String privateKeyFile;
+
+        public Builder durationSeconds(int durationSeconds) {
+            this.durationSeconds = durationSeconds;
+            return this;
+        }
+
+        public Builder regionId(String regionId) {
+            if (!StringUtils.isEmpty(regionId)) {
+                this.regionId = regionId;
+            }
+            return this;
+        }
+
+        public Builder connectionTimeout(int connectionTimeout) {
+            this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+
+        public Builder readTimeout(int readTimeout) {
+            this.readTimeout = readTimeout;
+            return this;
+        }
+
+        public Builder STSEndpoint(String STSEndpoint) {
+            this.STSEndpoint = STSEndpoint;
+            return this;
+        }
+
+        public Builder publicKeyId(String publicKeyId) {
+            this.publicKeyId = publicKeyId;
+            return this;
+        }
+
+        public Builder privateKeyFile(String privateKeyFile) {
+            this.privateKeyFile = privateKeyFile;
+            return this;
+        }
+
+        @Override
+        public RsaKeyPairCredentialProvider build() {
+            return new RsaKeyPairCredentialProvider(this);
+        }
     }
 }

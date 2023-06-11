@@ -1,8 +1,7 @@
 package provider;
 
-import com.aliyun.credentials.AccessKeyCredential;
-import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.exception.CredentialException;
+import com.aliyun.credentials.models.Credential;
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.provider.DefaultCredentialsProvider;
 import com.aliyun.credentials.provider.ProfileCredentialsProvider;
@@ -45,29 +44,37 @@ public class DefaultCredentialsProviderTest {
 
         AuthUtils.setEnvironmentAccessKeyId("test");
         AuthUtils.setEnvironmentAccessKeySecret("test");
-        AlibabaCloudCredentials credential = provider.getCredentials();
-        Assert.assertTrue(credential instanceof AccessKeyCredential);
+        Credential credential = provider.getCredentials();
+        Assert.assertEquals("test", credential.getAccessKeyId());
+        Assert.assertEquals("test", credential.getAccessKeySecret());
 
         DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
             @Override
-            public AlibabaCloudCredentials getCredentials() {
+            public Credential getCredentials() {
                 return null;
             }
         });
         DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
             @Override
-            public AlibabaCloudCredentials getCredentials() {
-                return new AccessKeyCredential("", "");
+            public Credential getCredentials() {
+                return Credential.builder()
+                        .accessKeyId("")
+                        .accessKeySecret("")
+                        .type(AuthConstant.ACCESS_KEY)
+                        .build();
             }
         });
         credential = provider.getCredentials();
-        Assert.assertTrue(credential instanceof AccessKeyCredential);
+        Assert.assertEquals("", credential.getAccessKeyId());
+        Assert.assertEquals("", credential.getAccessKeySecret());
+        Assert.assertEquals(AuthConstant.ACCESS_KEY, credential.getType());
 
         DefaultCredentialsProvider.clearCredentialsProvider();
         AuthUtils.setEnvironmentECSMetaData(null);
         AuthUtils.setEnvironmentAccessKeyId(null);
         AuthUtils.setEnvironmentAccessKeySecret(null);
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYID, "");
+        System.setProperty(AuthConstant.SYSTEM_ACCESSKEYSECRET, "");
         AuthUtils.setEnvironmentCredentialsFile(null);
         // Clear the contents of the global credentials.ini
         Field field = ProfileCredentialsProvider.class.getDeclaredField("ini");
@@ -88,8 +95,8 @@ public class DefaultCredentialsProviderTest {
         AuthUtils.setEnvironmentAccessKeyId("test");
         AuthUtils.setEnvironmentAccessKeySecret("test");
         DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
-        DefaultCredentialsProvider.addCredentialsProvider(new SystemPropertiesCredentialsProvider());
-        Assert.assertTrue(provider.getCredentials() instanceof AccessKeyCredential);
+        Assert.assertEquals("test", provider.getCredentials().getAccessKeyId());
+        Assert.assertEquals("test", provider.getCredentials().getAccessKeySecret());
         AuthUtils.setEnvironmentECSMetaData(null);
         AuthUtils.setEnvironmentAccessKeyId(null);
         AuthUtils.setEnvironmentAccessKeySecret(null);

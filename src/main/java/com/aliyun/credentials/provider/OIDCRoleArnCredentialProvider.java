@@ -1,14 +1,15 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.OIDCRoleArnCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.*;
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 
 import java.io.UnsupportedEncodingException;
@@ -16,7 +17,7 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsProvider {
+public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
     /**
      * Default duration for started sessions. Unit of Second
@@ -52,6 +53,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
      */
     private String STSEndpoint = "sts.aliyuncs.com";
 
+    @Deprecated
     public OIDCRoleArnCredentialProvider(Configuration config) {
         this(config.getRoleArn(),
                 config.getOIDCProviderArn(), config.getOIDCTokenFilePath());
@@ -63,6 +65,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         }
     }
 
+    @Deprecated
     public OIDCRoleArnCredentialProvider(Config config) {
         this(config.roleArn, config.oidcProviderArn, config.oidcTokenFilePath);
         this.roleSessionName = config.roleSessionName;
@@ -81,7 +84,9 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         this(roleArn, oidcProviderArn, oidcTokenFilePath);
     }
 
+    @Deprecated
     public OIDCRoleArnCredentialProvider(String roleArn, String oidcProviderArn, String oidcTokenFilePath) {
+        super(new BuilderImpl());
         if (!StringUtils.isEmpty(roleArn)) {
             this.roleArn = roleArn;
         } else if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_ARN"))) {
@@ -115,6 +120,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         this(roleSessionName, roleArn, oidcProviderArn, oidcTokenFilePath, regionId, policy);
     }
 
+    @Deprecated
     public OIDCRoleArnCredentialProvider(String roleSessionName, String roleArn,
                                          String oidcProviderArn, String oidcTokenFilePath,
                                          String regionId, String policy) {
@@ -124,13 +130,31 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         this.policy = policy;
     }
 
+    private OIDCRoleArnCredentialProvider(BuilderImpl builder) {
+        super(builder);
+        this.roleSessionName = builder.roleSessionName;
+        this.durationSeconds = builder.durationSeconds;
+        this.roleArn = Validate.notNull(builder.roleArn, "RoleArn or environment variable ALIBABA_CLOUD_ROLE_ARN cannot be null.");
+        this.oidcProviderArn = Validate.notNull(builder.oidcProviderArn, "OIDCProviderArn or environment variable ALIBABA_CLOUD_OIDC_PROVIDER_ARN cannot be null.");
+        this.oidcTokenFilePath = Validate.notNull(builder.oidcTokenFilePath, "OIDCTokenFilePath or environment variable ALIBABA_CLOUD_OIDC_TOKEN_FILE cannot be null.");
+        this.regionId = builder.regionId;
+        this.policy = builder.policy;
+        this.connectTimeout = builder.connectionTimeout;
+        this.readTimeout = builder.readTimeout;
+        this.STSEndpoint = builder.STSEndpoint;
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
+
     @Override
-    public AlibabaCloudCredentials getCredentials() {
+    public RefreshResult<Credential> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return createCredential(client);
     }
 
-    public AlibabaCloudCredentials createCredential(CompatibleUrlConnClient client) {
+    public RefreshResult<Credential> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
@@ -142,7 +166,7 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
     }
 
     @SuppressWarnings("unchecked")
-    public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
+    public RefreshResult<Credential> getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
         this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
@@ -181,11 +205,21 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        if (map.containsKey("Credentials")) {
-            Map<String, String> credential = (Map<String, String>) map.get("Credentials");
-            long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();
-            return new OIDCRoleArnCredential(credential.get("AccessKeyId"), credential.get("AccessKeySecret"),
-                    credential.get("SecurityToken"), expiration, this);
+        if (null == map) {
+            throw new CredentialException(httpResponse.getResponseMessage());
+        } else if (map.containsKey("Credentials")) {
+            Map<String, String> result = (Map<String, String>) map.get("Credentials");
+            long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
+            Credential credential = Credential.builder()
+                    .accessKeyId(result.get("AccessKeyId"))
+                    .accessKeySecret(result.get("AccessKeySecret"))
+                    .securityToken(result.get("SecurityToken"))
+                    .type(AuthConstant.OIDC_ROLE_ARN)
+                    .expiration(expiration)
+                    .build();
+            return RefreshResult.builder(credential)
+                    .staleTime(getStaleTime(expiration))
+                    .build();
         } else {
             throw new CredentialException(gson.toJson(map));
         }
@@ -281,5 +315,112 @@ public class OIDCRoleArnCredentialProvider implements AlibabaCloudCredentialsPro
 
     public void setSTSEndpoint(String STSEndpoint) {
         this.STSEndpoint = STSEndpoint;
+    }
+
+    public interface Builder extends SessionCredentialsProvider.Builder<OIDCRoleArnCredentialProvider, Builder> {
+        Builder roleSessionName(String roleSessionName);
+
+        Builder durationSeconds(int durationSeconds);
+
+        Builder roleArn(String roleArn);
+
+        Builder oidcProviderArn(String oidcProviderArn);
+
+        Builder oidcTokenFilePath(String oidcTokenFilePath);
+
+        Builder regionId(String regionId);
+
+        Builder policy(String policy);
+
+        Builder connectionTimeout(int connectionTimeout);
+
+        Builder readTimeout(int readTimeout);
+
+        Builder STSEndpoint(String STSEndpoint);
+
+        @Override
+        OIDCRoleArnCredentialProvider build();
+    }
+
+    private static final class BuilderImpl
+            extends SessionCredentialsProvider.BuilderImpl<OIDCRoleArnCredentialProvider, Builder>
+            implements Builder {
+        private String roleSessionName = StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME")) ?
+                "defaultSessionName"
+                : System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME");
+        private int durationSeconds = 3600;
+        private String roleArn = System.getenv("ALIBABA_CLOUD_ROLE_ARN");
+        private String oidcProviderArn = System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN");
+        private String oidcTokenFilePath = System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
+        private String regionId = "cn-hangzhou";
+        private String policy;
+        private int connectionTimeout = 1000;
+        private int readTimeout = 1000;
+        private String STSEndpoint = "sts.aliyuncs.com";
+
+        public Builder roleSessionName(String roleSessionName) {
+            if (!StringUtils.isEmpty(roleSessionName)) {
+                this.roleSessionName = roleSessionName;
+            }
+            return this;
+        }
+
+        public Builder durationSeconds(int durationSeconds) {
+            this.durationSeconds = durationSeconds;
+            return this;
+        }
+
+        public Builder roleArn(String roleArn) {
+            if (!StringUtils.isEmpty(roleArn)) {
+                this.roleArn = roleArn;
+            }
+            return this;
+        }
+
+        public Builder oidcProviderArn(String oidcProviderArn) {
+            if (!StringUtils.isEmpty(oidcProviderArn)) {
+                this.oidcProviderArn = oidcProviderArn;
+            }
+            return this;
+        }
+
+        public Builder oidcTokenFilePath(String oidcTokenFilePath) {
+            if (!StringUtils.isEmpty(oidcTokenFilePath)) {
+                this.oidcTokenFilePath = oidcTokenFilePath;
+            }
+            return this;
+        }
+
+        public Builder regionId(String regionId) {
+            if (!StringUtils.isEmpty(regionId)) {
+                this.regionId = regionId;
+            }
+            return this;
+        }
+
+        public Builder policy(String policy) {
+            this.policy = policy;
+            return this;
+        }
+
+        public Builder connectionTimeout(int connectionTimeout) {
+            this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+
+        public Builder readTimeout(int readTimeout) {
+            this.readTimeout = readTimeout;
+            return this;
+        }
+
+        public Builder STSEndpoint(String STSEndpoint) {
+            this.STSEndpoint = STSEndpoint;
+            return this;
+        }
+
+        @Override
+        public OIDCRoleArnCredentialProvider build() {
+            return new OIDCRoleArnCredentialProvider(this);
+        }
     }
 }

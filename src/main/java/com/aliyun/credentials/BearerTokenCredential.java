@@ -1,5 +1,6 @@
 package com.aliyun.credentials;
 
+@Deprecated
 public class BearerTokenCredential implements AlibabaCloudCredentials {
 
     private String bearerToken;

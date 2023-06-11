@@ -5,6 +5,7 @@ import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 
 import java.util.Date;
 
+@Deprecated
 public class RefreshUtils {
 
     public static boolean withShouldRefresh(long expiration) {

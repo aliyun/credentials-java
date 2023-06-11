@@ -94,6 +94,7 @@ public class DemoTest {
         // AccessKeySecret of your account
         config.accessKeySecret = "AccessKeySecret";
         // Format: acs:ram::USER_Id:role/ROLE_NAME
+        // roleArn can be replaced by setting environment variable: ALIBABA_CLOUD_ROLE_ARN
         config.roleArn = "RoleArn";
         // Role Session Name
         config.roleSessionName = "RoleSessionName";
@@ -251,7 +252,7 @@ region_id = cn-test
 policy = test                      # optional Specify permissions
 access_key_id = foo                
 access_key_secret = bar            
-role_arn = role_arn                
+role_arn = role_arn                # can be replaced by setting environment variable: ALIBABA_CLOUD_ROLE_ARN
 role_session_name = session_name   # optional
 
 [client3]                          # configuration that is named as `client3`

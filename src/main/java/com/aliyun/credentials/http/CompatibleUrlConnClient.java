@@ -87,11 +87,9 @@ public class CompatibleUrlConnClient implements Closeable {
 
     public HttpURLConnection initHttpConnection(URL url, HttpRequest request) {
         try {
-            SSLSocketFactory sslSocketFactory = createSSLSocketFactory();
             HttpURLConnection httpConn;
             if ("https".equalsIgnoreCase(url.getProtocol())) {
                 HttpsURLConnection httpsConn = (HttpsURLConnection) url.openConnection();
-                httpsConn.setSSLSocketFactory(sslSocketFactory);
                 httpsConn.setHostnameVerifier(new TrueHostnameVerifier());
                 httpConn = httpsConn;
             } else {

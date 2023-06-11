@@ -1,12 +1,12 @@
 package provider;
 
-import com.aliyun.credentials.EcsRamRoleCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.provider.ECSMetadataServiceCredentialsFetcher;
+import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -50,7 +50,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenThrow(new RuntimeException("test"));
         try {
-            fetcher.fetch(client, null);
+            fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
             Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
@@ -61,7 +61,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client, null);
+            fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=500",
@@ -75,7 +75,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
                 "UTF-8", FormatType.JSON);
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
-        Assert.assertTrue(fetcher.fetch(client, null) instanceof EcsRamRoleCredential);
+        Assert.assertEquals(AuthConstant.ECS_RAM_ROLE, fetcher.fetch(client).value().getType());
 
         response = new HttpResponse("test");
         response.setResponseCode(200);
@@ -85,7 +85,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
         try {
-            fetcher.fetch(client, null);
+            fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service.",
