@@ -2,6 +2,7 @@ package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.exception.CredentialException;
+import com.aliyun.credentials.models.Credential;
 import com.aliyun.credentials.utils.AuthUtils;
 
 import java.util.ArrayList;
@@ -30,8 +31,8 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     @Override
-    public AlibabaCloudCredentials getCredentials() {
-        AlibabaCloudCredentials credential;
+    public Credential getCredentials() {
+        Credential credential;
         if (USER_CONFIGURATION_PROVIDERS.size() > 0) {
             for (AlibabaCloudCredentialsProvider provider : USER_CONFIGURATION_PROVIDERS) {
                 credential = provider.getCredentials();

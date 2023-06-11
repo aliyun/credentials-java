@@ -28,9 +28,9 @@ public class Config extends TeaModel {
     @NameInMap("host")
     public String host;
     @NameInMap("readTimeout")
-    public int timeout;
+    public int timeout = 1000;
     @NameInMap("connectTimeout")
-    public int connectTimeout;
+    public int connectTimeout = 1000;
     @NameInMap("proxy")
     public String proxy;
     @NameInMap("policy")
@@ -44,7 +44,7 @@ public class Config extends TeaModel {
     @NameInMap("credentialsURI")
     public String credentialsURI;
     @NameInMap("STSEndpoint")
-    public String STSEndpoint;
+    public String STSEndpoint = "sts.aliyuncs.com";
 
     public static Config build(java.util.Map<String, ?> map) {
         Config self = new Config();

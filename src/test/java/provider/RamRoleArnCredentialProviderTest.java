@@ -1,13 +1,13 @@
 package provider;
 
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.RamRoleArnCredential;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
+import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -105,7 +105,7 @@ public class RamRoleArnCredentialProviderTest {
         response.setHttpContent(new String("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"AccessKeyId\":\"test\"," +
                 "\"AccessKeySecret\":\"test\",\"SecurityToken\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
-        Assert.assertTrue(provider.createCredential(client) instanceof RamRoleArnCredential);
+        Assert.assertEquals(AuthConstant.RAM_ROLE_ARN, provider.createCredential(client).value().getType());
     }
 
     @Test

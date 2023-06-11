@@ -2,6 +2,7 @@ package com.aliyun.credentials;
 
 import com.aliyun.credentials.utils.AuthConstant;
 
+@Deprecated
 public class StsCredential implements AlibabaCloudCredentials {
 
     private String accessKeyId;

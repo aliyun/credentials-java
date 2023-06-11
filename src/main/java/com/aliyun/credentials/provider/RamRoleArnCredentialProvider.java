@@ -1,21 +1,22 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.RamRoleArnCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 
 import java.util.Map;
 
-public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProvider {
+public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
     /**
      * Default duration for started sessions. Unit of Second
@@ -46,6 +47,7 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
      */
     private String STSEndpoint = "sts.aliyuncs.com";
 
+    @Deprecated
     public RamRoleArnCredentialProvider(Configuration config) {
         this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn());
         this.roleSessionName = config.getRoleSessionName();
@@ -56,6 +58,7 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         }
     }
 
+    @Deprecated
     public RamRoleArnCredentialProvider(Config config) {
         this(config.accessKeyId, config.accessKeySecret, config.roleArn);
         this.roleSessionName = config.roleSessionName;
@@ -68,12 +71,15 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         }
     }
 
+    @Deprecated
     public RamRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn) {
+        super(new BuilderImpl());
         this.roleArn = roleArn;
         this.accessKeyId = accessKeyId;
         this.accessKeySecret = accessKeySecret;
     }
 
+    @Deprecated
     public RamRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleSessionName,
                                         String roleArn, String regionId, String policy) {
         this(accessKeyId, accessKeySecret, roleArn);
@@ -82,14 +88,31 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         this.policy = policy;
     }
 
+    private RamRoleArnCredentialProvider(BuilderImpl builder) {
+        super(builder);
+        this.roleSessionName = builder.roleSessionName;
+        this.durationSeconds = builder.durationSeconds;
+        this.roleArn = builder.roleArn;
+        this.regionId = builder.regionId;
+        this.policy = builder.policy;
+        this.connectTimeout = builder.connectionTimeout;
+        this.readTimeout = builder.readTimeout;
+        this.STSEndpoint = builder.STSEndpoint;
+        this.accessKeyId = Validate.notNull(builder.accessKeyId, "AccessKeyId must not be null.");
+        this.accessKeySecret = Validate.notNull(builder.accessKeySecret, "AccessKeySecret must not be null.");
+    }
+
+    public static Builder builder() {
+        return new BuilderImpl();
+    }
 
     @Override
-    public AlibabaCloudCredentials getCredentials() {
+    public RefreshResult<Credential> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return createCredential(client);
     }
 
-    public AlibabaCloudCredentials createCredential(CompatibleUrlConnClient client) {
+    public RefreshResult<Credential> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
@@ -101,7 +124,7 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
     }
 
     @SuppressWarnings("unchecked")
-    public AlibabaCloudCredentials getNewSessionCredentials(CompatibleUrlConnClient client) {
+    public RefreshResult<Credential> getNewSessionCredentials(CompatibleUrlConnClient client) {
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.setUrlParameter("Action", "AssumeRole");
@@ -126,11 +149,21 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        if (map.containsKey("Credentials")) {
-            Map<String, String> credential = (Map<String, String>) map.get("Credentials");
-            long expiration = ParameterHelper.getUTCDate(credential.get("Expiration")).getTime();
-            return new RamRoleArnCredential(credential.get("AccessKeyId"), credential.get("AccessKeySecret"),
-                    credential.get("SecurityToken"), expiration, this);
+        if (null == map) {
+            throw new CredentialException(httpResponse.getResponseMessage());
+        } else if (map.containsKey("Credentials")) {
+            Map<String, String> result = (Map<String, String>) map.get("Credentials");
+            long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
+            Credential credential = Credential.builder()
+                    .accessKeyId(result.get("AccessKeyId"))
+                    .accessKeySecret(result.get("AccessKeySecret"))
+                    .securityToken(result.get("SecurityToken"))
+                    .type(AuthConstant.RAM_ROLE_ARN)
+                    .expiration(expiration)
+                    .build();
+            return RefreshResult.builder(credential)
+                    .staleTime(getStaleTime(expiration))
+                    .build();
         } else {
             throw new CredentialException(gson.toJson(map));
         }
@@ -210,5 +243,108 @@ public class RamRoleArnCredentialProvider implements AlibabaCloudCredentialsProv
 
     public void setSTSEndpoint(String STSEndpoint) {
         this.STSEndpoint = STSEndpoint;
+    }
+
+    public interface Builder extends SessionCredentialsProvider.Builder<RamRoleArnCredentialProvider, Builder> {
+        Builder roleSessionName(String roleSessionName);
+
+        Builder durationSeconds(int durationSeconds);
+
+        Builder roleArn(String roleArn);
+
+        Builder regionId(String regionId);
+
+        Builder policy(String policy);
+
+        Builder connectionTimeout(int connectionTimeout);
+
+        Builder readTimeout(int readTimeout);
+
+        Builder STSEndpoint(String STSEndpoint);
+
+        Builder accessKeyId(String accessKeyId);
+
+        Builder accessKeySecret(String accessKeySecret);
+
+        @Override
+        RamRoleArnCredentialProvider build();
+    }
+
+    private static final class BuilderImpl
+            extends SessionCredentialsProvider.BuilderImpl<RamRoleArnCredentialProvider, Builder>
+            implements Builder {
+        private String roleSessionName = StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME")) ?
+                "defaultSessionName"
+                : System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME");
+        private int durationSeconds = 3600;
+        private String roleArn = System.getenv("ALIBABA_CLOUD_ROLE_ARN");
+        private String regionId = "cn-hangzhou";
+        private String policy;
+        private int connectionTimeout = 1000;
+        private int readTimeout = 1000;
+        private String STSEndpoint = "sts.aliyuncs.com";
+        private String accessKeyId;
+        private String accessKeySecret;
+
+        public Builder roleSessionName(String roleSessionName) {
+            if (!StringUtils.isEmpty(roleSessionName)) {
+                this.roleSessionName = roleSessionName;
+            }
+            return this;
+        }
+
+        public Builder durationSeconds(int durationSeconds) {
+            this.durationSeconds = durationSeconds;
+            return this;
+        }
+
+        public Builder roleArn(String roleArn) {
+            if (!StringUtils.isEmpty(roleArn)) {
+                this.roleArn = roleArn;
+            }
+            return this;
+        }
+
+        public Builder regionId(String regionId) {
+            if (!StringUtils.isEmpty(regionId)) {
+                this.regionId = regionId;
+            }
+            return this;
+        }
+
+        public Builder policy(String policy) {
+            this.policy = policy;
+            return this;
+        }
+
+        public Builder connectionTimeout(int connectionTimeout) {
+            this.connectionTimeout = connectionTimeout;
+            return this;
+        }
+
+        public Builder readTimeout(int readTimeout) {
+            this.readTimeout = readTimeout;
+            return this;
+        }
+
+        public Builder STSEndpoint(String STSEndpoint) {
+            this.STSEndpoint = STSEndpoint;
+            return this;
+        }
+
+        public Builder accessKeyId(String accessKeyId) {
+            this.accessKeyId = accessKeyId;
+            return this;
+        }
+
+        public Builder accessKeySecret(String accessKeySecret) {
+            this.accessKeySecret = accessKeySecret;
+            return this;
+        }
+
+        @Override
+        public RamRoleArnCredentialProvider build() {
+            return new RamRoleArnCredentialProvider(this);
+        }
     }
 }

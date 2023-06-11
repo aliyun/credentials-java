@@ -90,6 +90,7 @@ public class DemoTest {
         // AccessKeySecret
         config.accessKeySecret = "AccessKeySecret";
         // 格式: acs:ram::用户Id:role/角色名
+        // roleArn 可不设，但需要通过设置 ALIBABA_CLOUD_ROLE_ARN 来代替
         config.roleArn = "RoleArn";
         // 角色会话名称
         config.roleSessionName = "RoleSessionName";
@@ -248,7 +249,7 @@ region_id = cn-test                # 获取session用的region
 policy = test                      # 选填 指定权限
 access_key_id = foo
 access_key_secret = bar
-role_arn = role_arn
+role_arn = role_arn                # 可通过设置环境变量 ALIBABA_CLOUD_ROLE_ARN 来代替
 role_session_name = session_name   # 选填
 
 [client3]                          # 命名为 `client3` 的配置

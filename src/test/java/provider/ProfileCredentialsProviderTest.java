@@ -171,44 +171,48 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    public void getSTSGetSessionAccessKeyCredentialsTest() {
+    public void getSTSGetSessionAccessKeyCredentialsTest() throws NoSuchMethodException {
         ProfileCredentialsProvider provider = new ProfileCredentialsProvider();
 
+        Class<ProfileCredentialsProvider> providerClass = ProfileCredentialsProvider.class;
+        Method createCredential = providerClass.getDeclaredMethod(
+                "createCredential", Map.class, CredentialsProviderFactory.class);
+        createCredential.setAccessible(true);
         CredentialsProviderFactory factory = new CredentialsProviderFactory();
         Map<String, String> client = new HashMap<String, String>();
         client.put(AuthConstant.INI_TYPE, AuthConstant.INI_TYPE_KEY_PAIR);
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
+            createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured private_key_file is empty", e.getMessage());
+            Assert.assertEquals("The configured private_key_file is empty", e.getCause().getLocalizedMessage());
         }
         client.put(AuthConstant.INI_PRIVATE_KEY_FILE, "sads");
         AuthUtils.setPrivateKey("test");
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
+            createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
-                    e.getMessage());
+                    e.getCause().getLocalizedMessage());
         }
 
         client.put(AuthConstant.INI_PUBLIC_KEY_ID, "test");
         AuthUtils.setPrivateKey(null);
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
+            createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
-                    e.getMessage());
+                    e.getCause().getLocalizedMessage());
         }
 
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
+            createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
-                    e.getMessage());
+                    e.getCause().getLocalizedMessage());
         }
         AuthUtils.setPrivateKey(null);
     }

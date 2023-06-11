@@ -1,5 +1,6 @@
 package com.aliyun.credentials;
 
+@Deprecated
 public class Configuration {
     private String type = "default";
     private String accessKeyId;
@@ -172,4 +173,5 @@ public class Configuration {
     public void setSTSEndpoint(String STSEndpoint) {
         this.STSEndpoint = STSEndpoint;
     }
+
 }

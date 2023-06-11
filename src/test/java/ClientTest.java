@@ -36,12 +36,14 @@ public class ClientTest {
         field.set(ProfileCredentialsProvider.class, null);
         try {
             credential = new Client();
+            credential.getCredential();
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("not found credentials", e.getMessage());
         }
         try {
             credential = new Client(new DefaultCredentialsProvider());
+            credential.getCredential();
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("not found credentials", e.getMessage());
@@ -64,6 +66,8 @@ public class ClientTest {
         config.type = AuthConstant.RAM_ROLE_ARN;
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RamRoleArnCredentialProvider);
         config.type = AuthConstant.RSA_KEY_PAIR;
+        config.publicKeyId = "test";
+        config.privateKeyFile = "/test";
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RsaKeyPairCredentialProvider);
         config.type = null;
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
@@ -79,9 +83,10 @@ public class ClientTest {
         config.accessKeySecret = "test";
         config.securityToken = "test";
         Client credential = PowerMockito.spy(new Client(config));
-        Assert.assertTrue(credential.getCredential(config) instanceof StsCredential);
+        Assert.assertEquals(AuthConstant.STS, credential.getType());
         config.type = AuthConstant.RSA_KEY_PAIR;
-        Assert.assertNull(credential.getCredential(config));
+        config.publicKeyId = "test";
+        config.privateKeyFile = "/test";
         Assert.assertNull(credential.getBearerToken());
     }
 }

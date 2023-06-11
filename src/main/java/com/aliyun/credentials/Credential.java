@@ -3,6 +3,7 @@ package com.aliyun.credentials;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
 
+@Deprecated
 public class Credential {
 
     private AlibabaCloudCredentials cloudCredential;

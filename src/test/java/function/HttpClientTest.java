@@ -27,11 +27,21 @@ public class HttpClientTest {
         config.roleSessionName = "defaultSessionName";
         config.roleSessionExpiration = 3600;
         config.type = AuthConstant.RAM_ROLE_ARN;
-        Client credential = new Client(config);
-        String ak = credential.getAccessKeyId();
-        String secret = credential.getAccessKeySecret();
-        String token = credential.getSecurityToken();
+        Client client = new Client(config);
+        String ak = client.getAccessKeyId();
+        String secret = client.getAccessKeySecret();
+        String token = client.getSecurityToken();
         Thread.sleep(10 * 1000);
+        Assert.assertEquals(ak, client.getAccessKeyId());
+        Assert.assertEquals(secret, client.getAccessKeySecret());
+        Assert.assertEquals(token, client.getSecurityToken());
+
+        AlibabaCloudCredentials credential = client.getCredential();
+        ak = credential.getAccessKeyId();
+        secret = credential.getAccessKeySecret();
+        token = credential.getSecurityToken();
+        Thread.sleep(10 * 1000);
+        credential = client.getCredential();
         Assert.assertEquals(ak, credential.getAccessKeyId());
         Assert.assertEquals(secret, credential.getAccessKeySecret());
         Assert.assertEquals(token, credential.getSecurityToken());

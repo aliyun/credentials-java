@@ -1,54 +1,108 @@
 package com.aliyun.credentials;
 
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.models.Credential;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.tea.utils.Validate;
 
 public class Client {
+    private final AlibabaCloudCredentialsProvider credentialsProvider;
 
-    private AlibabaCloudCredentials cloudCredential;
+    public Client() {
+        this.credentialsProvider = new DefaultCredentialsProvider();
+    }
 
     public Client(Config config) {
         if (null == config) {
-            DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
-            this.cloudCredential = provider.getCredentials();
-            return;
+            this.credentialsProvider = new DefaultCredentialsProvider();
+        } else {
+            this.credentialsProvider = getProvider(config);
         }
-        this.cloudCredential = getCredential(config);
-    }
-
-    public Client() {
-        this.cloudCredential = new DefaultCredentialsProvider().getCredentials();
     }
 
     public Client(AlibabaCloudCredentialsProvider provider) {
-        this.cloudCredential = provider.getCredentials();
-    }
-
-    public AlibabaCloudCredentials getCredential(Config config) {
-        switch (config.type) {
-            case AuthConstant.ACCESS_KEY:
-                return new AccessKeyCredential(config.accessKeyId, config.accessKeySecret);
-            case AuthConstant.STS:
-                return new StsCredential(config.accessKeyId, config.accessKeySecret, config.securityToken);
-            case AuthConstant.BEARER:
-                return new BearerTokenCredential(config.bearerToken);
-            default:
-                return this.getProvider(config).getCredentials();
-        }
+        this.credentialsProvider = provider;
     }
 
     private AlibabaCloudCredentialsProvider getProvider(Config config) {
         try {
             switch (config.type) {
+                case AuthConstant.ACCESS_KEY:
+                    return StaticCredentialsProvider.builder()
+                            .credential(Credential.builder()
+                                    .accessKeyId(Validate.notNull(
+                                            config.accessKeyId, "AccessKeyId must not be null."))
+                                    .accessKeySecret(Validate.notNull(
+                                            config.accessKeySecret, "AccessKeySecret must not be null."))
+                                    .type(config.type)
+                                    .build())
+                            .build();
+                case AuthConstant.STS:
+                    return StaticCredentialsProvider.builder()
+                            .credential(Credential.builder()
+                                    .accessKeyId(Validate.notNull(
+                                            config.accessKeyId, "AccessKeyId must not be null."))
+                                    .accessKeySecret(Validate.notNull(
+                                            config.accessKeySecret, "AccessKeySecret must not be null."))
+                                    .securityToken(Validate.notNull(
+                                            config.securityToken, "SecurityToken must not be null."))
+                                    .type(config.type)
+                                    .build())
+                            .build();
+                case AuthConstant.BEARER:
+                    return StaticCredentialsProvider.builder()
+                            .credential(Credential.builder()
+                                    .bearerToken(Validate.notNull(
+                                            config.bearerToken, "BearerToken must not be null."))
+                                    .type(config.type)
+                                    .build())
+                            .build();
                 case AuthConstant.ECS_RAM_ROLE:
-                    return new EcsRamRoleCredentialProvider(config);
+                    return EcsRamRoleCredentialProvider.builder()
+                            .roleName(config.roleName)
+                            .connectionTimeout(config.connectTimeout)
+                            .readTimeout(config.timeout)
+                            .build();
                 case AuthConstant.RAM_ROLE_ARN:
-                    return new RamRoleArnCredentialProvider(config);
+                    return RamRoleArnCredentialProvider.builder()
+                            .accessKeyId(config.accessKeyId)
+                            .accessKeySecret(config.accessKeySecret)
+                            .durationSeconds(config.roleSessionExpiration)
+                            .roleArn(config.roleArn)
+                            .roleSessionName(config.roleSessionName)
+                            .policy(config.policy)
+                            .STSEndpoint(config.STSEndpoint)
+                            .connectionTimeout(config.connectTimeout)
+                            .readTimeout(config.timeout)
+                            .build();
                 case AuthConstant.RSA_KEY_PAIR:
-                    return new RsaKeyPairCredentialProvider(config);
+                    return RsaKeyPairCredentialProvider.builder()
+                            .publicKeyId(config.publicKeyId)
+                            .privateKeyFile(config.privateKeyFile)
+                            .durationSeconds(config.roleSessionExpiration)
+                            .STSEndpoint(config.STSEndpoint)
+                            .connectionTimeout(config.connectTimeout)
+                            .readTimeout(config.timeout)
+                            .build();
                 case AuthConstant.OIDC_ROLE_ARN:
-                    return new OIDCRoleArnCredentialProvider(config);
+                    return OIDCRoleArnCredentialProvider.builder()
+                            .durationSeconds(config.roleSessionExpiration)
+                            .roleArn(config.roleArn)
+                            .roleSessionName(config.roleSessionName)
+                            .oidcProviderArn(config.oidcProviderArn)
+                            .oidcTokenFilePath(config.oidcTokenFilePath)
+                            .policy(config.policy)
+                            .STSEndpoint(config.STSEndpoint)
+                            .connectionTimeout(config.connectTimeout)
+                            .readTimeout(config.timeout)
+                            .build();
+                case AuthConstant.URL_STS:
+                    return URLCredentialProvider.builder()
+                            .credentialsURI(config.credentialsURI)
+                            .connectionTimeout(config.connectTimeout)
+                            .readTimeout(config.timeout)
+                            .build();
                 default:
             }
         } catch (Exception e) {
@@ -58,23 +112,32 @@ public class Client {
     }
 
     public String getAccessKeyId() {
-        return this.cloudCredential.getAccessKeyId();
+        return this.credentialsProvider.getCredentials().getAccessKeyId();
     }
 
     public String getAccessKeySecret() {
-        return this.cloudCredential.getAccessKeySecret();
+        return this.credentialsProvider.getCredentials().getAccessKeySecret();
     }
 
     public String getSecurityToken() {
-        return this.cloudCredential.getSecurityToken();
+        return this.credentialsProvider.getCredentials().getSecurityToken();
     }
 
     public String getType() {
-        return this.cloudCredential.getType();
+        return this.credentialsProvider.getCredentials().getType();
     }
 
     public String getBearerToken() {
-        return this.cloudCredential.getBearerToken();
+        return this.credentialsProvider.getCredentials().getBearerToken();
+    }
+
+    /**
+     * Get credential
+     *
+     * @return the whole credential
+     */
+    public Credential getCredential() {
+        return this.credentialsProvider.getCredentials();
     }
 }
 

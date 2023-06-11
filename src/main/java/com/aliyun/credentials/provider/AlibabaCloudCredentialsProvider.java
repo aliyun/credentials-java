@@ -1,8 +1,8 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.AlibabaCloudCredentials;
+import com.aliyun.credentials.models.Credential;
 
 public interface AlibabaCloudCredentialsProvider {
 
-    public AlibabaCloudCredentials getCredentials();
+    Credential getCredentials();
 }

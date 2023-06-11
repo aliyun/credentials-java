@@ -1,11 +1,13 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.EcsRamRoleCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
+import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.ParameterHelper;
 import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
@@ -77,15 +79,25 @@ public class ECSMetadataServiceCredentialsFetcher {
         return new String(response.getHttpContent());
     }
 
-    public EcsRamRoleCredential fetch(CompatibleUrlConnClient client, AlibabaCloudCredentialsProvider provider) {
+    public RefreshResult<Credential> fetch(CompatibleUrlConnClient client) {
         String jsonContent = getMetadata(client);
         Map<String, String> result = new Gson().fromJson(jsonContent, Map.class);
 
         if (!"Success".equals(result.get("Code"))) {
             throw new CredentialException(ECS_METADAT_FETCH_ERROR_MSG);
         }
-        return new EcsRamRoleCredential(result.get("AccessKeyId"), result.get("AccessKeySecret"),
-                result.get("SecurityToken"), result.get("Expiration"), provider);
+        long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
+        Credential credential = Credential.builder()
+                .accessKeyId(result.get("AccessKeyId"))
+                .accessKeySecret(result.get("AccessKeySecret"))
+                .securityToken(result.get("SecurityToken"))
+                .type(AuthConstant.ECS_RAM_ROLE)
+                .expiration(expiration)
+                .build();
+        return RefreshResult.builder(credential)
+                .staleTime(expiration - 3 * 60 * 1000)
+                .build();
+
     }
 
     public URL getCredentialUrl() {
