@@ -1,12 +1,10 @@
 package com.aliyun.credentials.http;
 
-
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.utils.Base64Helper;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

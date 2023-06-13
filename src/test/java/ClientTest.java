@@ -2,16 +2,15 @@ import com.aliyun.credentials.Client;
 import com.aliyun.credentials.StsCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.provider.DefaultCredentialsProvider;
-import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
-import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
-import com.aliyun.credentials.provider.RsaKeyPairCredentialProvider;
+import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -19,7 +18,7 @@ import java.text.ParseException;
 public class ClientTest {
 
     @Test
-    public void credentialTest() throws ParseException, IOException, CredentialException {
+    public void credentialTest() throws CredentialException, NoSuchFieldException, IllegalAccessException {
         Config config = new Config();
         config.type = AuthConstant.ACCESS_KEY;
         config.accessKeyId = "123456";
@@ -30,6 +29,11 @@ public class ClientTest {
         Assert.assertEquals(AuthConstant.ACCESS_KEY, credential.getType());
         Assert.assertNull(credential.getSecurityToken());
 
+        AuthUtils.setEnvironmentCredentialsFile(null);
+        // Clear the contents of the global credentials.ini
+        Field field = ProfileCredentialsProvider.class.getDeclaredField("ini");
+        field.setAccessible(true);
+        field.set(ProfileCredentialsProvider.class, null);
         try {
             credential = new Client();
             Assert.fail();

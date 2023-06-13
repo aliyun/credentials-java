@@ -7,9 +7,6 @@ import com.aliyun.credentials.http.MethodType;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
 public class CompatibleUrlConnClientTest {

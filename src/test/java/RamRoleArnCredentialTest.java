@@ -1,16 +1,11 @@
 import com.aliyun.credentials.RamRoleArnCredential;
-import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.text.ParseException;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 
 public class RamRoleArnCredentialTest {
 

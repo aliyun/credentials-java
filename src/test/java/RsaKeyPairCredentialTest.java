@@ -19,18 +19,18 @@ public class RsaKeyPairCredentialTest {
         Assert.assertEquals(AuthConstant.RSA_KEY_PAIR, credential.getType());
         Assert.assertTrue(credential.getProvider() instanceof RamRoleArnCredentialProvider);
 
-        try{
+        try {
             new RsaKeyPairCredential(null, null, 0, null);
             Assert.fail();
-        } catch (Exception e){
+        } catch (Exception e) {
             Assert.assertEquals("You must provide a valid pair of Public Key ID and Private Key Secret.",
                     e.getMessage());
         }
 
-        try{
+        try {
             new RsaKeyPairCredential("test", null, 0, null);
             Assert.fail();
-        } catch (Exception e){
+        } catch (Exception e) {
             Assert.assertEquals("You must provide a valid pair of Public Key ID and Private Key Secret.",
                     e.getMessage());
         }

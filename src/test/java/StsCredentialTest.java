@@ -5,7 +5,7 @@ import org.junit.Test;
 
 public class StsCredentialTest {
     @Test
-    public void constructorTest(){
+    public void constructorTest() {
         StsCredential credential = new StsCredential(
                 "id", "secret", "token");
         Assert.assertEquals("id", credential.getAccessKeyId());
@@ -14,7 +14,7 @@ public class StsCredentialTest {
     }
 
     @Test
-    public void getSetTest(){
+    public void getSetTest() {
         StsCredential credential = new StsCredential();
         credential.setAccessKeyId("id");
         Assert.assertEquals("id", credential.getAccessKeyId());

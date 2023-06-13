@@ -5,8 +5,6 @@ import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.RefreshUtils;
 
-import java.text.ParseException;
-
 public class EcsRamRoleCredential implements AlibabaCloudCredentials {
 
     private long expiration;

@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -53,7 +52,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         try {
             fetcher.fetch(client, null);
             Assert.fail();
-        } catch (CredentialException e){
+        } catch (CredentialException e) {
             Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
                     e.getMessage());
         }
@@ -64,7 +63,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         try {
             fetcher.fetch(client, null);
             Assert.fail();
-        } catch (CredentialException e){
+        } catch (CredentialException e) {
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=500",
                     e.getMessage());
         }
@@ -72,7 +71,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         response = new HttpResponse("test");
         response.setResponseCode(200);
         response.setHttpContent(new String("{\"Code\":\"Success\",  \"AccessKeyId\":\"test\", " +
-                "\"AccessKeySecret\":\"test\", \"SecurityToken\":\"test\",  \"Expiration\":\"2019-08-08T1:1:1Z\"}").getBytes(),
+                        "\"AccessKeySecret\":\"test\", \"SecurityToken\":\"test\",  \"Expiration\":\"2019-08-08T1:1:1Z\"}").getBytes(),
                 "UTF-8", FormatType.JSON);
         client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
@@ -88,7 +87,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         try {
             fetcher.fetch(client, null);
             Assert.fail();
-        } catch (CredentialException e){
+        } catch (CredentialException e) {
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service.",
                     e.getMessage());
         }

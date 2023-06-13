@@ -1,6 +1,5 @@
 package com.aliyun.credentials.provider;
 
-
 import com.aliyun.credentials.EcsRamRoleCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
@@ -11,7 +10,6 @@ import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.ParseException;
 import java.util.Map;
 
 public class ECSMetadataServiceCredentialsFetcher {

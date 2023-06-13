@@ -1,15 +1,10 @@
 package com.aliyun.credentials.provider;
 
-
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.StringUtils;
-
-import java.net.MalformedURLException;
-import java.text.ParseException;
 
 public class EcsRamRoleCredentialProvider implements AlibabaCloudCredentialsProvider {
 
