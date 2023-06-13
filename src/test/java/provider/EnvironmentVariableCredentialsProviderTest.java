@@ -34,7 +34,7 @@ public class EnvironmentVariableCredentialsProviderTest {
         try {
             provider.getCredentials();
             Assert.fail();
-        } catch (CredentialException e){
+        } catch (CredentialException e) {
             Assert.assertEquals("Environment variable accessKeyId cannot be empty", e.getMessage());
         }
         AuthUtils.setEnvironmentAccessKeyId("a");
@@ -42,7 +42,7 @@ public class EnvironmentVariableCredentialsProviderTest {
         try {
             provider.getCredentials();
             Assert.fail();
-        } catch (CredentialException e){
+        } catch (CredentialException e) {
             Assert.assertEquals("Environment variable accessKeySecret cannot be empty", e.getMessage());
         }
 

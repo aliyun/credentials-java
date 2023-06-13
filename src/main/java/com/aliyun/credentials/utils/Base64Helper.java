@@ -1,6 +1,5 @@
 package com.aliyun.credentials.utils;
 
-
 public class Base64Helper {
 
     private static final String BASE64_CODE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"

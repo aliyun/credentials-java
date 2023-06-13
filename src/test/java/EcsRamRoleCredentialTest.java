@@ -5,8 +5,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.text.ParseException;
-
 public class EcsRamRoleCredentialTest {
     @Test
     public void constructorTest() {
@@ -28,14 +26,14 @@ public class EcsRamRoleCredentialTest {
     }
 
     @Test
-    public void refreshCredentialTest() throws Exception{
+    public void refreshCredentialTest() throws Exception {
         EcsRamRoleCredentialProvider provider = Mockito.mock(EcsRamRoleCredentialProvider.class);
         EcsRamRoleCredential result = new EcsRamRoleCredential("test", "test", "",
-                "2222-01-28T15:15:56Z",null);
+                "2222-01-28T15:15:56Z", null);
         Mockito.when(provider.getCredentials()).thenReturn(result);
 
         EcsRamRoleCredential credential = new EcsRamRoleCredential("id", "id", "",
-                "2019-01-28T15:15:56Z",provider);
+                "2019-01-28T15:15:56Z", provider);
         Assert.assertEquals("test", credential.getAccessKeyId());
     }
 }

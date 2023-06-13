@@ -9,13 +9,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class ProfileCredentialsProviderTest {
 
@@ -174,14 +171,14 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
-    public void  getSTSGetSessionAccessKeyCredentialsTest() {
+    public void getSTSGetSessionAccessKeyCredentialsTest() {
         ProfileCredentialsProvider provider = new ProfileCredentialsProvider();
 
         CredentialsProviderFactory factory = new CredentialsProviderFactory();
         Map<String, String> client = new HashMap<String, String>();
         client.put(AuthConstant.INI_TYPE, AuthConstant.INI_TYPE_KEY_PAIR);
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client,factory);
+            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("The configured private_key_file is empty", e.getMessage());
@@ -189,7 +186,7 @@ public class ProfileCredentialsProviderTest {
         client.put(AuthConstant.INI_PRIVATE_KEY_FILE, "sads");
         AuthUtils.setPrivateKey("test");
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client,factory);
+            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
@@ -199,7 +196,7 @@ public class ProfileCredentialsProviderTest {
         client.put(AuthConstant.INI_PUBLIC_KEY_ID, "test");
         AuthUtils.setPrivateKey(null);
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client,factory);
+            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
@@ -207,9 +204,9 @@ public class ProfileCredentialsProviderTest {
         }
 
         try {
-            provider.getSTSGetSessionAccessKeyCredentials(client,factory);
+            provider.getSTSGetSessionAccessKeyCredentials(client, factory);
             Assert.fail();
-        }catch (Exception e){
+        } catch (Exception e) {
             Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
                     e.getMessage());
         }

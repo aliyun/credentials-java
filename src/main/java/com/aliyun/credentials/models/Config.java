@@ -4,8 +4,6 @@ import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.tea.NameInMap;
 import com.aliyun.tea.TeaModel;
 
-import java.lang.reflect.InvocationTargetException;
-
 public class Config extends TeaModel {
     @NameInMap("type")
     public String type = "default";
@@ -61,6 +59,7 @@ public class Config extends TeaModel {
         this.accessKeyId = accessKeyId;
         return this;
     }
+
     public String getAccessKeyId() {
         return this.accessKeyId;
     }
@@ -69,6 +68,7 @@ public class Config extends TeaModel {
         this.accessKeySecret = accessKeySecret;
         return this;
     }
+
     public String getAccessKeySecret() {
         return this.accessKeySecret;
     }
@@ -77,6 +77,7 @@ public class Config extends TeaModel {
         this.securityToken = securityToken;
         return this;
     }
+
     public String getSecurityToken() {
         return this.securityToken;
     }
@@ -85,6 +86,7 @@ public class Config extends TeaModel {
         this.bearerToken = bearerToken;
         return this;
     }
+
     public String getBearerToken() {
         return this.bearerToken;
     }
@@ -93,6 +95,7 @@ public class Config extends TeaModel {
         this.roleArn = roleArn;
         return this;
     }
+
     public String getRoleArn() {
         return this.roleArn;
     }
@@ -101,6 +104,7 @@ public class Config extends TeaModel {
         this.policy = policy;
         return this;
     }
+
     public String getPolicy() {
         return this.policy;
     }
@@ -109,6 +113,7 @@ public class Config extends TeaModel {
         this.roleSessionExpiration = roleSessionExpiration;
         return this;
     }
+
     public Number getRoleSessionExpiration() {
         return this.roleSessionExpiration;
     }
@@ -117,6 +122,7 @@ public class Config extends TeaModel {
         this.roleSessionName = roleSessionName;
         return this;
     }
+
     public String getRoleSessionName() {
         return this.roleSessionName;
     }
@@ -125,6 +131,7 @@ public class Config extends TeaModel {
         this.publicKeyId = publicKeyId;
         return this;
     }
+
     public String getPublicKeyId() {
         return this.publicKeyId;
     }
@@ -133,6 +140,7 @@ public class Config extends TeaModel {
         this.privateKeyFile = privateKeyFile;
         return this;
     }
+
     public String getPrivateKeyFile() {
         return this.privateKeyFile;
     }
@@ -141,6 +149,7 @@ public class Config extends TeaModel {
         this.roleName = roleName;
         return this;
     }
+
     public String getRoleName() {
         return this.roleName;
     }
@@ -149,6 +158,7 @@ public class Config extends TeaModel {
         this.credentialsURI = credentialsURI;
         return this;
     }
+
     public String getCredentialsUri() {
         return this.credentialsURI;
     }
@@ -157,6 +167,7 @@ public class Config extends TeaModel {
         this.type = type;
         return this;
     }
+
     public String getType() {
         return this.type;
     }
@@ -165,6 +176,7 @@ public class Config extends TeaModel {
         this.STSEndpoint = STSEndpoint;
         return this;
     }
+
     public String getSTSEndpoint() {
         return this.STSEndpoint;
     }

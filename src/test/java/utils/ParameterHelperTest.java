@@ -5,7 +5,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.text.ParseException;
 import java.util.Date;
 
 public class ParameterHelperTest {
@@ -25,7 +24,6 @@ public class ParameterHelperTest {
         Date d2 = ParameterHelper.getUTCDate("2018-12-18T16:39:38Z");
         Assert.assertEquals("2018-12-18T16:39:38Z", ParameterHelper.getISO8601Time(d2));
     }
-
 
 
 }

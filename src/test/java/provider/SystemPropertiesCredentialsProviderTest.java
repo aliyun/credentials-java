@@ -2,14 +2,10 @@ package provider;
 
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.provider.SystemPropertiesCredentialsProvider;
 import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
-import java.text.ParseException;
 
 public class SystemPropertiesCredentialsProviderTest {
 

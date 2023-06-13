@@ -4,7 +4,6 @@ import com.aliyun.credentials.exception.CredentialException;
 
 import java.io.*;
 
-
 public class AuthUtils {
     private static volatile String clientType = System.getenv("ALIBABA_CLOUD_PROFILE");
     private static volatile String environmentAccessKeyId;

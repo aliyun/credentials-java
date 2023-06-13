@@ -4,7 +4,6 @@ import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-
 public class AuthUtilsTest {
     @Test
     public void getPrivateKeyTest() {

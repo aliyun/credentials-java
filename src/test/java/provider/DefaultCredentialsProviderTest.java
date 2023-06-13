@@ -5,6 +5,7 @@ import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.provider.DefaultCredentialsProvider;
+import com.aliyun.credentials.provider.ProfileCredentialsProvider;
 import com.aliyun.credentials.provider.SystemPropertiesCredentialsProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
@@ -12,6 +13,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.text.ParseException;
 
 public class DefaultCredentialsProviderTest {
@@ -30,7 +32,7 @@ public class DefaultCredentialsProviderTest {
     }
 
     @Test
-    public void getCredentialsTest() {
+    public void getCredentialsTest() throws NoSuchFieldException, IllegalAccessException {
         DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
         AuthUtils.setEnvironmentECSMetaData("");
         try {
@@ -67,8 +69,13 @@ public class DefaultCredentialsProviderTest {
         AuthUtils.setEnvironmentAccessKeySecret(null);
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYID, "");
         AuthUtils.setEnvironmentCredentialsFile(null);
+        // Clear the contents of the global credentials.ini
+        Field field = ProfileCredentialsProvider.class.getDeclaredField("ini");
+        field.setAccessible(true);
+        field.set(ProfileCredentialsProvider.class, null);
         try {
             provider.getCredentials();
+            Assert.fail();
         } catch (CredentialException e) {
             Assert.assertEquals("not found credentials", e.getMessage());
         }

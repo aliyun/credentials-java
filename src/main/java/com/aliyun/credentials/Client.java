@@ -4,7 +4,6 @@ import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
 
-
 public class Client {
 
     private AlibabaCloudCredentials cloudCredential;

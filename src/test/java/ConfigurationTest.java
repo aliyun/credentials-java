@@ -5,7 +5,7 @@ import org.junit.Test;
 
 public class ConfigurationTest {
     @Test
-    public void getSetTest(){
+    public void getSetTest() {
         Configuration config = new Configuration();
         config.setSecurityToken("1");
         Assert.assertEquals("1", config.getSecurityToken());
