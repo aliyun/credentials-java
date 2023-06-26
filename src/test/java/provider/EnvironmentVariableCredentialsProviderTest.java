@@ -11,7 +11,6 @@ import org.junit.Test;
 public class EnvironmentVariableCredentialsProviderTest {
     @Test
     public void getCredentialsTest() {
-        new AuthConstant();
         EnvironmentVariableCredentialsProvider provider = new EnvironmentVariableCredentialsProvider();
         AuthUtils.setClientType("aa");
         Assert.assertNull(provider.getCredentials());
@@ -37,7 +36,7 @@ public class EnvironmentVariableCredentialsProviderTest {
         } catch (CredentialException e) {
             Assert.assertEquals("Environment variable accessKeyId cannot be empty", e.getMessage());
         }
-        AuthUtils.setEnvironmentAccessKeyId("a");
+        AuthUtils.setEnvironmentAccessKeyId("ak");
         AuthUtils.setEnvironmentAccessKeySecret("");
         try {
             provider.getCredentials();
@@ -45,9 +44,19 @@ public class EnvironmentVariableCredentialsProviderTest {
         } catch (CredentialException e) {
             Assert.assertEquals("Environment variable accessKeySecret cannot be empty", e.getMessage());
         }
+        AuthUtils.setEnvironmentAccessKeySecret("sk");
+        credential = provider.getCredentials();
+        Assert.assertEquals(AuthConstant.ACCESS_KEY, credential.getType());
+        Assert.assertEquals("ak", credential.getAccessKeyId());
+        Assert.assertEquals("sk", credential.getAccessKeySecret());
+        AuthUtils.setEnvironmentSecurityToken("token");
+        credential = provider.getCredentials();
+        Assert.assertEquals(AuthConstant.STS, credential.getType());
+        Assert.assertEquals("token", credential.getSecurityToken());
 
         AuthUtils.setEnvironmentAccessKeyId(null);
         AuthUtils.setEnvironmentAccessKeySecret(null);
+        AuthUtils.setEnvironmentSecurityToken(null);
     }
 
 }
