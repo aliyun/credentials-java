@@ -8,6 +8,7 @@ public class AuthUtils {
     private static volatile String clientType = System.getenv("ALIBABA_CLOUD_PROFILE");
     private static volatile String environmentAccessKeyId;
     private static volatile String environmentAccesskeySecret;
+    private static volatile String environmentSecurityToken;
     private static volatile String environmentECSMetaData;
     private static volatile String environmentCredentialsFile;
     private static volatile String environmentRoleArn;
@@ -89,24 +90,30 @@ public class AuthUtils {
     }
 
     public static String getEnvironmentAccessKeyId() {
-        if (null == AuthUtils.environmentAccessKeyId) {
-            return System.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID");
-        } else {
-            return AuthUtils.environmentAccessKeyId;
-        }
+        return null == AuthUtils.environmentAccessKeyId ?
+                System.getenv("ALIBABA_CLOUD_ACCESS_KEY_ID")
+                : AuthUtils.environmentAccessKeyId;
     }
 
 
     public static String getEnvironmentAccessKeySecret() {
-        if (null == AuthUtils.environmentAccesskeySecret) {
-            return System.getenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET");
-        } else {
-            return AuthUtils.environmentAccesskeySecret;
-        }
+        return null == AuthUtils.environmentAccesskeySecret ?
+                System.getenv("ALIBABA_CLOUD_ACCESS_KEY_SECRET")
+                : AuthUtils.environmentAccesskeySecret;
     }
 
     public static void setEnvironmentAccessKeySecret(String environmentAccesskeySecret) {
         AuthUtils.environmentAccesskeySecret = environmentAccesskeySecret;
+    }
+
+    public static String getEnvironmentSecurityToken() {
+        return null == AuthUtils.environmentSecurityToken ?
+                System.getenv("ALIBABA_CLOUD_SECURITY_TOKEN")
+                : AuthUtils.environmentSecurityToken;
+    }
+
+    public static void setEnvironmentSecurityToken(String environmentSecurityToken) {
+        AuthUtils.environmentSecurityToken = environmentSecurityToken;
     }
 
     public static void setEnvironmentECSMetaData(String environmentECSMetaData) {
@@ -114,11 +121,9 @@ public class AuthUtils {
     }
 
     public static String getEnvironmentECSMetaData() {
-        if (null == AuthUtils.environmentECSMetaData) {
-            return System.getenv("ALIBABA_CLOUD_ECS_METADATA");
-        } else {
-            return AuthUtils.environmentECSMetaData;
-        }
+        return null == AuthUtils.environmentECSMetaData ?
+                System.getenv("ALIBABA_CLOUD_ECS_METADATA")
+                : AuthUtils.environmentECSMetaData;
     }
 
     public static void setEnvironmentRoleArn(String environmentRoleArn) {
@@ -126,11 +131,9 @@ public class AuthUtils {
     }
 
     public static String getEnvironmentRoleArn() {
-        if (null == AuthUtils.environmentRoleArn) {
-            return System.getenv("ALIBABA_CLOUD_ROLE_ARN");
-        } else {
-            return AuthUtils.environmentRoleArn;
-        }
+        return null == AuthUtils.environmentRoleArn ?
+                System.getenv("ALIBABA_CLOUD_ROLE_ARN")
+                : AuthUtils.environmentRoleArn;
     }
 
     public static void setEnvironmentOIDCProviderArn(String environmentOIDCProviderArn) {
@@ -138,11 +141,9 @@ public class AuthUtils {
     }
 
     public static String getEnvironmentOIDCProviderArn() {
-        if (null == AuthUtils.environmentOIDCProviderArn) {
-            return System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN");
-        } else {
-            return AuthUtils.environmentOIDCProviderArn;
-        }
+        return null == AuthUtils.environmentOIDCProviderArn ?
+                System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN")
+                : AuthUtils.environmentOIDCProviderArn;
     }
 
     public static void setEnvironmentOIDCTokenFilePath(String environmentOIDCTokenFilePath) {
@@ -150,11 +151,9 @@ public class AuthUtils {
     }
 
     public static String getEnvironmentOIDCTokenFilePath() {
-        if (null == AuthUtils.environmentOIDCTokenFilePath) {
-            return System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
-        } else {
-            return AuthUtils.environmentOIDCTokenFilePath;
-        }
+        return null == AuthUtils.environmentOIDCTokenFilePath ?
+                System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE")
+                : AuthUtils.environmentOIDCTokenFilePath;
     }
 
     public static boolean environmentEnableOIDC() {
@@ -164,11 +163,9 @@ public class AuthUtils {
     }
 
     public static String getEnvironmentCredentialsFile() {
-        if (null == AuthUtils.environmentCredentialsFile) {
-            return System.getenv("ALIBABA_CLOUD_CREDENTIALS_FILE");
-        } else {
-            return AuthUtils.environmentCredentialsFile;
-        }
+        return null == AuthUtils.environmentCredentialsFile ?
+                System.getenv("ALIBABA_CLOUD_CREDENTIALS_FILE")
+                : AuthUtils.environmentCredentialsFile;
     }
 
     public static void setEnvironmentCredentialsFile(String environmentCredentialsFile) {
