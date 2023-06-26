@@ -120,6 +120,7 @@ public class ProfileCredentialsProviderTest {
         try {
             client.put(AuthConstant.INI_ROLE_SESSION_NAME, AuthConstant.INI_TYPE_ARN);
             createCredential.invoke(provider, client, factory);
+            Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("The configured role_session_name or role_arn is empty",
                     e.getCause().getLocalizedMessage());
