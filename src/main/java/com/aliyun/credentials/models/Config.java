@@ -45,6 +45,11 @@ public class Config extends TeaModel {
     public String credentialsURI;
     @NameInMap("STSEndpoint")
     public String STSEndpoint = "sts.aliyuncs.com";
+    /**
+     * <p>external id for ram role arn</p>
+     */
+    @NameInMap("externalId")
+    public String externalId;
 
     public static Config build(java.util.Map<String, ?> map) {
         Config self = new Config();
@@ -179,6 +184,15 @@ public class Config extends TeaModel {
 
     public String getSTSEndpoint() {
         return this.STSEndpoint;
+    }
+
+    public Config setExternalId(String externalId) {
+        this.externalId = externalId;
+        return this;
+    }
+
+    public String getExternalId() {
+        return this.externalId;
     }
 
 }

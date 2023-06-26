@@ -15,6 +15,7 @@ public class HttpClientTest {
         RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(System.getenv("RAMAccessKeyId"),
                 System.getenv("RAMAccessKeySecret"), System.getenv("roleArn"));
         provider.setRegionId("cn-hangzhou");
+        provider.setExternalId("for-test");
         AlibabaCloudCredentials credentials = provider.getCredentials();
         Assert.assertNotNull(credentials.getSecurityToken());
         Assert.assertNotNull(credentials.getAccessKeyId());
@@ -26,6 +27,7 @@ public class HttpClientTest {
         config.roleArn = System.getenv("roleArn");
         config.roleSessionName = "defaultSessionName";
         config.roleSessionExpiration = 3600;
+        config.externalId = "for-test";
         config.type = AuthConstant.RAM_ROLE_ARN;
         Client client = new Client(config);
         String ak = client.getAccessKeyId();

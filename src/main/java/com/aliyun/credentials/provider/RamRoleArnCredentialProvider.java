@@ -47,6 +47,8 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
      */
     private String STSEndpoint = "sts.aliyuncs.com";
 
+    private String externalId;
+
     @Deprecated
     public RamRoleArnCredentialProvider(Configuration config) {
         this(config.getAccessKeyId(), config.getAccessKeySecret(), config.getRoleArn());
@@ -100,6 +102,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         this.STSEndpoint = builder.STSEndpoint;
         this.accessKeyId = Validate.notNull(builder.accessKeyId, "AccessKeyId must not be null.");
         this.accessKeySecret = Validate.notNull(builder.accessKeySecret, "AccessKeySecret must not be null.");
+        this.externalId = builder.externalId;
     }
 
     public static Builder builder() {
@@ -137,6 +140,9 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setUrlParameter("RoleSessionName", this.roleSessionName);
         if (policy != null) {
             httpRequest.setUrlParameter("Policy", this.policy);
+        }
+        if (externalId != null) {
+            httpRequest.setUrlParameter("ExternalId", this.externalId);
         }
         httpRequest.setSysMethod(MethodType.GET);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
@@ -245,6 +251,13 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         this.STSEndpoint = STSEndpoint;
     }
 
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+    public String getExternalId() {
+        return this.externalId;
+    }
+
     public interface Builder extends SessionCredentialsProvider.Builder<RamRoleArnCredentialProvider, Builder> {
         Builder roleSessionName(String roleSessionName);
 
@@ -266,6 +279,8 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         Builder accessKeySecret(String accessKeySecret);
 
+        Builder externalId(String externalId);
+
         @Override
         RamRoleArnCredentialProvider build();
     }
@@ -285,6 +300,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         private String STSEndpoint = "sts.aliyuncs.com";
         private String accessKeyId;
         private String accessKeySecret;
+        private String externalId;
 
         public Builder roleSessionName(String roleSessionName) {
             if (!StringUtils.isEmpty(roleSessionName)) {
@@ -339,6 +355,11 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         public Builder accessKeySecret(String accessKeySecret) {
             this.accessKeySecret = accessKeySecret;
+            return this;
+        }
+
+        public Builder externalId(String externalId) {
+            this.externalId = externalId;
             return this;
         }
 

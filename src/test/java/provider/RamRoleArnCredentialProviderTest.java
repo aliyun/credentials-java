@@ -72,7 +72,7 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertEquals("test", provider.getPolicy());
         config1.STSEndpoint = "sts.cn-hangzhou.aliyuncs.com";
-        provider = new RamRoleArnCredentialProvider(config);
+        provider = new RamRoleArnCredentialProvider(config1);
         Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
     }
 
@@ -87,12 +87,14 @@ public class RamRoleArnCredentialProviderTest {
         config.setReadTimeout(2000);
         RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
         provider.setPolicy("test");
+        provider.setExternalId("test");
         Assert.assertEquals(2000, provider.getConnectTimeout());
         Assert.assertEquals(2000, provider.getReadTimeout());
         Assert.assertEquals("test", provider.getAccessKeyId());
         Assert.assertEquals("test", provider.getAccessKeySecret());
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
+        Assert.assertEquals("test", provider.getExternalId());
         Assert.assertNull(provider.getCredentials());
     }
 
@@ -137,6 +139,35 @@ public class RamRoleArnCredentialProviderTest {
 
         provider.setSTSEndpoint("www.aliyun.com");
         Assert.assertEquals("www.aliyun.com", provider.getSTSEndpoint());
+    }
+
+    @Test
+    public void builderTest() {
+        RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .durationSeconds(1000)
+                .roleArn("test")
+                .roleSessionName("test")
+                .policy("test")
+                .STSEndpoint("sts.cn-hangzhou.aliyuncs.com")
+                .regionId("cn-hangzhou")
+                .externalId("test")
+                .connectionTimeout(2000)
+                .readTimeout(2000)
+                .build();
+        Assert.assertEquals(2000, provider.getConnectTimeout());
+        Assert.assertEquals(2000, provider.getReadTimeout());
+        Assert.assertEquals(1000, provider.getDurationSeconds());
+        Assert.assertEquals("test", provider.getAccessKeyId());
+        Assert.assertEquals("test", provider.getAccessKeySecret());
+        Assert.assertEquals("test", provider.getRoleArn());
+        Assert.assertEquals("test", provider.getRoleSessionName());
+        Assert.assertEquals("test", provider.getPolicy());
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("cn-hangzhou", provider.getRegionId());
+        Assert.assertEquals("test", provider.getExternalId());
+        Assert.assertNull(provider.getCredentials());
     }
 
 }

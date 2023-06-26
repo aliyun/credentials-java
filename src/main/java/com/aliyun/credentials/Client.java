@@ -73,6 +73,7 @@ public class Client {
                             .roleSessionName(config.roleSessionName)
                             .policy(config.policy)
                             .STSEndpoint(config.STSEndpoint)
+                            .externalId(config.externalId)
                             .connectionTimeout(config.connectTimeout)
                             .readTimeout(config.timeout)
                             .build();
