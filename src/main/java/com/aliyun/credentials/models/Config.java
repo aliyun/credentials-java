@@ -195,4 +195,51 @@ public class Config extends TeaModel {
         return this.externalId;
     }
 
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setTimeout(int timeout) {
+        this.timeout = timeout;
+    }
+
+    public int getTimeout() {
+        return timeout;
+    }
+
+    public void setConnectTimeout(int connectTimeout) {
+        this.connectTimeout = connectTimeout;
+    }
+
+    public int getConnectTimeout() {
+        return connectTimeout;
+    }
+
+    public void setProxy(String proxy) {
+        this.proxy = proxy;
+    }
+
+    public String getProxy() {
+        return proxy;
+    }
+
+    public void setOidcProviderArn(String oidcProviderArn) {
+        this.oidcProviderArn = oidcProviderArn;
+    }
+
+    public String getOidcProviderArn() {
+        return oidcProviderArn;
+    }
+
+    public void setOidcTokenFilePath(String oidcTokenFilePath) {
+        this.oidcTokenFilePath = oidcTokenFilePath;
+    }
+
+    public String getOidcTokenFilePath() {
+        return oidcTokenFilePath;
+    }
 }

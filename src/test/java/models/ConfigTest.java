@@ -42,13 +42,13 @@ public class ConfigTest {
         Assert.assertEquals("test", config.getRoleName());
         Assert.assertEquals("test", config.getBearerToken());
         Assert.assertEquals("test", config.getSecurityToken());
-        Assert.assertEquals("test", config.host);
-        Assert.assertEquals(2000, config.timeout);
-        Assert.assertEquals(2000, config.connectTimeout);
+        Assert.assertEquals("test", config.getHost());
+        Assert.assertEquals(2000, config.getTimeout());
+        Assert.assertEquals(2000, config.getConnectTimeout());
         Assert.assertEquals("test", config.getPolicy());
         Assert.assertEquals(1000, config.getRoleSessionExpiration());
-        Assert.assertEquals("test", config.oidcProviderArn);
-        Assert.assertEquals("test", config.oidcTokenFilePath);
+        Assert.assertEquals("test", config.getOidcProviderArn());
+        Assert.assertEquals("test", config.getOidcTokenFilePath());
         Assert.assertEquals("test", config.getCredentialsUri());
         Assert.assertEquals("test", config.getSTSEndpoint());
         Assert.assertEquals("test", config.getExternalId());
