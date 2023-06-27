@@ -40,11 +40,11 @@ public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
         // 凭证类型
-        config.type = "access_key";
+        config.setType("access_key");
         // AccessKeyId
-        config.accessKeyId = "AccessKeyId";
+        config.setAccessKeyId("AccessKeyId");
         // AccessKeySecret
-        config.accessKeySecret = "AccessKeySecret";
+        config.setAccessKeySecret("AccessKeySecret");
         Client client = new Client(config);
     }
 }
@@ -61,13 +61,13 @@ public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
         // 凭证类型
-        config.type = "sts";
+        config.setType("sts");
         // AccessKeyId
-        config.accessKeyId = "AccessKeyId";
+        config.setAccessKeyId("AccessKeyId");
         // AccessKeySecret
-        config.accessKeySecret = "AccessKeySecret";
+        config.setAccessKeySecret("AccessKeySecret");
         // STS Token
-        config.securityToken = "SecurityToken";
+        config.setSecurityToken("SecurityToken");
         Client client = new Client(config);
     }
 }
@@ -84,20 +84,20 @@ public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
         // 凭证类型
-        config.type = "ram_role_arn";
+        config.setType("ram_role_arn");
         // AccessKeyId
-        config.accessKeyId = "AccessKeyId";
+        config.setAccessKeyId("AccessKeyId");
         // AccessKeySecret
-        config.accessKeySecret = "AccessKeySecret";
+        config.setAccessKeySecret("AccessKeySecret");
         // 格式: acs:ram::用户Id:role/角色名
         // roleArn 可不设，但需要通过设置 ALIBABA_CLOUD_ROLE_ARN 来代替
-        config.roleArn = "RoleArn";
+        config.setRoleArn("RoleArn");
         // 角色会话名称
-        config.roleSessionName = "RoleSessionName";
+        config.setRoleSessionName("RoleSessionName");
         // 可选, 限制 STS Token 的权限
-        config.policy = "policy";
+        config.setPolicy("policy");
         // 可选, 限制 STS Token 的有效时间
-        config.roleSessionExpiration = 3600;
+        config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
     }
 }
@@ -114,22 +114,24 @@ public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
         // 凭证类型
-        config.type = "oidc_role_arn";
+        config.setType("oidc_role_arn");
         // 格式: acs:ram::用户Id:role/角色名
         // roleArn 可不设，但需要通过设置 ALIBABA_CLOUD_ROLE_ARN 来代替
-        config.roleArn = "RoleArn";
+        config.setRoleArn("RoleArn");
         // 格式: acs:ram::用户Id:oidc-provider/OIDC身份提供商名称
         // oidcProviderArn 可不设，但需要通过设置 ALIBABA_CLOUD_OIDC_PROVIDER_ARN 来代替
-        config.oidcProviderArn = "OIDCProviderArn";
+        config.setOidcProviderArn("OIDCProviderArn");
         // 格式: path
         // OIDCTokenFilePath 可不设，但需要通过设置 ALIBABA_CLOUD_OIDC_TOKEN_FILE 来代替
-        config.oidcTokenFilePath = "/Users/xxx/xxx";
+        config.setOidcTokenFilePath("/Users/xxx/xxx");
         // 角色会话名称
-        config.roleSessionName = "RoleSessionName";
+        config.setRoleSessionName("RoleSessionName");
         // 可选, 限制 STS Token 的权限
-        config.policy = "policy";
+        config.setPolicy("policy");
+        // 可选, 角色外部 ID, 防止出现混淆代理人问题
+        config.setExternalId("externalId");
         // 可选, 限制 STS Token 的有效时间
-        config.roleSessionExpiration = 3600;
+        config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
     }
 }
@@ -146,9 +148,9 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // 凭证类型
-        config.type = "ecs_ram_role";
+        config.setType("ecs_ram_role");
         // 账户RoleName，非必填，不填则自动获取，建议设置，可以减少请求
-        config.roleName = "RoleName";
+        config.setRoleName("RoleName");
         Client client = new Client(config);
     }
 }
@@ -165,11 +167,11 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // 凭证类型
-        config.type = "rsa_key_pair";
+        config.setType("rsa_key_pair");
         // PrivateKey文件路径
-        config.privateKeyFile = "PrivateKeyFile";
+        config.setPrivateKeyFile("PrivateKeyFile");
         // 账户PublicKeyId
-        config.publicKeyId = "PublicKeyId";
+        config.setPublicKeyId("PublicKeyId");
         Client client = new Client(config);
     }
 }
@@ -186,9 +188,9 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // 凭证类型
-        config.type = "credentials_uri";
+        config.setType("credentials_uri");
         // 提供凭证的 URL，可不设，但需要通过设置 ALIBABA_CLOUD_CREDENTIALS_URI 来代替
-        config.credentialsURI = "http://xxx";
+        config.setCredentialsUri("http://xxx");
         Client client = new Client(config);
     }
 }
@@ -205,9 +207,9 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // 凭证类型
-        config.type = "bearer";
+        config.setType("bearer");
         // BearerToken
-        config.bearerToken = "BearerToken";
+        config.setBearerToken("BearerToken");
         Client client = new Client(config);
     }
 }
@@ -224,7 +226,7 @@ public class DemoTest {
 
 2.环境凭证
 
-在环境变量里寻找环境凭证，如果定义了 `ALIBABA_CLOUD_ACCESS_KEY_ID` 和 `ALIBABA_CLOUD_ACCESS_KEY_SECRET` 环境变量且不为空，程序将使用它们创建默认凭证。
+在环境变量里寻找环境凭证，如果定义了 `ALIBABA_CLOUD_ACCESS_KEY_ID` 和 `ALIBABA_CLOUD_ACCESS_KEY_SECRET` 环境变量且不为空，程序将使用它们创建默认凭证。如果定义了 `ALIBABA_CLOUD_ACCESS_KEY_ID`、`ALIBABA_CLOUD_ACCESS_KEY_SECRET` 和 `ALIBABA_CLOUD_SECURITY_TOKEN` 环境变量且不为空，则创建 STS 方式的临时凭证，注意：该 token 存在过期时间，推荐在临时环境中使用。
 
 3.配置文件
 

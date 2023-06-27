@@ -44,11 +44,11 @@ public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
         // Which type of credential you want
-        config.type = "access_key";
+        config.setType("access_key");
         // AccessKeyId of your account
-        config.accessKeyId = "AccessKeyId";
+        config.setAccessKeyId("AccessKeyId");
         // AccessKeySecret of your account
-        config.accessKeySecret = "AccessKeySecret";
+        config.setAccessKeySecret("AccessKeySecret");
         Client client = new Client(config);
     }
 }
@@ -65,13 +65,13 @@ public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
         // Which type of credential you want
-        config.type = "sts";
+        config.setType("sts");
         // AccessKeyId of your account
-        config.accessKeyId = "AccessKeyId";
+        config.setAccessKeyId("AccessKeyId");
         // AccessKeySecret of your account
-        config.accessKeySecret = "AccessKeySecret";
+        config.setAccessKeySecret("AccessKeySecret");
         // Temporary Security Token
-        config.securityToken = "SecurityToken";
+        config.setSecurityToken("SecurityToken");
         Client client = new Client(config);
     }
 }
@@ -88,20 +88,20 @@ public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
         // Which type of credential you want        
-        config.type = "ram_role_arn";
+        config.setType("ram_role_arn");
         // AccessKeyId of your account
-        config.accessKeyId = "AccessKeyId";
+        config.setAccessKeyId("AccessKeyId");
         // AccessKeySecret of your account
-        config.accessKeySecret = "AccessKeySecret";
+        config.setAccessKeySecret("AccessKeySecret");
         // Format: acs:ram::USER_Id:role/ROLE_NAME
         // roleArn can be replaced by setting environment variable: ALIBABA_CLOUD_ROLE_ARN
-        config.roleArn = "RoleArn";
+        config.setRoleArn("RoleArn");
         // Role Session Name
-        config.roleSessionName = "RoleSessionName";
+        config.setRoleSessionName("RoleSessionName");
         // Not required, limit the permissions of STS Token
-        config.policy = "policy";
+        config.setPolicy("policy");
         // Not required, limit the Valid time of STS Token
-        config.roleSessionExpiration = 3600;
+        config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
     }
 }
@@ -117,23 +117,26 @@ import com.aliyun.credentials.models.Config;
 public class DemoTest {
     public static void main(String[] args) throws Exception{
         Config config = new Config();
-        // Which type of credential you want        
-        config.type = "oidc_role_arn";
+        // Which type of credential you want
+        config.setType("oidc_role_arn");
         // Format: acs:ram::USER_Id:role/ROLE_NAME
         // roleArn can be replaced by setting environment variable: ALIBABA_CLOUD_ROLE_ARN
-        config.roleArn = "RoleArn";
+        config.setRoleArn("RoleArn");
         // Format: acs:ram::USER_Id:oidc-provider/OIDC Providers 
         // oidcProviderArn can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_PROVIDER_ARN
-        config.oidcProviderArn = "OIDCProviderArn";
+        config.setOidcProviderArn("OIDCProviderArn");
         // Format: path
         // OIDCTokenFilePath can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE
-        config.oidcTokenFilePath = "/Users/xxx/xxx";
+        config.setOidcTokenFilePath("/Users/xxx/xxx");
         // Role Session Name
-        config.roleSessionName = "RoleSessionName";
+        config.setRoleSessionName("RoleSessionName");
         // Not required, limit the permissions of STS Token
-        config.policy = "policy";
+        config.setPolicy("policy");
+        // Not required, the external ID of the RAM role
+        // This parameter is provided by an external party and is used to prevent the confused deputy problem.
+        config.setExternalId("externalId");
         // Not required, limit the Valid time of STS Token
-        config.roleSessionExpiration = 3600;
+        config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
     }
 }
@@ -150,9 +153,9 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // Which type of credential you want
-        config.type = "ecs_ram_role";
+        config.setType("ecs_ram_role");
         // `roleName` is optional. It will be retrieved automatically if not set. It is highly recommended to set it up to reduce requests
-        config.roleName = "RoleName";
+        config.setRoleName("RoleName");
         Client client = new Client(config);
     }
 }
@@ -169,11 +172,11 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // Which type of credential you want
-        config.type = "rsa_key_pair";
+        config.setType("rsa_key_pair");
         // The file path to store the PrivateKey
-        config.privateKeyFile = "PrivateKeyFile";
+        config.setPrivateKeyFile("PrivateKeyFile");
         // PublicKeyId of your account
-        config.publicKeyId = "PublicKeyId";
+        config.setPublicKeyId("PublicKeyId");
         Client client = new Client(config);
     }
 }
@@ -190,9 +193,9 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // Which type of credential you want
-        config.type = "credentials_uri";
+        config.setType("credentials_uri");
         // Format: http url. `credentialsURI` can be replaced by setting environment variable: ALIBABA_CLOUD_CREDENTIALS_URI
-        config.credentialsURI = "http://xxx";
+        config.setCredentialsUri("http://xxx");
         Client client = new Client(config);
     }
 }
@@ -209,9 +212,9 @@ public class DemoTest {
     public static void main(String[] args) throws Exception {
         Config config = new Config();
         // Which type of credential you want
-        config.type = "bearer";
+        config.setType("bearer");
         // BearerToken of your account
-        config.bearerToken = "BearerToken";
+        config.setBearerToken("BearerToken");
         Client client = new Client(config);
     }
 }
@@ -228,7 +231,7 @@ Look for environment credentials in system properties. If the `alibabacloud.acce
 
 2.Environment Credentials
 
-Look for environment credentials in environment variable. If the `ALIBABA_CLOUD_ACCESS_KEY_ID` and `ALIBABA_CLOUD_ACCESS_KEY_SECRET` environment variables are defined and are not empty, the program will use them to create default credentials.
+Look for environment credentials in environment variable. If the `ALIBABA_CLOUD_ACCESS_KEY_ID` and `ALIBABA_CLOUD_ACCESS_KEY_SECRET` environment variables are defined and are not empty, the program will use them to create default credentials. If the `ALIBABA_CLOUD_ACCESS_KEY_ID`, `ALIBABA_CLOUD_ACCESS_KEY_SECRET` and `ALIBABA_CLOUD_SECURITY_TOKEN` environment variables are defined and are not empty, the program will use them to create temporary security credentials(STS). Note: This token has an expiration time, it is recommended to use it in a temporary environment.
 
 3.Credentials File
 
