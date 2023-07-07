@@ -3,7 +3,7 @@ package com.aliyun.credentials.provider;
 import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.StringUtils;
 
 public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
@@ -57,7 +57,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
     }
 
     @Override
-    public RefreshResult<Credential> refreshCredentials() {
+    public RefreshResult<CredentialModel> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return fetcher.fetch(client);
     }

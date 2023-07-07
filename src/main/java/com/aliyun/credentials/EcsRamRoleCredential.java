@@ -4,7 +4,7 @@ import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.RefreshUtils;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 
 @Deprecated
 public class EcsRamRoleCredential implements AlibabaCloudCredentials {
@@ -29,7 +29,7 @@ public class EcsRamRoleCredential implements AlibabaCloudCredentials {
 
     public void refreshCredential() {
         if (RefreshUtils.withShouldRefresh(this.expiration)) {
-            Credential credential = (Credential) RefreshUtils.getNewCredential(this.provider);
+            CredentialModel credential = (CredentialModel) RefreshUtils.getNewCredential(this.provider);
             this.expiration = credential.getExpiration();
             this.accessKeyId = credential.getAccessKeyId();
             this.accessKeySecret = credential.getAccessKeySecret();

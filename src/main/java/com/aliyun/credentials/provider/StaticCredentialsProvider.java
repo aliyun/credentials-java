@@ -1,9 +1,9 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 
 public class StaticCredentialsProvider implements AlibabaCloudCredentialsProvider {
-    private Credential credential;
+    private CredentialModel credential;
 
     private StaticCredentialsProvider(Builder builder) {
         this.credential = builder.credential;
@@ -14,14 +14,14 @@ public class StaticCredentialsProvider implements AlibabaCloudCredentialsProvide
     }
 
     @Override
-    public Credential getCredentials() {
+    public CredentialModel getCredentials() {
         return this.credential;
     }
 
     public static final class Builder {
-        private Credential credential;
+        private CredentialModel credential;
 
-        public Builder credential(Credential credential) {
+        public Builder credential(CredentialModel credential) {
             this.credential = credential;
             return this;
         }

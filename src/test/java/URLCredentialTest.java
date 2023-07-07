@@ -1,5 +1,5 @@
 import com.aliyun.credentials.URLCredential;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.URLCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
@@ -11,7 +11,7 @@ public class URLCredentialTest {
     @Test
     public void OIDCRoleArnCredentialTest() {
         URLCredentialProvider provider = Mockito.mock(URLCredentialProvider.class);
-        Credential credential = Credential.builder()
+        CredentialModel credential = CredentialModel.builder()
                 .accessKeyId("id")
                 .accessKeySecret("secret")
                 .securityToken("token")

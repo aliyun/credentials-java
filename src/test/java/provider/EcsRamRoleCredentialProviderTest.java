@@ -1,7 +1,7 @@
 package provider;
 
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.ECSMetadataServiceCredentialsFetcher;
 import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.provider.RefreshResult;
@@ -19,14 +19,14 @@ public class EcsRamRoleCredentialProviderTest {
     public void ecsRamRoleCredentialProviderTest() {
         EcsRamRoleCredentialProvider provider = new EcsRamRoleCredentialProvider("test");
         ECSMetadataServiceCredentialsFetcher fetcher = mock(ECSMetadataServiceCredentialsFetcher.class);
-        Credential credential = Credential.builder()
+        CredentialModel credential = CredentialModel.builder()
                 .accessKeyId("test")
                 .accessKeySecret("test")
                 .securityToken("")
                 .type(AuthConstant.ECS_RAM_ROLE)
                 .build();
         long expiration = ParameterHelper.getUTCDate("2222-01-28T15:15:56Z").getTime();
-        RefreshResult<Credential> refreshResult = RefreshResult.builder(credential)
+        RefreshResult<CredentialModel> refreshResult = RefreshResult.builder(credential)
                 .staleTime(expiration)
                 .build();
         when(fetcher.fetch(ArgumentMatchers.<CompatibleUrlConnClient>any())).thenReturn(refreshResult);

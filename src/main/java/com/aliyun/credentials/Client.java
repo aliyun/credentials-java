@@ -1,7 +1,7 @@
 package com.aliyun.credentials;
 
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.tea.utils.Validate;
@@ -30,7 +30,7 @@ public class Client {
             switch (config.type) {
                 case AuthConstant.ACCESS_KEY:
                     return StaticCredentialsProvider.builder()
-                            .credential(Credential.builder()
+                            .credential(CredentialModel.builder()
                                     .accessKeyId(Validate.notNull(
                                             config.accessKeyId, "AccessKeyId must not be null."))
                                     .accessKeySecret(Validate.notNull(
@@ -40,7 +40,7 @@ public class Client {
                             .build();
                 case AuthConstant.STS:
                     return StaticCredentialsProvider.builder()
-                            .credential(Credential.builder()
+                            .credential(CredentialModel.builder()
                                     .accessKeyId(Validate.notNull(
                                             config.accessKeyId, "AccessKeyId must not be null."))
                                     .accessKeySecret(Validate.notNull(
@@ -52,7 +52,7 @@ public class Client {
                             .build();
                 case AuthConstant.BEARER:
                     return StaticCredentialsProvider.builder()
-                            .credential(Credential.builder()
+                            .credential(CredentialModel.builder()
                                     .bearerToken(Validate.notNull(
                                             config.bearerToken, "BearerToken must not be null."))
                                     .type(config.type)
@@ -137,7 +137,7 @@ public class Client {
      *
      * @return the whole credential
      */
-    public Credential getCredential() {
+    public CredentialModel getCredential() {
         return this.credentialsProvider.getCredentials();
     }
 }

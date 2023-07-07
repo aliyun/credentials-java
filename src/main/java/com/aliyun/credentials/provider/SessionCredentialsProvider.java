@@ -1,21 +1,21 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 
 import java.util.Date;
 import java.util.concurrent.Callable;
 
 public abstract class SessionCredentialsProvider implements AlibabaCloudCredentialsProvider, AutoCloseable {
     private final boolean asyncCredentialUpdateEnabled;
-    private RefreshCachedSupplier<Credential> credentialsCache;
-    private final Callable<RefreshResult<Credential>> refreshCallable = new Callable<RefreshResult<Credential>>() {
+    private RefreshCachedSupplier<CredentialModel> credentialsCache;
+    private final Callable<RefreshResult<CredentialModel>> refreshCallable = new Callable<RefreshResult<CredentialModel>>() {
         @Override
-        public RefreshResult<Credential> call() throws Exception {
+        public RefreshResult<CredentialModel> call() throws Exception {
             return refreshCredentials();
         }
     };
 
-    public abstract RefreshResult<Credential> refreshCredentials();
+    public abstract RefreshResult<CredentialModel> refreshCredentials();
 
     protected SessionCredentialsProvider(BuilderImpl<?, ?> builder) {
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
@@ -31,7 +31,7 @@ public abstract class SessionCredentialsProvider implements AlibabaCloudCredenti
     }
 
     @Override
-    public Credential getCredentials() {
+    public CredentialModel getCredentials() {
         return credentialsCache.get();
     }
 

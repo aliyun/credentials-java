@@ -4,7 +4,7 @@ import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.*;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ParameterHelper;
@@ -149,12 +149,12 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     }
 
     @Override
-    public RefreshResult<Credential> refreshCredentials() {
+    public RefreshResult<CredentialModel> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return createCredential(client);
     }
 
-    public RefreshResult<Credential> createCredential(CompatibleUrlConnClient client) {
+    public RefreshResult<CredentialModel> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
@@ -166,7 +166,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public RefreshResult<Credential> getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
+    public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
         this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
@@ -210,7 +210,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         } else if (map.containsKey("Credentials")) {
             Map<String, String> result = (Map<String, String>) map.get("Credentials");
             long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
-            Credential credential = Credential.builder()
+            CredentialModel credential = CredentialModel.builder()
                     .accessKeyId(result.get("AccessKeyId"))
                     .accessKeySecret(result.get("AccessKeySecret"))
                     .securityToken(result.get("SecurityToken"))
