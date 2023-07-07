@@ -7,7 +7,7 @@ import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.StringUtils;
@@ -110,12 +110,12 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     }
 
     @Override
-    public RefreshResult<Credential> refreshCredentials() {
+    public RefreshResult<CredentialModel> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return createCredential(client);
     }
 
-    public RefreshResult<Credential> createCredential(CompatibleUrlConnClient client) {
+    public RefreshResult<CredentialModel> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
@@ -127,7 +127,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public RefreshResult<Credential> getNewSessionCredentials(CompatibleUrlConnClient client) {
+    public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) {
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.setUrlParameter("Action", "AssumeRole");
@@ -160,7 +160,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         } else if (map.containsKey("Credentials")) {
             Map<String, String> result = (Map<String, String>) map.get("Credentials");
             long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
-            Credential credential = Credential.builder()
+            CredentialModel credential = CredentialModel.builder()
                     .accessKeyId(result.get("AccessKeyId"))
                     .accessKeySecret(result.get("AccessKeySecret"))
                     .securityToken(result.get("SecurityToken"))

@@ -1,9 +1,9 @@
 package com.aliyun.credentials;
 
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.RefreshUtils;
-import com.aliyun.credentials.models.Credential;
 
 @Deprecated
 public class RsaKeyPairCredential implements AlibabaCloudCredentials {
@@ -27,7 +27,7 @@ public class RsaKeyPairCredential implements AlibabaCloudCredentials {
 
     public void refreshCredential() {
         if (RefreshUtils.withShouldRefresh(this.expiration)) {
-            Credential credential = (Credential) RefreshUtils.getNewCredential(this.provider);
+            CredentialModel credential = (CredentialModel) RefreshUtils.getNewCredential(this.provider);
             this.publicKeyId = credential.getAccessKeyId();
             this.expiration = credential.getExpiration();
             this.privateKeySecret = credential.getAccessKeySecret();

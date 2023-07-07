@@ -7,7 +7,7 @@ import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.aliyun.credentials.utils.StringUtils;
@@ -84,7 +84,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
     }
 
     @Override
-    public RefreshResult<Credential> refreshCredentials() {
+    public RefreshResult<CredentialModel> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         HttpRequest request = new HttpRequest(this.credentialsURI.toString());
         request.setSysMethod(MethodType.GET);
@@ -117,7 +117,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
         }
         if (map.containsKey("Code") && map.get("Code").equals("Success")) {
             long expiration = ParameterHelper.getUTCDate(map.get("Expiration")).getTime();
-            Credential credential = Credential.builder()
+            CredentialModel credential = CredentialModel.builder()
                     .accessKeyId(map.get("AccessKeyId"))
                     .accessKeySecret(map.get("AccessKeySecret"))
                     .securityToken(map.get("SecurityToken"))

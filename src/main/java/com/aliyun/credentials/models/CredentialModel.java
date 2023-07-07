@@ -4,7 +4,7 @@ package com.aliyun.credentials.models;
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.tea.*;
 
-public class Credential extends TeaModel implements AlibabaCloudCredentials {
+public class CredentialModel extends TeaModel implements AlibabaCloudCredentials {
     public String accessKeyId;
     public String accessKeySecret;
     public String securityToken;
@@ -12,7 +12,7 @@ public class Credential extends TeaModel implements AlibabaCloudCredentials {
     public String type;
     public long expiration;
 
-    private Credential(Builder builder) {
+    private CredentialModel(Builder builder) {
         this.accessKeyId = builder.accessKeyId;
         this.accessKeySecret = builder.accessKeySecret;
         this.securityToken = builder.securityToken;
@@ -25,7 +25,7 @@ public class Credential extends TeaModel implements AlibabaCloudCredentials {
         return new Builder();
     }
 
-    public Credential setAccessKeyId(String accessKeyId) {
+    public CredentialModel setAccessKeyId(String accessKeyId) {
         this.accessKeyId = accessKeyId;
         return this;
     }
@@ -35,7 +35,7 @@ public class Credential extends TeaModel implements AlibabaCloudCredentials {
         return this.accessKeyId;
     }
 
-    public Credential setAccessKeySecret(String accessKeySecret) {
+    public CredentialModel setAccessKeySecret(String accessKeySecret) {
         this.accessKeySecret = accessKeySecret;
         return this;
     }
@@ -45,7 +45,7 @@ public class Credential extends TeaModel implements AlibabaCloudCredentials {
         return this.accessKeySecret;
     }
 
-    public Credential setSecurityToken(String securityToken) {
+    public CredentialModel setSecurityToken(String securityToken) {
         this.securityToken = securityToken;
         return this;
     }
@@ -55,7 +55,7 @@ public class Credential extends TeaModel implements AlibabaCloudCredentials {
         return this.securityToken;
     }
 
-    public Credential setType(String securityToken) {
+    public CredentialModel setType(String type) {
         this.type = type;
         return this;
     }
@@ -69,7 +69,7 @@ public class Credential extends TeaModel implements AlibabaCloudCredentials {
         return this.expiration;
     }
 
-    public Credential setBearerToken(String bearerToken) {
+    public CredentialModel setBearerToken(String bearerToken) {
         this.bearerToken = bearerToken;
         return this;
     }
@@ -117,8 +117,8 @@ public class Credential extends TeaModel implements AlibabaCloudCredentials {
             return this;
         }
 
-        public Credential build() {
-            return new Credential(this);
+        public CredentialModel build() {
+            return new CredentialModel(this);
         }
     }
 

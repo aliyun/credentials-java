@@ -1,5 +1,5 @@
 import com.aliyun.credentials.EcsRamRoleCredential;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
@@ -30,7 +30,7 @@ public class EcsRamRoleCredentialTest {
     public void refreshCredentialTest() throws Exception{
         EcsRamRoleCredentialProvider provider = Mockito.mock(EcsRamRoleCredentialProvider.class);
 
-        Credential credential = Credential.builder()
+        CredentialModel credential = CredentialModel.builder()
                 .accessKeyId("test")
                 .accessKeySecret("test")
                 .securityToken("")

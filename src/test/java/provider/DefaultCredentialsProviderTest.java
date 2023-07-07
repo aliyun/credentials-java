@@ -1,7 +1,7 @@
 package provider;
 
 import com.aliyun.credentials.exception.CredentialException;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 import com.aliyun.credentials.provider.DefaultCredentialsProvider;
 import com.aliyun.credentials.provider.ProfileCredentialsProvider;
@@ -44,20 +44,20 @@ public class DefaultCredentialsProviderTest {
 
         AuthUtils.setEnvironmentAccessKeyId("test");
         AuthUtils.setEnvironmentAccessKeySecret("test");
-        Credential credential = provider.getCredentials();
+        CredentialModel credential = provider.getCredentials();
         Assert.assertEquals("test", credential.getAccessKeyId());
         Assert.assertEquals("test", credential.getAccessKeySecret());
 
         DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
             @Override
-            public Credential getCredentials() {
+            public CredentialModel getCredentials() {
                 return null;
             }
         });
         DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
             @Override
-            public Credential getCredentials() {
-                return Credential.builder()
+            public CredentialModel getCredentials() {
+                return CredentialModel.builder()
                         .accessKeyId("")
                         .accessKeySecret("")
                         .type(AuthConstant.ACCESS_KEY)

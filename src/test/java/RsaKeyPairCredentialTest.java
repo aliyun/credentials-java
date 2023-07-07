@@ -1,5 +1,5 @@
 import com.aliyun.credentials.RsaKeyPairCredential;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
 import com.aliyun.credentials.provider.RsaKeyPairCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
@@ -40,7 +40,7 @@ public class RsaKeyPairCredentialTest {
     @Test
     public void refreshCredentialTest() {
         RsaKeyPairCredentialProvider provider = Mockito.mock(RsaKeyPairCredentialProvider.class);
-        Credential credential = Credential.builder()
+        CredentialModel credential = CredentialModel.builder()
                 .accessKeyId("result")
                 .accessKeySecret("test")
                 .type(AuthConstant.RSA_KEY_PAIR)

@@ -1,5 +1,5 @@
 import com.aliyun.credentials.RamRoleArnCredential;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
@@ -11,7 +11,7 @@ public class RamRoleArnCredentialTest {
     @Test
     public void ramRoleArnCredentialTest() {
         RamRoleArnCredentialProvider provider = Mockito.mock(RamRoleArnCredentialProvider.class);
-        Credential credential = Credential.builder()
+        CredentialModel credential = CredentialModel.builder()
                 .accessKeyId("id")
                 .accessKeySecret("secret")
                 .securityToken("token")

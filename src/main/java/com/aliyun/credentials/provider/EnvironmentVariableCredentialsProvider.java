@@ -1,14 +1,14 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.exception.CredentialException;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.StringUtils;
 
 public class EnvironmentVariableCredentialsProvider implements AlibabaCloudCredentialsProvider {
     @Override
-    public Credential getCredentials() {
+    public CredentialModel getCredentials() {
         if (!"default".equals(AuthUtils.getClientType())) {
             return null;
         }
@@ -26,14 +26,14 @@ public class EnvironmentVariableCredentialsProvider implements AlibabaCloudCrede
             throw new CredentialException("Environment variable accessKeySecret cannot be empty");
         }
         if (!StringUtils.isEmpty(securityToken)) {
-            return Credential.builder()
+            return CredentialModel.builder()
                     .accessKeyId(accessKeyId)
                     .accessKeySecret(accessKeySecret)
                     .securityToken(securityToken)
                     .type(AuthConstant.STS)
                     .build();
         }
-        return Credential.builder()
+        return CredentialModel.builder()
                 .accessKeyId(accessKeyId)
                 .accessKeySecret(accessKeySecret)
                 .type(AuthConstant.ACCESS_KEY)

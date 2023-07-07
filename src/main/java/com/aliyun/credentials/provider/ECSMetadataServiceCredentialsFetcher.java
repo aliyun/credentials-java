@@ -5,7 +5,7 @@ import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
 import com.google.gson.Gson;
@@ -79,7 +79,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         return new String(response.getHttpContent());
     }
 
-    public RefreshResult<Credential> fetch(CompatibleUrlConnClient client) {
+    public RefreshResult<CredentialModel> fetch(CompatibleUrlConnClient client) {
         String jsonContent = getMetadata(client);
         Map<String, String> result = new Gson().fromJson(jsonContent, Map.class);
 
@@ -87,7 +87,7 @@ public class ECSMetadataServiceCredentialsFetcher {
             throw new CredentialException(ECS_METADAT_FETCH_ERROR_MSG);
         }
         long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
-        Credential credential = Credential.builder()
+        CredentialModel credential = CredentialModel.builder()
                 .accessKeyId(result.get("AccessKeyId"))
                 .accessKeySecret(result.get("AccessKeySecret"))
                 .securityToken(result.get("SecurityToken"))

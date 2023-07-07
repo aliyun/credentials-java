@@ -6,7 +6,7 @@ import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.models.Credential;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ParameterHelper;
@@ -83,12 +83,12 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
 
 
     @Override
-    public RefreshResult<Credential> refreshCredentials() {
+    public RefreshResult<CredentialModel> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
         return createCredential(client);
     }
 
-    public RefreshResult<Credential> createCredential(CompatibleUrlConnClient client) {
+    public RefreshResult<CredentialModel> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
@@ -100,7 +100,7 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
     }
 
     @SuppressWarnings("unchecked")
-    public RefreshResult<Credential> getNewSessionCredentials(CompatibleUrlConnClient client) {
+    public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) {
         if (!StringUtils.isEmpty(this.privateKeyFile)) {
             this.privateKey = AuthUtils.getOIDCToken(this.privateKeyFile);
         }
@@ -125,7 +125,7 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
         Map<String, String> result = (Map<String, String>) map.get("SessionAccessKey");
         long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
-        Credential credential = Credential.builder()
+        CredentialModel credential = CredentialModel.builder()
                 .accessKeyId(result.get("SessionAccessKeyId"))
                 .accessKeySecret(result.get("SessionAccessKeySecret"))
                 .type(AuthConstant.RSA_KEY_PAIR)
