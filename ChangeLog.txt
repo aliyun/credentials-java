@@ -1,3 +1,11 @@
+2023-07-24 Version: 0.3.0
+1.refactor: solve the inconsistency of credentials refresh && add the method of asynchronous refresh[incompatible].
+2.feat: support externalId for ram role arn.
+3.feat: support env ALIBABA_CLOUD_SECURITY_TOKEN.
+4.style: add some setters and getters for config.
+5.docs: update readme.
+
+
 2023-04-13 Version: 0.2.12
 1.feat: assign provider to credentials.
 
