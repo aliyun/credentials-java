@@ -12,16 +12,31 @@ import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ECSMetadataServiceCredentialsFetcher {
     private static final String URL_IN_ECS_METADATA = "/latest/meta-data/ram/security-credentials/";
+    private static final String URL_IN_METADATA_TOKEN = "/latest/api/token";
     private static final String ECS_METADAT_FETCH_ERROR_MSG = "Failed to get RAM session credentials from ECS metadata service.";
     private URL credentialUrl;
     private String roleName;
     private String metadataServiceHost = "100.100.100.200";
     private int connectionTimeout = 1000;
     private int readTimeout = 1000;
+    private String metadataToken;
+    private final boolean enableIMDSv2;
+    private int metadataTokenDuration;
+    private volatile long staleTime;
+
+    /**
+     * Maximum time to wait for a blocking refresh lock before calling refresh again. Unit of milliseconds.
+     */
+    private static final long REFRESH_BLOCKING_MAX_WAIT = 5 * 1000;
+    private final Lock refreshLock = new ReentrantLock();
 
 
     public ECSMetadataServiceCredentialsFetcher(String roleName, int connectionTimeout, int readTimeout) {
@@ -31,12 +46,27 @@ public class ECSMetadataServiceCredentialsFetcher {
         if (readTimeout > 1000) {
             this.readTimeout = readTimeout;
         }
+        this.enableIMDSv2 = false;
+        this.roleName = roleName;
+        setCredentialUrl();
+    }
+
+    public ECSMetadataServiceCredentialsFetcher(String roleName, boolean enableIMDSv2, int metadataTokenDuration, int connectionTimeout, int readTimeout) {
+        if (connectionTimeout > 1000) {
+            this.connectionTimeout = connectionTimeout;
+        }
+        if (readTimeout > 1000) {
+            this.readTimeout = readTimeout;
+        }
+        this.enableIMDSv2 = enableIMDSv2;
+        this.metadataTokenDuration = metadataTokenDuration;
         this.roleName = roleName;
         setCredentialUrl();
     }
 
     public ECSMetadataServiceCredentialsFetcher(String roleName) {
         this.roleName = roleName;
+        this.enableIMDSv2 = false;
         setCredentialUrl();
     }
 
@@ -59,11 +89,15 @@ public class ECSMetadataServiceCredentialsFetcher {
         request.setSysConnectTimeout(connectionTimeout);
         request.setSysReadTimeout(readTimeout);
         HttpResponse response;
+        if (this.enableIMDSv2) {
+            refreshMetadataToken(client);
+            request.putHeaderParameter("X-aliyun-ecs-metadata-token", this.metadataToken);
+        }
 
         try {
             response = client.syncInvoke(request);
         } catch (Exception e) {
-            throw new CredentialException("Failed to connect ECS Metadata Service: " + e.toString());
+            throw new CredentialException("Failed to connect ECS Metadata Service: " + e);
         } finally {
             client.close();
         }
@@ -114,5 +148,56 @@ public class ECSMetadataServiceCredentialsFetcher {
 
     public int getReadTimeout() {
         return readTimeout;
+    }
+
+    public boolean getEnableIMDSv2() {
+        return enableIMDSv2;
+    }
+
+    public int getMetadataTokenDuration() {
+        return metadataTokenDuration;
+    }
+
+    private void refreshMetadataToken(CompatibleUrlConnClient client) {
+        try {
+            if (refreshLock.tryLock(REFRESH_BLOCKING_MAX_WAIT, TimeUnit.MILLISECONDS)) {
+                try {
+                    if (needToRefresh()) {
+                        HttpRequest request = new HttpRequest("http://" + metadataServiceHost + URL_IN_METADATA_TOKEN);
+                        request.setSysMethod(MethodType.PUT);
+                        request.setSysConnectTimeout(connectionTimeout);
+                        request.setSysReadTimeout(readTimeout);
+                        HttpResponse response;
+                        request.putHeaderParameter("X-aliyun-ecs-metadata-token-ttl-seconds", String.valueOf(this.metadataTokenDuration));
+                        long tmpTime = this.staleTime;
+                        this.staleTime = new Date().getTime() + this.metadataTokenDuration * 1000L - REFRESH_BLOCKING_MAX_WAIT * 2;
+
+                        try {
+                            response = client.syncInvoke(request);
+                        } catch (Exception e) {
+                            this.staleTime = tmpTime;
+                            throw new CredentialException("Failed to connect ECS Metadata Service: " + e);
+                        }
+
+                        if (response.getResponseCode() != 200) {
+                            this.staleTime = tmpTime;
+                            throw new CredentialException("Failed to get token from ECS Metadata Service. HttpCode=" + response.getResponseCode());
+                        }
+
+                        this.metadataToken = new String(response.getHttpContent());
+                    }
+                } finally {
+                    refreshLock.unlock();
+                }
+            }
+        } catch (InterruptedException ex) {
+            throw new IllegalStateException("Interrupted waiting to refresh the metadata token.", ex);
+        } catch (Exception ex) {
+            throw ex;
+        }
+    }
+
+    private boolean needToRefresh() {
+        return new Date().getTime() >= this.staleTime;
     }
 }

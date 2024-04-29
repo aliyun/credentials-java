@@ -7,7 +7,8 @@ public enum FormatType {
     XML("application/xml", "text/xml"),
     JSON("application/json", "text/json"),
     RAW("application/octet-stream"),
-    FORM("application/x-www-form-urlencoded");
+    FORM("application/x-www-form-urlencoded"),
+    PLAIN("text/plain; charset=UTF-8");
 
     private String[] formats;
 

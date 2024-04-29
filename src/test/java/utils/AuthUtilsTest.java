@@ -38,6 +38,10 @@ public class AuthUtilsTest {
         AuthUtils.setEnvironmentECSMetaData(null);
         Assert.assertFalse(AuthUtils.environmentEnableOIDC());
 
+        Assert.assertFalse(AuthUtils.getEnableECSIMDSv2());
+        AuthUtils.enableECSIMDSv2(true);
+        Assert.assertTrue(AuthUtils.getEnableECSIMDSv2());
+
         Assert.assertNull(AuthUtils.getEnvironmentRoleArn());
         AuthUtils.setEnvironmentRoleArn("test");
         Assert.assertEquals("test", AuthUtils.getEnvironmentRoleArn());

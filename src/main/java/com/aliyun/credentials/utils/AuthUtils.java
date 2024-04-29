@@ -10,6 +10,7 @@ public class AuthUtils {
     private static volatile String environmentAccesskeySecret;
     private static volatile String environmentSecurityToken;
     private static volatile String environmentECSMetaData;
+    private static volatile Boolean enableECSIMDSv2;
     private static volatile String environmentCredentialsFile;
     private static volatile String environmentRoleArn;
     private static volatile String environmentOIDCProviderArn;
@@ -124,6 +125,19 @@ public class AuthUtils {
         return null == AuthUtils.environmentECSMetaData ?
                 System.getenv("ALIBABA_CLOUD_ECS_METADATA")
                 : AuthUtils.environmentECSMetaData;
+    }
+
+    public static void enableECSIMDSv2(boolean enableECSIMDSv2) {
+        AuthUtils.enableECSIMDSv2 = enableECSIMDSv2;
+    }
+
+    public static boolean getEnableECSIMDSv2() {
+        if (null != AuthUtils.enableECSIMDSv2) {
+            return AuthUtils.enableECSIMDSv2;
+        } else if (null != System.getenv("ALIBABA_CLOUD_ECS_IMDSV2_ENABLE")) {
+            return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_ECS_IMDSV2_ENABLE"));
+        }
+        return false;
     }
 
     public static void setEnvironmentRoleArn(String environmentRoleArn) {
