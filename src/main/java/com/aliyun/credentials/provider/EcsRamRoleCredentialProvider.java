@@ -4,6 +4,7 @@ import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
+import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.StringUtils;
 
 public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
@@ -49,7 +50,11 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             CompatibleUrlConnClient client = new CompatibleUrlConnClient();
             roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
         }
-        this.fetcher = new ECSMetadataServiceCredentialsFetcher(roleName, builder.connectionTimeout, builder.readTimeout);
+        this.fetcher = new ECSMetadataServiceCredentialsFetcher(roleName,
+                builder.enableIMDSv2,
+                builder.metadataTokenDuration,
+                builder.connectionTimeout,
+                builder.readTimeout);
     }
 
     public static Builder builder() {
@@ -71,7 +76,11 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
     }
 
     public interface Builder extends SessionCredentialsProvider.Builder<EcsRamRoleCredentialProvider, Builder> {
-        Builder roleName(String roleSessionName);
+        Builder roleName(String roleName);
+
+        Builder enableIMDSv2(boolean enableIMDSv2);
+
+        Builder metadataTokenDuration(int metadataTokenDuration);
 
         Builder connectionTimeout(int connectionTimeout);
 
@@ -85,11 +94,25 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             extends SessionCredentialsProvider.BuilderImpl<EcsRamRoleCredentialProvider, Builder>
             implements Builder {
         private String roleName;
+        private boolean enableIMDSv2 = AuthUtils.getEnableECSIMDSv2();
+        private int metadataTokenDuration = 21600;
         private int connectionTimeout = 1000;
         private int readTimeout = 1000;
 
         public Builder roleName(String roleName) {
             this.roleName = roleName;
+            return this;
+        }
+
+        public Builder enableIMDSv2(boolean enableIMDSv2) {
+            this.enableIMDSv2 = enableIMDSv2;
+            return this;
+        }
+
+        public Builder metadataTokenDuration(int metadataTokenDuration) {
+            if (metadataTokenDuration > 0) {
+                this.metadataTokenDuration = metadataTokenDuration;
+            }
             return this;
         }
 

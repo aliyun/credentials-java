@@ -32,20 +32,33 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         Assert.assertEquals("test", fetcher.getRoleName());
         Assert.assertEquals(1000, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertFalse(fetcher.getEnableIMDSv2());
+        Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 1200, 800);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1000, fetcher.getReadTimeout());
         Assert.assertEquals(1200, fetcher.getConnectionTimeout());
+        Assert.assertFalse(fetcher.getEnableIMDSv2());
+        Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertFalse(fetcher.getEnableIMDSv2());
+        Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
+
+        fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 180, 900, 1200);
+        Assert.assertEquals("id", fetcher.getRoleName());
+        Assert.assertEquals(1200, fetcher.getReadTimeout());
+        Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertTrue(fetcher.getEnableIMDSv2());
+        Assert.assertEquals(180, fetcher.getMetadataTokenDuration());
     }
 
     @Test
-    public void fetchTest() throws CredentialException, ParseException, IOException, NoSuchAlgorithmException, KeyManagementException {
+    public void fetchTest() throws CredentialException {
         ECSMetadataServiceCredentialsFetcher fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test"));
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenThrow(new RuntimeException("test"));
@@ -91,6 +104,36 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service.",
                     e.getMessage());
         }
+
+        fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test", true, 180, 900, 1200));
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenThrow(new RuntimeException("test"));
+        try {
+            fetcher.fetch(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
+                    e.getMessage());
+        }
+        response = new HttpResponse("test");
+        response.setResponseCode(500);
+        client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
+        try {
+            fetcher.fetch(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to get token from ECS Metadata Service. HttpCode=500",
+                    e.getMessage());
+        }
+
+        response = new HttpResponse("test");
+        response.setResponseCode(200);
+        response.setHttpContent(new String("{\"Code\":\"Success\",  \"AccessKeyId\":\"test\", " +
+                        "\"AccessKeySecret\":\"test\", \"SecurityToken\":\"test\",  \"Expiration\":\"2019-08-08T1:1:1Z\"}").getBytes(),
+                "UTF-8", FormatType.JSON);
+        client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
+        Assert.assertEquals(AuthConstant.ECS_RAM_ROLE, fetcher.fetch(client).value().getType());
     }
 
     @Test

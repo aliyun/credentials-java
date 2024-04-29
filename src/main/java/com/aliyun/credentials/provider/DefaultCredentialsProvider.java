@@ -17,15 +17,18 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
         defaultProviders.add(new SystemPropertiesCredentialsProvider());
         defaultProviders.add(new EnvironmentVariableCredentialsProvider());
         if (AuthUtils.environmentEnableOIDC()) {
-            defaultProviders.add(new OIDCRoleArnCredentialProvider(
-                    AuthUtils.getEnvironmentRoleArn()
-                    , AuthUtils.getEnvironmentOIDCProviderArn()
-                    , AuthUtils.getEnvironmentOIDCTokenFilePath()));
+            defaultProviders.add(OIDCRoleArnCredentialProvider.builder()
+                    .roleArn(AuthUtils.getEnvironmentRoleArn())
+                    .oidcProviderArn(AuthUtils.getEnvironmentOIDCProviderArn())
+                    .oidcTokenFilePath(AuthUtils.getEnvironmentOIDCTokenFilePath())
+                    .build());
         }
         defaultProviders.add(new ProfileCredentialsProvider());
         String roleName = AuthUtils.getEnvironmentECSMetaData();
-        if (roleName != null) {
-            defaultProviders.add(new EcsRamRoleCredentialProvider(roleName));
+        if (null != roleName) {
+            defaultProviders.add(EcsRamRoleCredentialProvider.builder()
+                    .roleName(roleName)
+                    .build());
         }
     }
 
