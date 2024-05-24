@@ -1,3 +1,7 @@
+2024-05-24 Version: 0.3.1
+1.feat: support IMDSv2 for ecs ram role.
+2.feat: support env ALIBABA_CLOUD_ECS_IMDSV2_ENABLE.
+
 2023-07-24 Version: 0.3.0
 1.refactor: solve the inconsistency of credentials refresh && add the method of asynchronous refresh[incompatible].
 2.feat: support externalId for ram role arn.
