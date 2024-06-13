@@ -27,5 +27,7 @@ jobs:
           RAMAccessKeyId: ${{ secrets.RAMACCESSKEYID }}
           RAMAccessKeySecret: ${{ secrets.RAMACCESSKEYSECRET }}
           roleArn: ${{ secrets.ROLEARN }}
-      - name: CodeCov
-        run: bash <(curl -s https://codecov.io/bash) -cF unittest
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # required
