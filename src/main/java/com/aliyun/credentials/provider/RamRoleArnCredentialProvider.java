@@ -136,7 +136,6 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setUrlParameter("DurationSeconds", String.valueOf(durationSeconds));
         httpRequest.setUrlParameter("RoleArn", this.roleArn);
         httpRequest.setUrlParameter("AccessKeyId", this.accessKeyId);
-        httpRequest.setUrlParameter("RegionId", this.regionId);
         httpRequest.setUrlParameter("RoleSessionName", this.roleSessionName);
         if (policy != null) {
             httpRequest.setUrlParameter("Policy", this.policy);
