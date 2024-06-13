@@ -3,7 +3,6 @@ package function;
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.Client;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
