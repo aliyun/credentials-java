@@ -54,6 +54,8 @@ public class URLCredentialProviderTest {
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("Failed to get credentials from server: http://10.10.10.10"));
+        } finally {
+            provider.close();
         }
     }
 

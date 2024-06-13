@@ -26,7 +26,6 @@ public class AccessKeyCredentialTest {
         Assert.assertEquals("test", credential.getAccessKeySecret());
         Assert.assertEquals(AuthConstant.ACCESS_KEY, credential.getType());
         Assert.assertNull(credential.getSecurityToken());
-
     }
 
     @Test

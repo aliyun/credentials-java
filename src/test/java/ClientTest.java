@@ -1,5 +1,4 @@
 import com.aliyun.credentials.Client;
-import com.aliyun.credentials.StsCredential;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.provider.*;
