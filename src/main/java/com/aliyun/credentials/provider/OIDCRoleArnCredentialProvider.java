@@ -37,8 +37,6 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
      */
     private String roleSessionName = "defaultSessionName";
 
-    private String accessKeyId;
-    private String accessKeySecret;
     private String regionId = "cn-hangzhou";
     private String policy;
 
@@ -76,12 +74,6 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         if (!StringUtils.isEmpty(config.STSEndpoint)) {
             this.STSEndpoint = config.STSEndpoint;
         }
-    }
-
-    @Deprecated
-    public OIDCRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn,
-                                         String oidcProviderArn, String oidcTokenFilePath) {
-        this(roleArn, oidcProviderArn, oidcTokenFilePath);
     }
 
     @Deprecated
@@ -254,26 +246,6 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
     public void setRoleSessionName(String roleSessionName) {
         this.roleSessionName = roleSessionName;
-    }
-
-    @Deprecated
-    public String getAccessKeyId() {
-        return accessKeyId;
-    }
-
-    @Deprecated
-    public void setAccessKeyId(String accessKeyId) {
-        this.accessKeyId = accessKeyId;
-    }
-
-    @Deprecated
-    public String getAccessKeySecret() {
-        return accessKeySecret;
-    }
-
-    @Deprecated
-    public void setAccessKeySecret(String accessKeySecret) {
-        this.accessKeySecret = accessKeySecret;
     }
 
     public String getRegionId() {
