@@ -6,6 +6,7 @@ import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.io.IOException;
@@ -51,14 +52,14 @@ public class ClientTest {
 
     @Test
     public void getProviderTest() throws ParseException, IOException, CredentialException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Config config = new Config();
+        final Config config = new Config();
         config.type = (AuthConstant.ACCESS_KEY);
         config.roleName = "test";
         config.accessKeySecret = "test";
         config.accessKeyId = "test";
-        Client credential = new Client(config);
+        final Client credential = new Client(config);
         Class<Client> clazz = Client.class;
-        Method getProvider = clazz.getDeclaredMethod("getProvider", Config.class);
+        final Method getProvider = clazz.getDeclaredMethod("getProvider", Config.class);
         getProvider.setAccessible(true);
         config.type = AuthConstant.ECS_RAM_ROLE;
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof EcsRamRoleCredentialProvider);
@@ -71,7 +72,12 @@ public class ClientTest {
         config.type = null;
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
         config.type = "default";
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
+        Assert.assertThrows("", CredentialException.class, new ThrowingRunnable() {
+            @Override
+            public void run() throws Throwable {
+                getProvider.invoke(credential, config);
+            }
+        });
     }
 
     @Test

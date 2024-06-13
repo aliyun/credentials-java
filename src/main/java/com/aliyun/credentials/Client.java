@@ -5,6 +5,7 @@ import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.utils.Validate;
 
 public class Client {
@@ -27,6 +28,10 @@ public class Client {
     }
 
     private AlibabaCloudCredentialsProvider getProvider(Config config) {
+        if (StringUtils.isEmpty(config.type)) {
+            return new DefaultCredentialsProvider();
+        }
+
         switch (config.type) {
             case AuthConstant.ACCESS_KEY:
                 return StaticCredentialsProvider.builder()
