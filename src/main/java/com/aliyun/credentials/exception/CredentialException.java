@@ -1,8 +1,6 @@
 package com.aliyun.credentials.exception;
 
-import java.io.Serializable;
-
-public class CredentialException extends RuntimeException implements Serializable {
+public class CredentialException extends RuntimeException {
 
     private static final long serialVersionUID = 634786425123290588L;
 

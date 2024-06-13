@@ -1,7 +1,6 @@
 package com.aliyun.credentials.http;
 
 import javax.net.ssl.X509TrustManager;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 public class X509TrustManagerImp implements X509TrustManager {

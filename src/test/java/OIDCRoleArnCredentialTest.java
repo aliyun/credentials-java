@@ -9,7 +9,7 @@ import org.mockito.Mockito;
 public class OIDCRoleArnCredentialTest {
 
     @Test
-    public void OIDCRoleArnCredentialTest() {
+    public void testOIDCRoleArnCredential() {
         OIDCRoleArnCredentialProvider provider = Mockito.mock(OIDCRoleArnCredentialProvider.class);
         CredentialModel credential = CredentialModel.builder()
                 .accessKeyId("id")

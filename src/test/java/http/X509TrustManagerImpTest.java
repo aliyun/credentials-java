@@ -4,8 +4,6 @@ import com.aliyun.credentials.http.X509TrustManagerImp;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.security.cert.CertificateException;
-
 public class X509TrustManagerImpTest {
 
     @Test
