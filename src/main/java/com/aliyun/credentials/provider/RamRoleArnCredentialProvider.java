@@ -112,18 +112,13 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     @Override
     public RefreshResult<CredentialModel> refreshCredentials() {
         CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-        return createCredential(client);
-    }
-
-    public RefreshResult<CredentialModel> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new CredentialException(e.getMessage(), e);
         } finally {
             client.close();
         }
-        return null;
     }
 
     @SuppressWarnings("unchecked")

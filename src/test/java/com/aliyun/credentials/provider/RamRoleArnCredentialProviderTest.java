@@ -1,22 +1,9 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.http.CompatibleUrlConnClient;
-import com.aliyun.credentials.http.FormatType;
-import com.aliyun.credentials.http.HttpRequest;
-import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RamRoleArnCredentialProviderTest {
 
@@ -95,18 +82,6 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertEquals("test", provider.getExternalId());
         Assert.assertNull(provider.getCredentials());
-    }
-
-    @Test
-    public void createCredentialTest() throws NoSuchAlgorithmException, IOException, KeyManagementException {
-        Configuration config = new Configuration();
-        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
-        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
-        HttpResponse response = new HttpResponse("test?test=test");
-        response.setHttpContent(new String("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"AccessKeyId\":\"test\"," +
-                "\"AccessKeySecret\":\"test\",\"SecurityToken\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
-        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
-        Assert.assertEquals(AuthConstant.RAM_ROLE_ARN, provider.createCredential(client).value().getType());
     }
 
     @Test

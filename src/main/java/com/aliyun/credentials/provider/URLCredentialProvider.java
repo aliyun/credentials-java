@@ -95,7 +95,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
         try {
             response = client.syncInvoke(request);
         } catch (Exception e) {
-            throw new CredentialException("Failed to connect Server: " + e.toString());
+            throw new CredentialException("Failed to connect Server: " + e.toString(), e);
         } finally {
             client.close();
         }

@@ -27,7 +27,7 @@ public class AuthUtils {
             in.read(buffer);
             privateKey = new String(buffer, "UTF-8");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new CredentialException(e.getMessage(), e);
         } finally {
             if (in != null) {
                 try {
@@ -56,7 +56,7 @@ public class AuthUtils {
             in.read(buffer);
             OIDCToken = new String(buffer, "UTF-8");
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new CredentialException(e.getMessage(), e);
         } finally {
             if (in != null) {
                 try {
