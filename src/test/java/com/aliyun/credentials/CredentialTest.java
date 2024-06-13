@@ -1,5 +1,5 @@
 package com.aliyun.credentials;
-import com.aliyun.credentials.provider.DefaultCredentialsProvider;
+
 import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
 import com.aliyun.credentials.provider.RsaKeyPairCredentialProvider;
@@ -43,10 +43,13 @@ public class CredentialTest {
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RamRoleArnCredentialProvider);
         config.setType(AuthConstant.RSA_KEY_PAIR);
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RsaKeyPairCredentialProvider);
-        config.setType(null);
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
         config.setType("default");
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
+        try {
+            getProvider.invoke(credential, config);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Unsupported credentials provider type: default", e.getCause().getLocalizedMessage());
+        }
     }
 
     @Test

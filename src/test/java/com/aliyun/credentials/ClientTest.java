@@ -51,8 +51,8 @@ public class ClientTest {
 
     @Test
     public void getProviderTest() throws ParseException, IOException, CredentialException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Config config = new Config();
-        config.type = (AuthConstant.ACCESS_KEY);
+        final Config config = new Config();
+        config.type = AuthConstant.ACCESS_KEY;
         config.roleName = "test";
         config.accessKeySecret = "test";
         config.accessKeyId = "test";
@@ -71,7 +71,12 @@ public class ClientTest {
         config.type = null;
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
         config.type = "default";
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
+        try {
+            getProvider.invoke(credential, config);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Unsupported credentials provider type: default", e.getCause().getLocalizedMessage());
+        }
     }
 
     @Test
