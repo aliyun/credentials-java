@@ -150,11 +150,10 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new CredentialException(e.getMessage(), e);
         } finally {
             client.close();
         }
-        return null;
     }
 
     @SuppressWarnings("unchecked")

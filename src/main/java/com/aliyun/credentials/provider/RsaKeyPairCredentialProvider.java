@@ -1,6 +1,7 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.Configuration;
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
@@ -92,11 +93,10 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new CredentialException(e.getMessage(), e);
         } finally {
             client.close();
         }
-        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -117,12 +117,21 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setSysMethod(MethodType.GET);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
-        httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
-                "https"));
+        String url = parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(), "https");
+        httpRequest.setSysUrl(url);
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
+        int code = httpResponse.getResponseCode();
+        if (code != 200) {
+            throw new CredentialException(String.format("Get %s failed with code %d", url, code));
+        }
+
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
         Map<String, String> result = (Map<String, String>) map.get("SessionAccessKey");
+        if (result == null) {
+            throw new CredentialException("Cannot get session access key");
+        }
+
         long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
         CredentialModel credential = CredentialModel.builder()
                 .accessKeyId(result.get("SessionAccessKeyId"))
