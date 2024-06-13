@@ -173,7 +173,6 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setUrlParameter("Action", "AssumeRoleWithOIDC");
         httpRequest.setUrlParameter("Format", "JSON");
         httpRequest.setUrlParameter("Version", "2015-04-01");
-        httpRequest.setUrlParameter("RegionId", this.regionId);
         Map<String, String> body = new HashMap<String, String>();
         body.put("DurationSeconds", String.valueOf(durationSeconds));
         body.put("RoleArn", this.roleArn);

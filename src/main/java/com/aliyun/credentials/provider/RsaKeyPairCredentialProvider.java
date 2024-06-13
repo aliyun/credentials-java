@@ -111,7 +111,6 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setUrlParameter("Version", "2015-04-01");
         httpRequest.setUrlParameter("DurationSeconds", String.valueOf(durationSeconds));
         httpRequest.setUrlParameter("AccessKeyId", this.publicKeyId);
-        httpRequest.setUrlParameter("RegionId", this.regionId);
         String strToSign = parameterHelper.composeStringToSign(MethodType.GET, httpRequest.getUrlParameters());
         String signature = parameterHelper.signString(strToSign, this.privateKey + "&");
         httpRequest.setUrlParameter("Signature", signature);
