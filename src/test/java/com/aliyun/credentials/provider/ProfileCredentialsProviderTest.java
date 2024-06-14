@@ -23,7 +23,7 @@ public class ProfileCredentialsProviderTest {
             provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("The specified credentials file is empty", e.getMessage());
+            Assert.assertEquals("The specified credentials file is empty.", e.getMessage());
         }
         String filePath = ProfileCredentialsProviderTest.class.getClassLoader().
                 getResource("configTest.ini").getPath();
@@ -37,7 +37,7 @@ public class ProfileCredentialsProviderTest {
             provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Client is not open in the specified credentials file", e.getMessage());
+            Assert.assertEquals("Client is not open in the specified credentials file.", e.getMessage());
         }
 
         AuthUtils.setClientType("default");
@@ -56,7 +56,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured client type is empty", e.getCause().getLocalizedMessage());
+            Assert.assertEquals("The configured client type is empty.", e.getCause().getLocalizedMessage());
         }
 
 
@@ -65,7 +65,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured role_name is empty",
+            Assert.assertEquals("The configured role_name is empty.",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -97,7 +97,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured access_key_id or access_key_secret is empty",
+            Assert.assertEquals("The configured access_key_id or access_key_secret is empty.",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -106,7 +106,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured access_key_id or access_key_secret is empty",
+            Assert.assertEquals("The configured access_key_id or access_key_secret is empty.",
                     e.getCause().getLocalizedMessage());
         }
         try {
@@ -114,7 +114,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured role_session_name or role_arn is empty",
+            Assert.assertEquals("The configured role_session_name or role_arn is empty.",
                     e.getCause().getLocalizedMessage());
         }
         try {
@@ -122,7 +122,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured role_session_name or role_arn is empty",
+            Assert.assertEquals("The configured role_session_name or role_arn is empty.",
                     e.getCause().getLocalizedMessage());
         }
     }
@@ -141,7 +141,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured role_arn is empty",
+            Assert.assertEquals("The configured role_arn is empty.",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -150,7 +150,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured role_arn is empty",
+            Assert.assertEquals("The configured role_arn is empty.",
                     e.getCause().getLocalizedMessage());
         }
         try {
@@ -158,7 +158,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured role_arn is empty",
+            Assert.assertEquals("The configured role_arn is empty.",
                     e.getCause().getLocalizedMessage());
         }
         try {
@@ -166,7 +166,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured oidc_provider_arn is empty",
+            Assert.assertEquals("The configured oidc_provider_arn is empty.",
                     e.getCause().getLocalizedMessage());
         }
     }
@@ -186,7 +186,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured private_key_file is empty", e.getCause().getLocalizedMessage());
+            Assert.assertEquals("The configured private_key_file is empty.", e.getCause().getLocalizedMessage());
         }
         client.put(AuthConstant.INI_PRIVATE_KEY_FILE, "sads");
         AuthUtils.setPrivateKey("test");
@@ -194,7 +194,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+            Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -204,7 +204,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+            Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -212,7 +212,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+            Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
         AuthUtils.setPrivateKey(null);
@@ -271,7 +271,13 @@ public class ProfileCredentialsProviderTest {
         Mockito.when(rsaKeyPairCredentialProvider.getCredentials()).thenReturn(null);
         Mockito.when(factory.createCredentialsProvider(Mockito.any(RsaKeyPairCredentialProvider.class))).
                 thenReturn(rsaKeyPairCredentialProvider);
-        Assert.assertNull(createCredential.invoke(profileCredentialsProvider, client, factory));
+        try {
+            createCredential.invoke(profileCredentialsProvider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getCause().getLocalizedMessage();
+            Assert.assertEquals("rsa_key_pair (No such file or directory)", message);
+        }
         AuthUtils.setPrivateKey(null);
 
         client.clear();

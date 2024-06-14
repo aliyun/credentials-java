@@ -11,13 +11,21 @@ public class SystemPropertiesCredentialsProviderTest {
     @Test
     public void getCredentialsTest() {
         SystemPropertiesCredentialsProvider provider = new SystemPropertiesCredentialsProvider();
-        AuthUtils.setClientType("aa");
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("System property alibabacloud.accessKeyId cannot be empty.", e.getMessage());
+        }
 
-        AuthUtils.setClientType("default");
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYSECRET, "");
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYID, "accessKeyIdTest");
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("System property alibabacloud.accessKeySecret cannot be empty.", e.getMessage());
+        }
 
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEY_SECRET, "accessKeyIdTest");
         AlibabaCloudCredentials credential = provider.getCredentials();
@@ -47,7 +55,12 @@ public class SystemPropertiesCredentialsProviderTest {
         Assert.assertEquals("sessionTokenTest", sessionToken);
 
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYID, "");
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("System property alibabacloud.accessKeyId cannot be empty.", e.getMessage());
+        }
 
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYSECRET, "");
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEY_SECRET, "");

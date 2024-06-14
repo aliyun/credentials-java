@@ -124,7 +124,7 @@ public class Client {
                             .connectionTimeout(config.connectTimeout)
                             .readTimeout(config.timeout)
                             .build();
-                case AuthConstant.URL_STS:
+                case AuthConstant.CREDENTIALS_URI:
                     return URLCredentialProvider.builder()
                             .credentialsURI(config.credentialsURI)
                             .connectionTimeout(config.connectTimeout)

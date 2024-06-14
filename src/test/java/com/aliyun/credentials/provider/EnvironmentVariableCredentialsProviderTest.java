@@ -11,12 +11,20 @@ public class EnvironmentVariableCredentialsProviderTest {
     @Test
     public void getCredentialsTest() {
         EnvironmentVariableCredentialsProvider provider = new EnvironmentVariableCredentialsProvider();
-        AuthUtils.setClientType("aa");
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Environment variable accessKeyId cannot be empty.", e.getMessage());
+        }
 
-        AuthUtils.setClientType("default");
         AuthUtils.setEnvironmentAccessKeyId("accessKeyIdTest");
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Environment variable accessKeySecret cannot be empty.", e.getMessage());
+        }
 
         AuthUtils.setEnvironmentAccessKeySecret("accessKeyIdTest");
         AlibabaCloudCredentials credential = provider.getCredentials();
@@ -26,14 +34,20 @@ public class EnvironmentVariableCredentialsProviderTest {
         Assert.assertEquals("accessKeyIdTest", accessKeySecret);
 
         AuthUtils.setEnvironmentAccessKeyId(null);
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Environment variable accessKeyId cannot be empty.", e.getMessage());
+        }
+
 
         AuthUtils.setEnvironmentAccessKeyId("");
         try {
             provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Environment variable accessKeyId cannot be empty", e.getMessage());
+            Assert.assertEquals("Environment variable accessKeyId cannot be empty.", e.getMessage());
         }
         AuthUtils.setEnvironmentAccessKeyId("ak");
         AuthUtils.setEnvironmentAccessKeySecret("");
@@ -41,7 +55,7 @@ public class EnvironmentVariableCredentialsProviderTest {
             provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Environment variable accessKeySecret cannot be empty", e.getMessage());
+            Assert.assertEquals("Environment variable accessKeySecret cannot be empty.", e.getMessage());
         }
         AuthUtils.setEnvironmentAccessKeySecret("sk");
         credential = provider.getCredentials();

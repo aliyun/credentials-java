@@ -47,7 +47,7 @@ public class DefaultCredentialsProviderTest {
         DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
             @Override
             public CredentialModel getCredentials() {
-                return null;
+                throw new CredentialException("test");
             }
         });
         DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
@@ -80,7 +80,7 @@ public class DefaultCredentialsProviderTest {
             provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("not found credentials", e.getMessage());
+            Assert.assertTrue(e.getMessage().contains("Unable to load credentials from any of the providers in the chain"));
         }
     }
 

@@ -85,7 +85,12 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
 
     @Override
     public RefreshResult<CredentialModel> refreshCredentials() {
-        CompatibleUrlConnClient client = new CompatibleUrlConnClient();
+        try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
+            return getNewSessionCredentials(client);
+        }
+    }
+
+    RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) {
         HttpRequest request = new HttpRequest(this.credentialsURI.toString());
         request.setSysMethod(MethodType.GET);
         request.setSysConnectTimeout(connectTimeout);
@@ -95,7 +100,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
         try {
             response = client.syncInvoke(request);
         } catch (Exception e) {
-            throw new CredentialException("Failed to connect Server: " + e.toString());
+            throw new CredentialException("Failed to connect Server: " + e.toString(), e);
         } finally {
             client.close();
         }
@@ -121,14 +126,14 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
                     .accessKeyId(map.get("AccessKeyId"))
                     .accessKeySecret(map.get("AccessKeySecret"))
                     .securityToken(map.get("SecurityToken"))
-                    .type(AuthConstant.URL_STS)
+                    .type(AuthConstant.CREDENTIALS_URI)
                     .expiration(expiration)
                     .build();
             return RefreshResult.builder(credential)
                     .staleTime(getStaleTime(expiration))
                     .build();
         } else {
-            throw new CredentialException(gson.toJson(map));
+            throw new CredentialException(String.format("Error retrieving credentials from credentialsURI result: %s.", response.getHttpContentString()));
         }
     }
 

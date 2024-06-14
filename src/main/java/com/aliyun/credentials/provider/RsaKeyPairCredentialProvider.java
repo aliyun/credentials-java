@@ -1,6 +1,7 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.Configuration;
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
@@ -84,22 +85,15 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
 
     @Override
     public RefreshResult<CredentialModel> refreshCredentials() {
-        CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-        return createCredential(client);
+        try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
+            return createCredential(client);
+        }
     }
 
     public RefreshResult<CredentialModel> createCredential(CompatibleUrlConnClient client) {
-        try {
-            return getNewSessionCredentials(client);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            client.close();
-        }
-        return null;
+        return getNewSessionCredentials(client);
     }
 
-    @SuppressWarnings("unchecked")
     public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) {
         if (!StringUtils.isEmpty(this.privateKeyFile)) {
             this.privateKey = AuthUtils.getOIDCToken(this.privateKeyFile);
@@ -119,9 +113,20 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setSysReadTimeout(this.readTimeout);
         httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
                 "https"));
-        HttpResponse httpResponse = client.syncInvoke(httpRequest);
+        HttpResponse httpResponse;
+        try {
+            httpResponse = client.syncInvoke(httpRequest);
+        } catch (Exception e) {
+            throw new CredentialException("Failed to connect RsaKeyPair Service: " + e);
+        }
+        if (httpResponse.getResponseCode() != 200) {
+            throw new CredentialException(String.format("Error refreshing credentials from RsaKeyPair, HttpCode: %s, result: %s.", httpResponse.getResponseCode(), httpResponse.getHttpContentString()));
+        }
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
+        if (null == map || !map.containsKey("SessionAccessKey")) {
+            throw new CredentialException(String.format("Error retrieving credentials from RsaKeyPair result: %s.", httpResponse.getHttpContentString()));
+        }
         Map<String, String> result = (Map<String, String>) map.get("SessionAccessKey");
         long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
         CredentialModel credential = CredentialModel.builder()

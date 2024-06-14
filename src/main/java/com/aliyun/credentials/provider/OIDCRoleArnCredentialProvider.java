@@ -149,15 +149,13 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     public RefreshResult<CredentialModel> createCredential(CompatibleUrlConnClient client) {
         try {
             return getNewSessionCredentials(client);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            throw new CredentialException(e.getMessage(), e);
         } finally {
             client.close();
         }
-        return null;
     }
 
-    @SuppressWarnings("unchecked")
     public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
         this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
         ParameterHelper parameterHelper = new ParameterHelper();
@@ -193,27 +191,34 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setSysReadTimeout(this.readTimeout);
         httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
                 "https"));
-        HttpResponse httpResponse = client.syncInvoke(httpRequest);
+        HttpResponse httpResponse;
+        try {
+            httpResponse = client.syncInvoke(httpRequest);
+        } catch (Exception e) {
+            throw new CredentialException("Failed to connect OIDC Service: " + e);
+        }
+        if (httpResponse.getResponseCode() != 200) {
+            throw new CredentialException(String.format("Error refreshing credentials from OIDC, HttpCode: %s, result: %s.", httpResponse.getResponseCode(), httpResponse.getHttpContentString()));
+        }
+
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);
-        if (null == map) {
-            throw new CredentialException(httpResponse.getResponseMessage());
-        } else if (map.containsKey("Credentials")) {
-            Map<String, String> result = (Map<String, String>) map.get("Credentials");
-            long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
-            CredentialModel credential = CredentialModel.builder()
-                    .accessKeyId(result.get("AccessKeyId"))
-                    .accessKeySecret(result.get("AccessKeySecret"))
-                    .securityToken(result.get("SecurityToken"))
-                    .type(AuthConstant.OIDC_ROLE_ARN)
-                    .expiration(expiration)
-                    .build();
-            return RefreshResult.builder(credential)
-                    .staleTime(getStaleTime(expiration))
-                    .build();
-        } else {
-            throw new CredentialException(gson.toJson(map));
+        if (null == map || !map.containsKey("Credentials")) {
+            throw new CredentialException(String.format("Error retrieving credentials from OIDC result: %s.", httpResponse.getHttpContentString()));
         }
+        Map<String, String> result = (Map<String, String>) map.get("Credentials");
+        long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
+        CredentialModel credential = CredentialModel.builder()
+                .accessKeyId(result.get("AccessKeyId"))
+                .accessKeySecret(result.get("AccessKeySecret"))
+                .securityToken(result.get("SecurityToken"))
+                .type(AuthConstant.OIDC_ROLE_ARN)
+                .expiration(expiration)
+                .build();
+        return RefreshResult.builder(credential)
+                .staleTime(getStaleTime(expiration))
+                .build();
+
     }
 
     public int getDurationSeconds() {

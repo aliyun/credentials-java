@@ -31,7 +31,7 @@ public class CLIProfileCredentialsProviderTest {
         AuthUtils.disableCLIProfile(true);
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
         try {
-            provider.refreshCredentials();
+            provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
             Assert.assertEquals("CLI credentials file is disabled.", e.getMessage());
@@ -98,8 +98,12 @@ public class CLIProfileCredentialsProviderTest {
 
         credentialsProvider = provider.reloadCredentialsProvider(config, "RamRoleArn");
         Assert.assertTrue(credentialsProvider instanceof RamRoleArnCredentialProvider);
-        credential = credentialsProvider.getCredentials();
-        Assert.assertNull(credential);
+        try {
+            credentialsProvider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
+        }
 
         try {
             provider.reloadCredentialsProvider(config, "Invalid_RamRoleArn");
@@ -135,30 +139,32 @@ public class CLIProfileCredentialsProviderTest {
     }
 
     @Test
-    public void refreshCredentialsTest() {
+    public void getCredentialsTest() {
         String homePath = System.getProperty("user.home");
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
                 getResource(".aliyun/config.json").getPath();
         System.setProperty("user.home", configPath.replace("/.aliyun/config.json", ""));
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
-        CredentialModel credential = provider.refreshCredentials();
+        CredentialModel credential = provider.getCredentials();
         Assert.assertEquals("akid", credential.getAccessKeyId());
         Assert.assertEquals("secret", credential.getAccessKeySecret());
         Assert.assertNull(credential.getSecurityToken());
 
         provider = CLIProfileCredentialsProvider.builder().profileName("inexist").build();
         try {
-            provider.refreshCredentials();
+            provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
             Assert.assertEquals("Unable to get profile with 'inexist' form CLI credentials file.", e.getMessage());
         }
 
-        Assert.assertNull(provider.getCredentials());
-
         provider = CLIProfileCredentialsProvider.builder().profileName("RamRoleArn").build();
-        credential = provider.refreshCredentials();
-        Assert.assertNull(credential);
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
+        }
 
         System.setProperty("user.home", homePath);
     }

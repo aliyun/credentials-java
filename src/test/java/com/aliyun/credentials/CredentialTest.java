@@ -1,4 +1,5 @@
 package com.aliyun.credentials;
+
 import com.aliyun.credentials.provider.DefaultCredentialsProvider;
 import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
@@ -59,7 +60,12 @@ public class CredentialTest {
         Credential credential = PowerMockito.spy(new Credential(config));
         Assert.assertTrue(credential.getCredential(config) instanceof StsCredential);
         config.setType(AuthConstant.RSA_KEY_PAIR);
-        Assert.assertNull(credential.getCredential(config));
+        try {
+            credential.getCredential(config);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error refreshing credentials from RsaKeyPair"));
+        }
     }
 }
 

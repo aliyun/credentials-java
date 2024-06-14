@@ -43,21 +43,26 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
     @Override
     public CredentialModel getCredentials() {
         CredentialModel credential;
+        List<String> errorMessages = new ArrayList<>();
         if (USER_CONFIGURATION_PROVIDERS.size() > 0) {
             for (AlibabaCloudCredentialsProvider provider : USER_CONFIGURATION_PROVIDERS) {
-                credential = provider.getCredentials();
-                if (null != credential) {
+                try {
+                    credential = provider.getCredentials();
                     return credential;
+                } catch (Exception e) {
+                    errorMessages.add(provider.getClass().getName() + ": " + e.getMessage());
                 }
             }
         }
         for (AlibabaCloudCredentialsProvider provider : defaultProviders) {
-            credential = provider.getCredentials();
-            if (null != credential) {
+            try {
+                credential = provider.getCredentials();
                 return credential;
+            } catch (Exception e) {
+                errorMessages.add(provider.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }
-        throw new CredentialException("not found credentials");
+        throw new CredentialException("Unable to load credentials from any of the providers in the chain: ." + errorMessages);
     }
 
     public static boolean addCredentialsProvider(AlibabaCloudCredentialsProvider provider) {
@@ -98,14 +103,6 @@ class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
 
     @Override
     public CredentialModel getCredentials() {
-        try {
-            return refreshCredentials();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    CredentialModel refreshCredentials() {
         if (AuthUtils.isDisableCLIProfile()) {
             throw new CredentialException("CLI credentials file is disabled.");
         }

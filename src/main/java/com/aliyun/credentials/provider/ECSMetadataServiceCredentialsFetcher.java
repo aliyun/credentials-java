@@ -103,7 +103,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         }
 
         if (response.getResponseCode() == 404) {
-            throw new CredentialException("The role name was not found in the instance");
+            throw new CredentialException("The role name was not found in the instance.");
         }
 
         if (response.getResponseCode() != 200) {
