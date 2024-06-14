@@ -114,22 +114,47 @@ public class Client {
         return new DefaultCredentialsProvider();
     }
 
+    /**
+     * @deprecated Use getCredential().getAccessKeyId() instead of
+     * @return Access key ID
+     */
+    @Deprecated
     public String getAccessKeyId() {
         return this.credentialsProvider.getCredentials().getAccessKeyId();
     }
 
+    /**
+     * @deprecated Use getCredential().getAccessKeySecret() instead of
+     * @return Access key secret
+     */
+    @Deprecated
     public String getAccessKeySecret() {
         return this.credentialsProvider.getCredentials().getAccessKeySecret();
     }
 
+    /**
+     * @deprecated Use getCredential().getSecurityToken() instead of
+     * @return Security token
+     */
+    @Deprecated
     public String getSecurityToken() {
         return this.credentialsProvider.getCredentials().getSecurityToken();
     }
 
+    /**
+     * @deprecated Use getCredential().getType() instead of
+     * @return Credentials provider type
+     */
+    @Deprecated
     public String getType() {
         return this.credentialsProvider.getCredentials().getType();
     }
 
+    /**
+     * @deprecated Use getCredential().getBearerToken() instead of
+     * @return Bearer token
+     */
+    @Deprecated
     public String getBearerToken() {
         return this.credentialsProvider.getCredentials().getBearerToken();
     }
