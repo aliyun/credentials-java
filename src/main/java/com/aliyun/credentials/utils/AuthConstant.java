@@ -35,6 +35,9 @@ public class AuthConstant {
     public static final String RSA_KEY_PAIR = "rsa_key_pair";
     public static final String BEARER = "bearer";
     public static final String OIDC_ROLE_ARN = "oidc_role_arn";
+    @Deprecated
     public static final String URL_STS = "credentials_uri";
+    
+    public static final String CREDENTIALS_URI = "credentials_uri";
 
 }

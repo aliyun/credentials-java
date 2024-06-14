@@ -15,7 +15,7 @@ public class URLCredentialTest {
                 .accessKeyId("id")
                 .accessKeySecret("secret")
                 .securityToken("token")
-                .type(AuthConstant.URL_STS)
+                .type(AuthConstant.CREDENTIALS_URI)
                 .expiration(64090527132000L)
                 .build();
         Mockito.when(provider.getCredentials()).thenReturn(credential);
@@ -25,7 +25,7 @@ public class URLCredentialTest {
         Assert.assertEquals("secret", newCredential.getAccessKeySecret());
         Assert.assertEquals(64090527132000L, newCredential.getExpiration());
         Assert.assertEquals("token", newCredential.getSecurityToken());
-        Assert.assertEquals(AuthConstant.URL_STS, newCredential.getType());
+        Assert.assertEquals(AuthConstant.CREDENTIALS_URI, newCredential.getType());
     }
 
 }

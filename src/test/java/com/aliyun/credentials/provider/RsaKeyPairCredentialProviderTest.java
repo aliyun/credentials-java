@@ -49,7 +49,12 @@ public class RsaKeyPairCredentialProviderTest {
     @Test
     public void getCredentialsTest() {
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider(null, null);
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error refreshing credentials from RsaKeyPair"));
+        }
     }
 
     @Test
@@ -57,6 +62,7 @@ public class RsaKeyPairCredentialProviderTest {
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", "test");
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
         response.setHttpContent(new String("{\"SessionAccessKey\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"SessionAccessKeyId\":\"test\"," +
                 "\"SessionAccessKeySecret\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);

@@ -152,7 +152,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             fetcher.fetchRoleName(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("The role name was not found in the instance", e.getMessage());
+            Assert.assertEquals("The role name was not found in the instance.", e.getMessage());
         }
 
         response = mock(HttpResponse.class);

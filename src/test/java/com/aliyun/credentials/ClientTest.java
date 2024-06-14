@@ -37,14 +37,14 @@ public class ClientTest {
             credential.getCredential();
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("not found credentials", e.getMessage());
+            Assert.assertTrue(e.getMessage().contains("Unable to load credentials from any of the providers in the chain"));
         }
         try {
             credential = new Client(new DefaultCredentialsProvider());
             credential.getCredential();
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("not found credentials", e.getMessage());
+            Assert.assertTrue(e.getMessage().contains("Unable to load credentials from any of the providers in the chain"));
         }
     }
 

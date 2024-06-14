@@ -128,7 +128,13 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertTrue(provider.getOIDCTokenFilePath().contains("OIDCToken.txt"));
         Assert.assertNull(provider.getOIDCToken());
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Parameter OIDCProviderArn is not valid"));
+            Assert.assertTrue(e.getMessage().contains("AuthenticationFail.NoPermission"));
+        }
         Assert.assertEquals("OIDCToken", provider.getOIDCToken());
     }
 
@@ -142,6 +148,7 @@ public class OIDCRoleArnCredentialProviderTest {
         OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(config);
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
         response.setHttpContent(new String("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"AccessKeyId\":\"test\"," +
                 "\"AccessKeySecret\":\"test\",\"SecurityToken\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);

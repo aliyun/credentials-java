@@ -53,7 +53,7 @@ public class URLCredential implements AlibabaCloudCredentials {
 
     @Override
     public String getType() {
-        return AuthConstant.URL_STS;
+        return AuthConstant.CREDENTIALS_URI;
     }
 
     @Override

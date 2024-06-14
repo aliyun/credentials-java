@@ -11,6 +11,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,15 +94,21 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertEquals("test", provider.getExternalId());
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
+        }
     }
 
     @Test
-    public void createCredentialTest() {
+    public void createCredentialTest() throws NoSuchAlgorithmException, IOException, KeyManagementException {
         Configuration config = new Configuration();
         RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
         response.setHttpContent(new String("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"AccessKeyId\":\"test\"," +
                 "\"AccessKeySecret\":\"test\",\"SecurityToken\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
@@ -162,7 +172,12 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
         Assert.assertEquals("cn-hangzhou", originalProvider.getRegionId());
         Assert.assertEquals("test", originalProvider.getExternalId());
-        Assert.assertNull(originalProvider.getCredentials());
+        try {
+            originalProvider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
+        }
 
         RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
                 .credentialsProvider(originalProvider)
@@ -172,7 +187,12 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("javaSdkRoleSessionName", provider.getRoleSessionName());
         Assert.assertEquals("sts.aliyuncs.com", provider.getSTSEndpoint());
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
+        }
     }
 
 }

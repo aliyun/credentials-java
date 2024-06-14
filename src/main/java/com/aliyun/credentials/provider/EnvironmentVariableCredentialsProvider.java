@@ -9,21 +9,14 @@ import com.aliyun.credentials.utils.StringUtils;
 public class EnvironmentVariableCredentialsProvider implements AlibabaCloudCredentialsProvider {
     @Override
     public CredentialModel getCredentials() {
-        if (!"default".equals(AuthUtils.getClientType())) {
-            return null;
-        }
-
         String accessKeyId = AuthUtils.getEnvironmentAccessKeyId();
         String accessKeySecret = AuthUtils.getEnvironmentAccessKeySecret();
         String securityToken = AuthUtils.getEnvironmentSecurityToken();
-        if (accessKeyId == null || accessKeySecret == null) {
-            return null;
-        }
         if (StringUtils.isEmpty(accessKeyId)) {
-            throw new CredentialException("Environment variable accessKeyId cannot be empty");
+            throw new CredentialException("Environment variable accessKeyId cannot be empty.");
         }
         if (StringUtils.isEmpty(accessKeySecret)) {
-            throw new CredentialException("Environment variable accessKeySecret cannot be empty");
+            throw new CredentialException("Environment variable accessKeySecret cannot be empty.");
         }
         if (!StringUtils.isEmpty(securityToken)) {
             return CredentialModel.builder()

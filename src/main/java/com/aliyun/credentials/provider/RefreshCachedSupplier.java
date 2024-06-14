@@ -60,8 +60,7 @@ public class RefreshCachedSupplier<T> implements AutoCloseable {
 
     private void blockingRefresh() {
         try {
-            if (refreshLock
-                    .tryLock(REFRESH_BLOCKING_MAX_WAIT, TimeUnit.MILLISECONDS)) {
+            if (refreshLock.tryLock(REFRESH_BLOCKING_MAX_WAIT, TimeUnit.MILLISECONDS)) {
                 try {
                     if (cacheIsStale()) {
                         refreshCache();
@@ -74,7 +73,6 @@ public class RefreshCachedSupplier<T> implements AutoCloseable {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Interrupted waiting to refresh the value.", ex);
         } catch (Exception ex) {
-            Thread.currentThread().interrupt();
             throw ex;
         }
     }
