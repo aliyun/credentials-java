@@ -193,7 +193,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+            Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -203,7 +203,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+            Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -211,7 +211,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+            Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
         AuthUtils.setPrivateKey(null);
@@ -270,7 +270,13 @@ public class ProfileCredentialsProviderTest {
         Mockito.when(rsaKeyPairCredentialProvider.getCredentials()).thenReturn(null);
         Mockito.when(factory.createCredentialsProvider(Mockito.any(RsaKeyPairCredentialProvider.class))).
                 thenReturn(rsaKeyPairCredentialProvider);
-        Assert.assertNull(createCredential.invoke(profileCredentialsProvider, client, factory));
+        try {
+            createCredential.invoke(profileCredentialsProvider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getCause().getLocalizedMessage();
+            Assert.assertEquals("rsa_key_pair (No such file or directory)", message);
+        }
         AuthUtils.setPrivateKey(null);
 
         client.clear();

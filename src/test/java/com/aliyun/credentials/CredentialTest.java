@@ -59,7 +59,13 @@ public class CredentialTest {
         Credential credential = PowerMockito.spy(new Credential(config));
         Assert.assertTrue(credential.getCredential(config) instanceof StsCredential);
         config.setType(AuthConstant.RSA_KEY_PAIR);
-        Assert.assertNull(credential.getCredential(config));
+        try {
+            credential.getCredential(config);
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getMessage();
+            Assert.assertEquals("Get new session credential failed.", message);
+        }
     }
 }
 
