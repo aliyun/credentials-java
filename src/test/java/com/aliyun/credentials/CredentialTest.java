@@ -1,4 +1,5 @@
 package com.aliyun.credentials;
+
 import com.aliyun.credentials.provider.DefaultCredentialsProvider;
 import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
@@ -10,7 +11,6 @@ import org.powermock.api.mockito.PowerMockito;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
 
 public class CredentialTest {
     @Test

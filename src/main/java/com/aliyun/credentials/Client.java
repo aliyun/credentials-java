@@ -4,7 +4,6 @@ import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.tea.utils.Validate;
 
 public class Client {
     private final AlibabaCloudCredentialsProvider credentialsProvider;
@@ -100,18 +99,14 @@ public class Client {
                             .connectionTimeout(config.connectTimeout)
                             .readTimeout(config.timeout)
                             .build();
-                case AuthConstant.URL_STS:
-                    return URLCredentialProvider.builder()
-                            .credentialsURI(config.credentialsURI)
-                            .connectionTimeout(config.connectTimeout)
-                            .readTimeout(config.timeout)
-                            .build();
+                case AuthConstant.CREDENTIALS_URI:
+                    return new CredentialsURICredentialProvider(config);
                 default:
             }
         } catch (Exception e) {
             e.printStackTrace();
+                return new DefaultCredentialsProvider();
         }
-        return new DefaultCredentialsProvider();
     }
 
     /**
@@ -168,4 +163,3 @@ public class Client {
         return this.credentialsProvider.getCredentials();
     }
 }
-
