@@ -2,8 +2,14 @@ package com.aliyun.credentials.http;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.powermock.api.mockito.PowerMockito;
 
+import static org.mockito.Mockito.*;
+
+import java.net.HttpURLConnection;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class CompatibleUrlConnClientTest {
     @Test
@@ -37,5 +43,28 @@ public class CompatibleUrlConnClientTest {
         } catch (Exception e) {
             Assert.assertEquals("Method is not set for HttpRequest.", e.getMessage());
         }
+    }
+
+    @Test
+    public void buildHttpConnectionTest() {
+        CompatibleUrlConnClient client0 = new CompatibleUrlConnClient();
+        CompatibleUrlConnClient client = PowerMockito.spy(client0);
+        HttpRequest request = mock(HttpRequest.class);
+        when(request.getSysMethod()).thenReturn(MethodType.POST);
+        when(request.getSysUrl()).thenReturn("https://www.aliyun.com");
+        when(request.getSysConnectTimeout()).thenReturn(120);
+        when(request.getSysReadTimeout()).thenReturn(120);
+        Map<String, String> headers = new HashMap<String, String>() {
+            {
+                put("header1", "value1");
+                put("Content-Type", "json");
+            }
+        };
+        when(request.getSysHeaders()).thenReturn(headers);
+        when(request.getHeaderValue("header1")).thenReturn("value1");
+        when(request.getHeaderValue("Content-Type")).thenReturn("json");
+        HttpURLConnection connection = client.buildHttpConnection(request);
+        Assert.assertEquals("value1", connection.getRequestProperty("header1"));
+        Assert.assertEquals("json", connection.getRequestProperty("Content-Type"));
     }
 }
