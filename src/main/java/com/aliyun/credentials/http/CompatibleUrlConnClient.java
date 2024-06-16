@@ -102,6 +102,10 @@ public class CompatibleUrlConnClient implements Closeable {
             httpConn.setUseCaches(false);
             setConnectionTimeout(httpConn, request);
             httpConn.setRequestProperty(ACCEPT_ENCODING, "identity");
+            Map<String, String> mappedHeaders = request.getSysHeaders();
+            for (Entry<String, String> entry : mappedHeaders.entrySet()) {
+                httpConn.setRequestProperty(entry.getKey(), entry.getValue());
+            }
             if (request.getHttpContent() != null) {
                 httpConn.setRequestProperty(CONTENT_TYPE, request.getSysHeaders().get(CONTENT_TYPE));
             }
