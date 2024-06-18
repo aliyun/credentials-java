@@ -4,7 +4,6 @@ English | [简体中文](./README-CN.md)
 
 # Alibaba Cloud Credentials for Java
 [![Java CI](https://github.com/aliyun/credentials-java/actions/workflows/ci.yml/badge.svg)](https://github.com/aliyun/credentials-java/actions/workflows/ci.yml)
-[![Appveyor Build Status](https://ci.appveyor.com/api/projects/status/6jxpwmhyfipagtge/branch/master?svg=true)](https://ci.appveyor.com/project/aliyun/credentials-java)
 [![codecov](https://codecov.io/gh/aliyun/credentials-java/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/credentials-java)
 [![Latest Stable Version](https://img.shields.io/maven-central/v/com.aliyun/credentials-java.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.aliyun%22%20AND%20a:%22credentials-java%22)
 
@@ -275,7 +274,6 @@ oidc_provider_arn = oidc_provider_arn # can be replaced by setting environment v
 oidc_token_file_path = /xxx/xxx    # can be replaced by setting environment variable: ALIBABA_CLOUD_OIDC_TOKEN_FILE              
 role_session_name = session_name   # optional
 ```
-
 
 ## Issues
 [Opening an Issue](https://github.com/aliyun/credentials-java/issues/new), Issues not conforming to the guidelines may be closed immediately.
