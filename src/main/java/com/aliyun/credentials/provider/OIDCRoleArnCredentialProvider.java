@@ -91,14 +91,16 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         } else if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN"))) {
             this.oidcProviderArn = System.getenv("ALIBABA_CLOUD_OIDC_PROVIDER_ARN");
         } else {
-            throw new CredentialException("OIDCProviderArn does not exist and env ALIBABA_CLOUD_OIDC_PROVIDER_ARN is null.");
+            throw new CredentialException(
+                    "OIDCProviderArn does not exist and env ALIBABA_CLOUD_OIDC_PROVIDER_ARN is null.");
         }
         if (!StringUtils.isEmpty(oidcTokenFilePath)) {
             this.oidcTokenFilePath = oidcTokenFilePath;
         } else if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE"))) {
             this.oidcTokenFilePath = System.getenv("ALIBABA_CLOUD_OIDC_TOKEN_FILE");
         } else {
-            throw new CredentialException("OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
+            throw new CredentialException(
+                    "OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
         }
         if (!StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME"))) {
             this.roleSessionName = System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME");
@@ -107,15 +109,15 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
     @Deprecated
     public OIDCRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleSessionName,
-                                         String roleArn, String oidcProviderArn, String oidcTokenFilePath,
-                                         String regionId, String policy) {
+            String roleArn, String oidcProviderArn, String oidcTokenFilePath,
+            String regionId, String policy) {
         this(roleSessionName, roleArn, oidcProviderArn, oidcTokenFilePath, regionId, policy);
     }
 
     @Deprecated
     public OIDCRoleArnCredentialProvider(String roleSessionName, String roleArn,
-                                         String oidcProviderArn, String oidcTokenFilePath,
-                                         String regionId, String policy) {
+            String oidcProviderArn, String oidcTokenFilePath,
+            String regionId, String policy) {
         this(roleArn, oidcProviderArn, oidcTokenFilePath);
         this.roleSessionName = roleSessionName;
         this.regionId = regionId;
@@ -126,9 +128,12 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         super(builder);
         this.roleSessionName = builder.roleSessionName;
         this.durationSeconds = builder.durationSeconds;
-        this.roleArn = Validate.notNull(builder.roleArn, "RoleArn or environment variable ALIBABA_CLOUD_ROLE_ARN cannot be null.");
-        this.oidcProviderArn = Validate.notNull(builder.oidcProviderArn, "OIDCProviderArn or environment variable ALIBABA_CLOUD_OIDC_PROVIDER_ARN cannot be null.");
-        this.oidcTokenFilePath = Validate.notNull(builder.oidcTokenFilePath, "OIDCTokenFilePath or environment variable ALIBABA_CLOUD_OIDC_TOKEN_FILE cannot be null.");
+        this.roleArn = Validate.notNull(builder.roleArn,
+                "RoleArn or environment variable ALIBABA_CLOUD_ROLE_ARN cannot be null.");
+        this.oidcProviderArn = Validate.notNull(builder.oidcProviderArn,
+                "OIDCProviderArn or environment variable ALIBABA_CLOUD_OIDC_PROVIDER_ARN cannot be null.");
+        this.oidcTokenFilePath = Validate.notNull(builder.oidcTokenFilePath,
+                "OIDCTokenFilePath or environment variable ALIBABA_CLOUD_OIDC_TOKEN_FILE cannot be null.");
         this.regionId = builder.regionId;
         this.policy = builder.policy;
         this.connectTimeout = builder.connectionTimeout;
@@ -150,15 +155,15 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new CredentialException(e.getMessage(), e);
         } finally {
             client.close();
         }
-        return null;
     }
 
     @SuppressWarnings("unchecked")
-    public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
+    public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client)
+            throws UnsupportedEncodingException {
         this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
@@ -316,8 +321,8 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     private static final class BuilderImpl
             extends SessionCredentialsProvider.BuilderImpl<OIDCRoleArnCredentialProvider, Builder>
             implements Builder {
-        private String roleSessionName = StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME")) ?
-                "defaultSessionName"
+        private String roleSessionName = StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME"))
+                ? "defaultSessionName"
                 : System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME");
         private int durationSeconds = 3600;
         private String roleArn = System.getenv("ALIBABA_CLOUD_ROLE_ARN");

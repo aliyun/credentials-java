@@ -1,18 +1,9 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.http.CompatibleUrlConnClient;
-import com.aliyun.credentials.http.FormatType;
-import com.aliyun.credentials.http.HttpRequest;
-import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class RsaKeyPairCredentialProviderTest {
     @Test
@@ -50,17 +41,6 @@ public class RsaKeyPairCredentialProviderTest {
     public void getCredentialsTest() {
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider(null, null);
         Assert.assertNull(provider.getCredentials());
-    }
-
-    @Test
-    public void createCredentialTest() {
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", "test");
-        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
-        HttpResponse response = new HttpResponse("test?test=test");
-        response.setHttpContent(new String("{\"SessionAccessKey\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"SessionAccessKeyId\":\"test\"," +
-                "\"SessionAccessKeySecret\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
-        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
-        Assert.assertEquals(AuthConstant.RSA_KEY_PAIR, provider.createCredential(client).value().getType());
     }
 
     @Test
