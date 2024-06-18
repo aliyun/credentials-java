@@ -1,3 +1,8 @@
+2024-06-18 Version: 0.3.2
+1.fix: transfer all request headers into connection property.
+2.test: improve test coverage.
+3.refactor: deprecate getAccessKeyId/getAccessKeySecret/getSecurityToken/getType/getBearerToken.
+
 2024-05-24 Version: 0.3.1
 1.feat: support IMDSv2 for ecs ram role.
 2.feat: support env ALIBABA_CLOUD_ECS_IMDSV2_ENABLE.
