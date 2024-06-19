@@ -9,11 +9,28 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 
 public class CompatibleUrlConnClient implements Closeable {
 
     protected static final String ACCEPT_ENCODING = "Accept-Encoding";
     protected static final String CONTENT_TYPE = "Content-Type";
+    protected static final String USER_AGENT = "User-Agent";
+    private static final String DEFAULT_USER_AGENT;
+
+    static {
+        Properties sysProps = System.getProperties();
+        String version = "";
+        Properties props = new Properties();
+        try {
+            props.load(CompatibleUrlConnClient.class.getClassLoader().getResourceAsStream("version.properties"));
+            version = props.getProperty("sdk.credentials.version");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        DEFAULT_USER_AGENT = String.format("AlibabaCloud (%s; %s) Java/%s Credentials/%s TeaDSL/1", sysProps.getProperty("os.name"), sysProps
+                .getProperty("os.arch"), sysProps.getProperty("java.runtime.version"), version);
+    }
 
     public CompatibleUrlConnClient() {
 
@@ -102,6 +119,7 @@ public class CompatibleUrlConnClient implements Closeable {
             httpConn.setUseCaches(false);
             setConnectionTimeout(httpConn, request);
             httpConn.setRequestProperty(ACCEPT_ENCODING, "identity");
+            httpConn.setRequestProperty(USER_AGENT, DEFAULT_USER_AGENT);
             Map<String, String> mappedHeaders = request.getSysHeaders();
             for (Entry<String, String> entry : mappedHeaders.entrySet()) {
                 httpConn.setRequestProperty(entry.getKey(), entry.getValue());

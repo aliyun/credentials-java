@@ -10,6 +10,8 @@ import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CompatibleUrlConnClientTest {
     @Test
@@ -66,5 +68,8 @@ public class CompatibleUrlConnClientTest {
         HttpURLConnection connection = client.buildHttpConnection(request);
         Assert.assertEquals("value1", connection.getRequestProperty("header1"));
         Assert.assertEquals("json", connection.getRequestProperty("Content-Type"));
+        Pattern pattern = Pattern.compile("AlibabaCloud (.+; .+) Java/.+ Credentials/.+ TeaDSL/1");
+        Matcher matcher = pattern.matcher(connection.getRequestProperty("User-Agent"));
+        Assert.assertTrue(matcher.find());
     }
 }
