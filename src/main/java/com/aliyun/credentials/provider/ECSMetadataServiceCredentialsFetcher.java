@@ -28,7 +28,7 @@ public class ECSMetadataServiceCredentialsFetcher {
     private int connectionTimeout = 1000;
     private int readTimeout = 1000;
     private String metadataToken;
-    private final boolean enableIMDSv2;
+    private final boolean disableIMDSv1;
     private int metadataTokenDuration;
     private volatile long staleTime;
 
@@ -46,19 +46,19 @@ public class ECSMetadataServiceCredentialsFetcher {
         if (readTimeout > 1000) {
             this.readTimeout = readTimeout;
         }
-        this.enableIMDSv2 = false;
+        this.disableIMDSv1 = false;
         this.roleName = roleName;
         setCredentialUrl();
     }
 
-    public ECSMetadataServiceCredentialsFetcher(String roleName, boolean enableIMDSv2, int metadataTokenDuration, int connectionTimeout, int readTimeout) {
+    public ECSMetadataServiceCredentialsFetcher(String roleName, boolean disableIMDSv1, int metadataTokenDuration, int connectionTimeout, int readTimeout) {
         if (connectionTimeout > 1000) {
             this.connectionTimeout = connectionTimeout;
         }
         if (readTimeout > 1000) {
             this.readTimeout = readTimeout;
         }
-        this.enableIMDSv2 = enableIMDSv2;
+        this.disableIMDSv1 = disableIMDSv1;
         this.metadataTokenDuration = metadataTokenDuration;
         this.roleName = roleName;
         setCredentialUrl();
@@ -66,7 +66,7 @@ public class ECSMetadataServiceCredentialsFetcher {
 
     public ECSMetadataServiceCredentialsFetcher(String roleName) {
         this.roleName = roleName;
-        this.enableIMDSv2 = false;
+        this.disableIMDSv1 = false;
         setCredentialUrl();
     }
 
@@ -89,8 +89,8 @@ public class ECSMetadataServiceCredentialsFetcher {
         request.setSysConnectTimeout(connectionTimeout);
         request.setSysReadTimeout(readTimeout);
         HttpResponse response;
-        if (this.enableIMDSv2) {
-            refreshMetadataToken(client);
+        this.metadataToken = refreshMetadataToken(client);
+        if (this.metadataToken != null) {
             request.putHeaderParameter("X-aliyun-ecs-metadata-token", this.metadataToken);
         }
 
@@ -150,51 +150,54 @@ public class ECSMetadataServiceCredentialsFetcher {
         return readTimeout;
     }
 
-    public boolean getEnableIMDSv2() {
-        return enableIMDSv2;
+    public boolean getDisableIMDSv1() {
+        return disableIMDSv1;
     }
 
     public int getMetadataTokenDuration() {
         return metadataTokenDuration;
     }
 
-    private void refreshMetadataToken(CompatibleUrlConnClient client) {
+    private String refreshMetadataToken(CompatibleUrlConnClient client) {
         try {
             if (refreshLock.tryLock(REFRESH_BLOCKING_MAX_WAIT, TimeUnit.MILLISECONDS)) {
-                try {
-                    if (needToRefresh()) {
-                        HttpRequest request = new HttpRequest("http://" + metadataServiceHost + URL_IN_METADATA_TOKEN);
-                        request.setSysMethod(MethodType.PUT);
-                        request.setSysConnectTimeout(connectionTimeout);
-                        request.setSysReadTimeout(readTimeout);
-                        HttpResponse response;
-                        request.putHeaderParameter("X-aliyun-ecs-metadata-token-ttl-seconds", String.valueOf(this.metadataTokenDuration));
-                        long tmpTime = this.staleTime;
-                        this.staleTime = new Date().getTime() + this.metadataTokenDuration * 1000L - REFRESH_BLOCKING_MAX_WAIT * 2;
-
-                        try {
-                            response = client.syncInvoke(request);
-                        } catch (Exception e) {
-                            this.staleTime = tmpTime;
-                            throw new CredentialException("Failed to connect ECS Metadata Service: " + e);
-                        }
-
-                        if (response.getResponseCode() != 200) {
-                            this.staleTime = tmpTime;
-                            throw new CredentialException("Failed to get token from ECS Metadata Service. HttpCode=" + response.getResponseCode());
-                        }
-
-                        this.metadataToken = new String(response.getHttpContent());
+                if (needToRefresh()) {
+                    HttpRequest request = new HttpRequest("http://" + metadataServiceHost + URL_IN_METADATA_TOKEN);
+                    request.setSysMethod(MethodType.PUT);
+                    request.setSysConnectTimeout(connectionTimeout);
+                    request.setSysReadTimeout(readTimeout);
+                    request.putHeaderParameter("X-aliyun-ecs-metadata-token-ttl-seconds", String.valueOf(this.metadataTokenDuration));
+                    HttpResponse response;
+                    long tmpTime = this.staleTime;
+                    this.staleTime = new Date().getTime() + this.metadataTokenDuration * 1000L - REFRESH_BLOCKING_MAX_WAIT * 2;
+                    try {
+                        response = client.syncInvoke(request);
+                    } catch (Exception e) {
+                        this.staleTime = tmpTime;
+                        throw new CredentialException("Failed to connect ECS Metadata Service: " + e);
                     }
-                } finally {
-                    refreshLock.unlock();
+                    if (response.getResponseCode() != 200) {
+                        this.staleTime = tmpTime;
+                        throw new CredentialException("Failed to get token from ECS Metadata Service. HttpCode=" + response.getResponseCode() + ", ResponseMessage=" + response.getHttpContentString());
+                    }
+                    return new String(response.getHttpContent());
                 }
             }
         } catch (InterruptedException ex) {
             throw new IllegalStateException("Interrupted waiting to refresh the metadata token.", ex);
         } catch (Exception ex) {
-            throw ex;
+            return throwErrorOrReturn(ex);
+        } finally {
+            refreshLock.unlock();
         }
+        return this.metadataToken;
+    }
+
+    private String throwErrorOrReturn(Exception e) {
+        if (getDisableIMDSv1()) {
+            throw new CredentialException("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: " + e.getMessage());
+        }
+        return null;
     }
 
     private boolean needToRefresh() {

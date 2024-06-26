@@ -61,7 +61,7 @@ public class Client {
                 case AuthConstant.ECS_RAM_ROLE:
                     return EcsRamRoleCredentialProvider.builder()
                             .roleName(config.roleName)
-                            .enableIMDSv2(config.enableIMDSv2)
+                            .disableIMDSv1(config.disableIMDSv1)
                             .metadataTokenDuration(config.metadataTokenDuration)
                             .connectionTimeout(config.connectTimeout)
                             .readTimeout(config.timeout)
