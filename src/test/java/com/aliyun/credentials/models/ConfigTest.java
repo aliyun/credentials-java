@@ -26,6 +26,7 @@ public class ConfigTest {
         map.put("publicKeyId", "test");
         map.put("roleName", "test");
         map.put("enableIMDSv2", true);
+        map.put("disableIMDSv1", true);
         map.put("metadataTokenDuration", 180);
         map.put("bearerToken", "test");
         map.put("securityToken", "test");
@@ -75,6 +76,7 @@ public class ConfigTest {
                 .setPublicKeyId("test")
                 .setRoleName("test")
                 .setEnableIMDSv2(true)
+                .setDisableIMDSv1(true)
                 .setMetadataTokenDuration(180)
                 .setBearerToken("test")
                 .setSecurityToken("test")
@@ -97,6 +99,8 @@ public class ConfigTest {
         Assert.assertEquals("test", config.getPublicKeyId());
         Assert.assertEquals("test", config.getRoleName());
         Assert.assertEquals(true, config.getEnableIMDSv2());
+        Assert.assertEquals(true, config.getDisableIMDSv1());
+        Assert.assertEquals(180, (int)config.getMetadataTokenDuration());
         Assert.assertEquals(180, (int) config.getMetadataTokenDuration());
         Assert.assertEquals("test", config.getSecurityToken());
         Assert.assertEquals("test", config.getHost());

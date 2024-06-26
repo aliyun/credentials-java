@@ -21,8 +21,10 @@ public class Config extends TeaModel {
     public String publicKeyId;
     @NameInMap("roleName")
     public String roleName;
+    @NameInMap("disableIMDSv1")
+    public Boolean disableIMDSv1 = false;
     @NameInMap("enableIMDSv2")
-    public Boolean enableIMDSv2 = false;
+    public Boolean enableIMDSv2;
     @NameInMap("metadataTokenDuration")
     public Integer metadataTokenDuration = 21600;
     @NameInMap("bearerToken")
@@ -161,6 +163,15 @@ public class Config extends TeaModel {
 
     public String getRoleName() {
         return this.roleName;
+    }
+
+    public Config setDisableIMDSv1(Boolean disableIMDSv1) {
+        this.disableIMDSv1 = disableIMDSv1;
+        return this;
+    }
+
+    public Boolean getDisableIMDSv1() {
+        return this.disableIMDSv1;
     }
 
 
