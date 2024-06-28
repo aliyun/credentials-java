@@ -109,7 +109,7 @@ public class RefreshCachedSupplier<T> implements AutoCloseable {
     }
 
     private boolean cacheIsStale() {
-        return new Date().getTime() >= cachedValue.staleTime();
+        return this.cachedValue == null || new Date().getTime() >= this.cachedValue.staleTime();
     }
 
     public static final class Builder<T> {
