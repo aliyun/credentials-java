@@ -51,7 +51,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(roleName,
-                builder.enableIMDSv2,
+                builder.disableIMDSv1,
                 builder.metadataTokenDuration,
                 builder.connectionTimeout,
                 builder.readTimeout);
@@ -78,6 +78,8 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
     public interface Builder extends SessionCredentialsProvider.Builder<EcsRamRoleCredentialProvider, Builder> {
         Builder roleName(String roleName);
 
+        Builder disableIMDSv1(boolean disableIMDSv1);
+
         Builder enableIMDSv2(boolean enableIMDSv2);
 
         Builder metadataTokenDuration(int metadataTokenDuration);
@@ -94,6 +96,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             extends SessionCredentialsProvider.BuilderImpl<EcsRamRoleCredentialProvider, Builder>
             implements Builder {
         private String roleName;
+        private boolean disableIMDSv1 = AuthUtils.getDisableECSIMDSv1();
         private boolean enableIMDSv2 = AuthUtils.getEnableECSIMDSv2();
         private int metadataTokenDuration = 21600;
         private int connectionTimeout = 1000;
@@ -101,6 +104,11 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
 
         public Builder roleName(String roleName) {
             this.roleName = roleName;
+            return this;
+        }
+
+        public Builder disableIMDSv1(boolean disableIMDSv1) {
+            this.disableIMDSv1 = disableIMDSv1;
             return this;
         }
 

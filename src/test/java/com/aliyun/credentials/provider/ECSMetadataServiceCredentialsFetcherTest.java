@@ -26,28 +26,28 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         Assert.assertEquals("test", fetcher.getRoleName());
         Assert.assertEquals(1000, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
-        Assert.assertFalse(fetcher.getEnableIMDSv2());
+        Assert.assertFalse(fetcher.getDisableIMDSv1());
         Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 1200, 800);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1000, fetcher.getReadTimeout());
         Assert.assertEquals(1200, fetcher.getConnectionTimeout());
-        Assert.assertFalse(fetcher.getEnableIMDSv2());
+        Assert.assertFalse(fetcher.getDisableIMDSv1());
         Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
-        Assert.assertFalse(fetcher.getEnableIMDSv2());
+        Assert.assertFalse(fetcher.getDisableIMDSv1());
         Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 180, 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
-        Assert.assertTrue(fetcher.getEnableIMDSv2());
+        Assert.assertTrue(fetcher.getDisableIMDSv1());
         Assert.assertEquals(180, fetcher.getMetadataTokenDuration());
     }
 
@@ -99,7 +99,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
                     e.getMessage());
         }
 
-        fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test", true, 180, 900, 1200));
+        fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test", false, 180, 900, 1200));
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenThrow(new RuntimeException("test"));
         try {
             fetcher.fetch(client);
@@ -108,15 +108,26 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
                     e.getMessage());
         }
-        response = new HttpResponse("test");
-        response.setResponseCode(500);
-        client = mock(CompatibleUrlConnClient.class);
-        when(client.syncInvoke(any(HttpRequest.class))).thenReturn(response);
+
+        fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test", true, 180, 900, 1200));
         try {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get token from ECS Metadata Service. HttpCode=500",
+            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
+                    e.getMessage());
+        }
+
+        response = new HttpResponse("test");
+        response.setHttpContent("no token".getBytes(), "UTF-8", FormatType.PLAIN);
+        response.setResponseCode(500);
+        client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            fetcher.fetch(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to get token from ECS Metadata Service. HttpCode=500, ResponseMessage=no token",
                     e.getMessage());
         }
 
