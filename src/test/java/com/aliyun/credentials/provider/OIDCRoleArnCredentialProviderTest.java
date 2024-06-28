@@ -128,7 +128,14 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertTrue(provider.getOIDCTokenFilePath().contains("OIDCToken.txt"));
         Assert.assertNull(provider.getOIDCToken());
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getCause().getLocalizedMessage();
+            Assert.assertTrue(message.contains("Parameter OIDCProviderArn is not valid"));
+            Assert.assertTrue(message.contains("AuthenticationFail.NoPermission"));
+        }
         Assert.assertEquals("OIDCToken", provider.getOIDCToken());
     }
 
