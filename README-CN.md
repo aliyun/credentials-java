@@ -157,27 +157,6 @@ public class DemoTest {
 }
 ```
 
-#### RsaKeyPair
-通过指定公钥Id和私钥文件，让凭证自动申请维护 AccessKey。仅支持日本站。
-
-```java
-import com.aliyun.credentials.Client;
-import com.aliyun.credentials.models.Config;
-
-public class DemoTest {
-    public static void main(String[] args) throws Exception {
-        Config config = new Config();
-        // 凭证类型
-        config.setType("rsa_key_pair");
-        // PrivateKey文件路径
-        config.setPrivateKeyFile("PrivateKeyFile");
-        // 账户PublicKeyId
-        config.setPublicKeyId("PublicKeyId");
-        Client client = new Client(config);
-    }
-}
-```
-
 #### URLCredential
 通过指定提供凭证的自定义网络服务地址，让凭证自动申请维护 STS Token
 
@@ -256,11 +235,6 @@ role_arn = role_arn                # 可通过设置环境变量 ALIBABA_CLOUD_R
 role_session_name = session_name   # 选填
 
 [client3]                          # 命名为 `client3` 的配置
-type = rsa_key_pair                # 认证方式为 rsa_key_pair
-public_key_id = publicKeyId        # Public Key ID
-private_key_file = /your/pk.pem    # Private Key 文件
-
-[client4]                          # 命名为 `client4` 的配置
 enable = false                     # 不启用
 type = oidc_role_arn               # 认证方式为 oidc_role_arn
 region_id = cn-test                # 获取session用的region

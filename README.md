@@ -162,27 +162,6 @@ public class DemoTest {
 }
 ```
 
-#### RsaKeyPair
-By specifying the public key Id and the private key file, the credential will be able to automatically request maintenance of the AccessKey before sending the request. Only Japan station is supported. 
-
-```java
-import com.aliyun.credentials.Client;
-import com.aliyun.credentials.models.Config;
-
-public class DemoTest {
-    public static void main(String[] args) throws Exception {
-        Config config = new Config();
-        // Which type of credential you want
-        config.setType("rsa_key_pair");
-        // The file path to store the PrivateKey
-        config.setPrivateKeyFile("PrivateKeyFile");
-        // PublicKeyId of your account
-        config.setPublicKeyId("PublicKeyId");
-        Client client = new Client(config);
-    }
-}
-```
-
 #### URLCredential
 By specifying the url, the credential will be able to automatically request maintenance of STS Token.
 
@@ -260,11 +239,6 @@ role_arn = role_arn                # can be replaced by setting environment vari
 role_session_name = session_name   # optional
 
 [client3]                          # configuration that is named as `client3`
-type = rsa_key_pair                # Certification type: rsa_key_pair
-public_key_id = publicKeyId        # Public Key ID
-private_key_file = /your/pk.pem    # Private Key file
-
-[client4]                          # configuration that is named as `client4`
 enable = false                     # Disable
 type = oidc_role_arn               # Certification type: oidc_role_arn
 region_id = cn-test                 
