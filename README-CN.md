@@ -1,8 +1,9 @@
 [English](./README.md) | 简体中文
 
-![](https://aliyunsdk-pages.alicdn.com/icons/AlibabaCloud.svg)
+![Alibaba Cloud Logo](https://aliyunsdk-pages.alicdn.com/icons/AlibabaCloud.svg)
 
 # Alibaba Cloud Credentials for Java
+
 [![Travis Build Status](https://travis-ci.org/aliyun/credentials-java.svg?branch=master)](https://travis-ci.org/aliyun/credentials-php)
 [![codecov](https://codecov.io/gh/aliyun/credentials-java/branch/master/graph/badge.svg)](https://codecov.io/gh/aliyun/credentials-java)
 [![Latest Stable Version](https://img.shields.io/maven-central/v/com.aliyun/credentials-java.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.aliyun%22%20AND%20a:%22credentials-java%22)
@@ -12,9 +13,11 @@ Alibaba Cloud Credentials for Java 是帮助 Java 开发者管理凭据的工具
 本文将介绍如何获取和使用 Credentials for Java。
 
 ## 环境要求
-1.  Alibaba Cloud Credentials for Java 需要1.8以上的JDK。
+
+1. Alibaba Cloud Credentials for Java 需要1.8以上的JDK。
 
 ## 安装
+
 ```xml
 <dependency>
     <groupId>com.aliyun</groupId>
@@ -23,12 +26,14 @@ Alibaba Cloud Credentials for Java 是帮助 Java 开发者管理凭据的工具
 </dependency>
 ```
 
-##快速使用
+## 快速使用
+
 在您开始之前，您需要注册阿里云帐户并获取您的[凭证](https://usercenter.console.aliyun.com/#/manage/ak)。
 
 ### 凭证类型
 
 #### AccessKey
+
 通过[用户信息管理][ak]设置 access_key，它们具有该账户完全的权限，请妥善保管。有时出于安全考虑，您不能把具有完全访问权限的主账户 AccessKey 交于一个项目的开发者使用，您可以[创建RAM子账户][ram]并为子账户[授权][permissions]，使用RAM子用户的 AccessKey 来进行API调用。
 
 ```java
@@ -50,6 +55,7 @@ public class DemoTest {
 ```
 
 #### STS
+
 通过安全令牌服务（Security Token Service，简称 STS），申请临时安全凭证（Temporary Security Credentials，简称 TSC），创建临时安全凭证。
 
 ```java
@@ -73,6 +79,7 @@ public class DemoTest {
 ```
 
 #### RamRoleArn
+
 通过指定[RAM角色][RAM Role]，让凭证自动申请维护 STS Token。你可以通过为 `Policy` 赋值来限制获取到的 STS Token 的权限。
 
 ```java
@@ -103,6 +110,7 @@ public class DemoTest {
 ```
 
 #### OIDCRoleArn
+
 通过指定[OIDC 角色][OIDC Role]，让凭证自动申请维护 STS Token。你可以通过为 `Policy` 赋值来限制获取到的 STS Token 的权限。
 
 ```java
@@ -137,6 +145,7 @@ public class DemoTest {
 ```
 
 #### EcsRamRole
+
 通过指定角色名称，让凭证自动申请维护 STS Token
 
 ```java
@@ -158,6 +167,7 @@ public class DemoTest {
 ```
 
 #### URLCredential
+
 通过指定提供凭证的自定义网络服务地址，让凭证自动申请维护 STS Token
 
 ```java
@@ -177,6 +187,7 @@ public class DemoTest {
 ```
 
 #### Bearer Token
+
 如呼叫中心(CCC)需用此凭证，请自行申请维护 Bearer Token。
 
 ```java
@@ -196,6 +207,7 @@ public class DemoTest {
 ```
 
 ### 使用默认凭证提供链
+
 如果你调用 `Client client = new Client()` 时， 将通过凭证提供链来为你获取凭证。
 
 默认凭证提供程序链查找可用的凭证，寻找顺序如下：
@@ -211,7 +223,7 @@ public class DemoTest {
 3.配置文件
 
 如果用户主目录存在默认文件 `~/.alibabacloud/credentials （Windows 为 C:\Users\USER_NAME\.alibabacloud\credentials）`，程序会自动创建指定类型和名称的凭证。默认文件可以不存在，但解析错误会抛出异常。配置名小写。不同的项目、工具之间可以共用这个配置文件，因为不在项目之内，也不会被意外提交到版本控制。
-可以通过定义 `ALIBABA_CLOUD_CREDENTIALS_FILE` 环境变量修改默认文件的路径。不配置则使用默认配置 `default`，也可以设置环境变量 `ALIBABA_CLOUD_PROFILE` 使用配置。 
+可以通过定义 `ALIBABA_CLOUD_CREDENTIALS_FILE` 环境变量修改默认文件的路径。不配置则使用默认配置 `default`，也可以设置环境变量 `ALIBABA_CLOUD_PROFILE` 使用配置。
 
 ```ini
 [default]                          # 默认配置
@@ -246,20 +258,31 @@ role_session_name = session_name   # 选填
 ```
 
 ## 问题
+
 [提交 Issue](https://github.com/aliyun/credentials-java/issues/new)，不符合指南的问题可能会立即关闭。
 
 ## 发行说明
+
 每个版本的详细更改记录在[发行说明](./ChangeLog.txt)中。
 
 ## 贡献
+
 提交 Pull Request 之前请阅读[贡献指南](./.github/PULL_REQUEST_TEMPLATE.md)。
 
 ## 相关
+
 * [阿里云服务 Regions & Endpoints](https://developer.aliyun.com/endpoints)
 * [OpenAPI 开发者门户](https://next.api.aliyun.com/)
 * [最新源码](https://github.com/aliyun/aliyun-openapi-java-sdk)
 
 ## 许可证
+
 [Apache-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
 Copyright 2009-present Alibaba Cloud All rights reserved.
+
+[ak]: https://usercenter.console.aliyun.com/#/manage/ak
+[ram]: https://ram.console.aliyun.com/users
+[permissions]: https://ram.console.aliyun.com/permissions
+[RAM Role]: https://ram.console.aliyun.com/#/role/list
+[OIDC Role]: https://help.aliyun.com/zh/ram/user-guide/role-based-sso-by-using-oidc
