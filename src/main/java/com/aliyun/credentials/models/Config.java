@@ -32,9 +32,9 @@ public class Config extends TeaModel {
     @NameInMap("host")
     public String host;
     @NameInMap("readTimeout")
-    public int timeout = 1000;
+    public int timeout = 10000;
     @NameInMap("connectTimeout")
-    public int connectTimeout = 1000;
+    public int connectTimeout = 5000;
     @NameInMap("proxy")
     public String proxy;
     @NameInMap("policy")
@@ -181,6 +181,7 @@ public class Config extends TeaModel {
     public Integer getMetadataTokenDuration() {
         return this.metadataTokenDuration;
     }
+
     public Config setCredentialsUri(String credentialsURI) {
         this.credentialsURI = credentialsURI;
         return this;
@@ -217,48 +218,54 @@ public class Config extends TeaModel {
         return this.externalId;
     }
 
-    public void setHost(String host) {
+    public Config setHost(String host) {
         this.host = host;
+        return this;
     }
 
     public String getHost() {
         return host;
     }
 
-    public void setTimeout(int timeout) {
+    public Config setTimeout(int timeout) {
         this.timeout = timeout;
+        return this;
     }
 
     public int getTimeout() {
         return timeout;
     }
 
-    public void setConnectTimeout(int connectTimeout) {
+    public Config setConnectTimeout(int connectTimeout) {
         this.connectTimeout = connectTimeout;
+        return this;
     }
 
     public int getConnectTimeout() {
         return connectTimeout;
     }
 
-    public void setProxy(String proxy) {
+    public Config setProxy(String proxy) {
         this.proxy = proxy;
+        return this;
     }
 
     public String getProxy() {
         return proxy;
     }
 
-    public void setOidcProviderArn(String oidcProviderArn) {
+    public Config setOidcProviderArn(String oidcProviderArn) {
         this.oidcProviderArn = oidcProviderArn;
+        return this;
     }
 
     public String getOidcProviderArn() {
         return oidcProviderArn;
     }
 
-    public void setOidcTokenFilePath(String oidcTokenFilePath) {
+    public Config setOidcTokenFilePath(String oidcTokenFilePath) {
         this.oidcTokenFilePath = oidcTokenFilePath;
+        return this;
     }
 
     public String getOidcTokenFilePath() {
