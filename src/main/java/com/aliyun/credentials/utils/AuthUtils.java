@@ -11,6 +11,7 @@ public class AuthUtils {
     private static volatile String environmentSecurityToken;
     private static volatile String environmentECSMetaData;
     private static volatile Boolean enableECSIMDSv2;
+    private static volatile Boolean disableECSIMDSv1;
     private static volatile String environmentCredentialsFile;
     private static volatile String environmentRoleArn;
     private static volatile String environmentOIDCProviderArn;
@@ -136,6 +137,19 @@ public class AuthUtils {
             return AuthUtils.enableECSIMDSv2;
         } else if (null != System.getenv("ALIBABA_CLOUD_ECS_IMDSV2_ENABLE")) {
             return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_ECS_IMDSV2_ENABLE"));
+        }
+        return false;
+    }
+
+    public static void disableECSIMDSv1(boolean disableECSIMDSv1) {
+        AuthUtils.disableECSIMDSv1 = disableECSIMDSv1;
+    }
+
+    public static boolean getDisableECSIMDSv1() {
+        if (null != AuthUtils.disableECSIMDSv1) {
+            return AuthUtils.disableECSIMDSv1;
+        } else if (null != System.getenv("ALIBABA_CLOUD_IMDSV1_DISABLE")) {
+            return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_IMDSV1_DISABLE"));
         }
         return false;
     }

@@ -41,6 +41,10 @@ public class AuthUtilsTest {
         AuthUtils.enableECSIMDSv2(true);
         Assert.assertTrue(AuthUtils.getEnableECSIMDSv2());
 
+        Assert.assertFalse(AuthUtils.getDisableECSIMDSv1());
+        AuthUtils.disableECSIMDSv1(true);
+        Assert.assertTrue(AuthUtils.getDisableECSIMDSv1());
+
         Assert.assertNull(AuthUtils.getEnvironmentRoleArn());
         AuthUtils.setEnvironmentRoleArn("test");
         Assert.assertEquals("test", AuthUtils.getEnvironmentRoleArn());
