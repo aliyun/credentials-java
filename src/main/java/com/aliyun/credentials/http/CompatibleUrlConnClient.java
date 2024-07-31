@@ -104,14 +104,7 @@ public class CompatibleUrlConnClient implements Closeable {
 
     public HttpURLConnection initHttpConnection(URL url, HttpRequest request) {
         try {
-            HttpURLConnection httpConn;
-            if ("https".equalsIgnoreCase(url.getProtocol())) {
-                HttpsURLConnection httpsConn = (HttpsURLConnection) url.openConnection();
-                httpsConn.setHostnameVerifier(new TrueHostnameVerifier());
-                httpConn = httpsConn;
-            } else {
-                httpConn = (HttpURLConnection) url.openConnection();
-            }
+            HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
             httpConn.setRequestMethod(request.getSysMethod().toString());
             httpConn.setInstanceFollowRedirects(false);
             httpConn.setDoOutput(true);

@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <name>credentials-java</name>
-    <url>http://www.aliyun.com</url>
+    <url>https://www.aliyun.com</url>
     <description>Alibaba Cloud Credentials for Java
 
         Copyright (C) Alibaba Cloud Computing
@@ -18,7 +18,7 @@
 
         版权所有 （C）阿里云计算有限公司
 
-        http://www.aliyun.com
+        https://www.aliyun.com
     </description>
 
     <distributionManagement>
@@ -35,7 +35,7 @@
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
         </license>
     </licenses>
 
@@ -62,8 +62,7 @@
         <dependency>
             <groupId>com.aliyun</groupId>
             <artifactId>tea</artifactId>
-            <version>1.2.7</version>
-            <optional>true</optional>
+            <version>[1.1.14, 2.0.0)</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
