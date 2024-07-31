@@ -6,7 +6,7 @@
 
     <groupId>com.aliyun</groupId>
     <artifactId>credentials-java</artifactId>
-    <version>0.3.5</version>
+    <version>0.3.6</version>
     <packaging>jar</packaging>
 
     <name>credentials-java</name>
