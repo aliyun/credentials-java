@@ -61,7 +61,6 @@ public class HttpRequestTest {
             request.getHttpContentString();
             Assert.fail();
         } catch (CredentialException e) {
-            System.out.println(e.getMessage());
             Assert.assertEquals("Can not parse response due to unsupported encoding: hgbkjhkjh", e.getMessage());
         }
 
