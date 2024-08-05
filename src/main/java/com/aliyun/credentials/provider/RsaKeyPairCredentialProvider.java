@@ -1,6 +1,7 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.Configuration;
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
@@ -92,11 +93,10 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         try {
             return getNewSessionCredentials(client);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new CredentialException("Get new session credential failed.", e);
         } finally {
             client.close();
         }
-        return null;
     }
 
     @SuppressWarnings("unchecked")

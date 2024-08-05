@@ -49,7 +49,13 @@ public class RsaKeyPairCredentialProviderTest {
     @Test
     public void getCredentialsTest() {
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider(null, null);
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getMessage();
+            Assert.assertEquals("Get new session credential failed.", message);
+        }
     }
 
     @Test

@@ -94,7 +94,13 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertEquals("test", provider.getExternalId());
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getCause().getLocalizedMessage();
+            Assert.assertTrue(message.contains("InvalidAccessKeyId.NotFound"));
+        }
     }
 
     @Test
@@ -166,7 +172,13 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
         Assert.assertEquals("cn-hangzhou", provider.getRegionId());
         Assert.assertEquals("test", provider.getExternalId());
-        Assert.assertNull(provider.getCredentials());
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getCause().getLocalizedMessage();
+            Assert.assertTrue(message.contains("InvalidAccessKeyId.NotFound"));
+        }
     }
 
 }
