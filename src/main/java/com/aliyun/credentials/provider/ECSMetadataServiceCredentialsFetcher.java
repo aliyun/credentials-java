@@ -131,7 +131,6 @@ public class ECSMetadataServiceCredentialsFetcher {
         return RefreshResult.builder(credential)
                 .staleTime(expiration - 3 * 60 * 1000)
                 .build();
-
     }
 
     public URL getCredentialUrl() {

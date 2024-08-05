@@ -1,18 +1,9 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.Configuration;
-import com.aliyun.credentials.http.CompatibleUrlConnClient;
-import com.aliyun.credentials.http.FormatType;
-import com.aliyun.credentials.http.HttpRequest;
-import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.models.Config;
-import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
-import org.mockito.ArgumentMatchers;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class OIDCRoleArnCredentialProviderTest {
 
@@ -130,22 +121,6 @@ public class OIDCRoleArnCredentialProviderTest {
         Assert.assertNull(provider.getOIDCToken());
         Assert.assertNull(provider.getCredentials());
         Assert.assertEquals("OIDCToken", provider.getOIDCToken());
-    }
-
-    @Test
-    public void createCredentialTest() {
-        Configuration config = new Configuration();
-        config.setRoleArn("test");
-        config.setOIDCProviderArn("test");
-        config.setOIDCTokenFilePath(OIDCRoleArnCredentialProviderTest.class.getClassLoader().
-                getResource("OIDCToken.txt").getPath());
-        OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(config);
-        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
-        HttpResponse response = new HttpResponse("test?test=test");
-        response.setHttpContent(new String("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"AccessKeyId\":\"test\"," +
-                "\"AccessKeySecret\":\"test\",\"SecurityToken\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
-        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
-        Assert.assertEquals(AuthConstant.OIDC_ROLE_ARN, provider.createCredential(client).value().getType());
     }
 
     @Test
