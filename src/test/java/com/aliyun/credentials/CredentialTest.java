@@ -1,4 +1,5 @@
 package com.aliyun.credentials;
+
 import com.aliyun.credentials.provider.DefaultCredentialsProvider;
 import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
 import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
@@ -6,7 +7,6 @@ import com.aliyun.credentials.provider.RsaKeyPairCredentialProvider;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,14 +28,14 @@ public class CredentialTest {
 
     @Test
     public void getProviderTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Configuration config = new Configuration();
+        final Configuration config = new Configuration();
         config.setType(AuthConstant.ACCESS_KEY);
         config.setRoleName("test");
         config.setAccessKeySecret("test");
         config.setAccessKeyId("test");
-        Credential credential = new Credential(config);
+        final Credential credential = new Credential(config);
         Class<Credential> clazz = Credential.class;
-        Method getProvider = clazz.getDeclaredMethod("getProvider", Configuration.class);
+        final Method getProvider = clazz.getDeclaredMethod("getProvider", Configuration.class);
         getProvider.setAccessible(true);
         config.setType(AuthConstant.ECS_RAM_ROLE);
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof EcsRamRoleCredentialProvider);
@@ -46,20 +46,32 @@ public class CredentialTest {
         config.setType(null);
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
         config.setType("default");
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
+        try {
+            getProvider.invoke(credential, config);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Unsupported credentials provider type: default", e.getCause().getLocalizedMessage());
+        }
     }
 
     @Test
     public void getCredentialTest() {
-        Configuration config = new Configuration();
+        final Configuration config = new Configuration();
         config.setType(AuthConstant.STS);
         config.setAccessKeyId("test");
         config.setAccessKeySecret("test");
         config.setSecurityToken("test");
-        Credential credential = PowerMockito.spy(new Credential(config));
+        final Credential credential = new Credential(config);
         Assert.assertTrue(credential.getCredential(config) instanceof StsCredential);
         config.setType(AuthConstant.RSA_KEY_PAIR);
-        Assert.assertNull(credential.getCredential(config));
+        try {
+            credential.getCredential(config);
+            Assert.fail();
+        } catch (Exception e) {
+            String message = e.getCause().getLocalizedMessage();
+            Assert.assertTrue(message.startsWith("Get https://sts.aliyuncs.com/"));
+            Assert.assertTrue(message.endsWith("failed with code 400"));
+        }
     }
 }
 

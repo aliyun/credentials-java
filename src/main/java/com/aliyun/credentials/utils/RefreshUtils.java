@@ -1,6 +1,7 @@
 package com.aliyun.credentials.utils;
 
 import com.aliyun.credentials.AlibabaCloudCredentials;
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.provider.AlibabaCloudCredentialsProvider;
 
 import java.util.Date;
@@ -16,8 +17,7 @@ public class RefreshUtils {
         try {
             return provider.getCredentials();
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new CredentialException(e.getMessage(), e);
         }
     }
 }

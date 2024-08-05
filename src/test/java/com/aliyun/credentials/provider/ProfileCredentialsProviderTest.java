@@ -58,7 +58,6 @@ public class ProfileCredentialsProviderTest {
             Assert.assertEquals("The configured client type is empty", e.getCause().getLocalizedMessage());
         }
 
-
         client.put(AuthConstant.INI_TYPE, AuthConstant.INI_TYPE_RAM);
         try {
             createCredential.invoke(provider, client, factory);
@@ -193,7 +192,7 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("The configured public_key_id or private_key_file content is empty",
+            Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
 
@@ -270,7 +269,13 @@ public class ProfileCredentialsProviderTest {
         Mockito.when(rsaKeyPairCredentialProvider.getCredentials()).thenReturn(null);
         Mockito.when(factory.createCredentialsProvider(Mockito.any(RsaKeyPairCredentialProvider.class))).
                 thenReturn(rsaKeyPairCredentialProvider);
-        Assert.assertNull(createCredential.invoke(profileCredentialsProvider, client, factory));
+        try {
+            createCredential.invoke(profileCredentialsProvider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("rsa_key_pair (No such file or directory)", e.getCause().getLocalizedMessage());
+        }
+
         AuthUtils.setPrivateKey(null);
 
         client.clear();

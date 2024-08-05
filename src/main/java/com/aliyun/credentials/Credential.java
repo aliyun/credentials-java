@@ -1,7 +1,9 @@
 package com.aliyun.credentials;
 
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.StringUtils;
 
 @Deprecated
 public class Credential {
@@ -29,22 +31,22 @@ public class Credential {
     }
 
     private AlibabaCloudCredentialsProvider getProvider(Configuration config) {
-        try {
-            switch (config.getType()) {
-                case AuthConstant.ECS_RAM_ROLE:
-                    return new EcsRamRoleCredentialProvider(config);
-                case AuthConstant.RAM_ROLE_ARN:
-                    return new RamRoleArnCredentialProvider(config);
-                case AuthConstant.RSA_KEY_PAIR:
-                    return new RsaKeyPairCredentialProvider(config);
-                case AuthConstant.OIDC_ROLE_ARN:
-                    return new OIDCRoleArnCredentialProvider(config);
-                default:
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (StringUtils.isEmpty(config.getType())) {
+            return new DefaultCredentialsProvider();
         }
-        return new DefaultCredentialsProvider();
+
+        switch (config.getType()) {
+            case AuthConstant.ECS_RAM_ROLE:
+                return new EcsRamRoleCredentialProvider(config);
+            case AuthConstant.RAM_ROLE_ARN:
+                return new RamRoleArnCredentialProvider(config);
+            case AuthConstant.RSA_KEY_PAIR:
+                return new RsaKeyPairCredentialProvider(config);
+            case AuthConstant.OIDC_ROLE_ARN:
+                return new OIDCRoleArnCredentialProvider(config);
+            default:
+            throw new CredentialException(String.format("Unsupported credentials provider type: %s", config.getType()));
+        }
     }
 
     public String getAccessKeyId() {
