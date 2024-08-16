@@ -19,16 +19,38 @@ public class SystemPropertiesCredentialsProviderTest {
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYID, "accessKeyIdTest");
         Assert.assertNull(provider.getCredentials());
 
-        System.setProperty(AuthConstant.SYSTEM_ACCESSKEYSECRET, "accessKeyIdTest");
+        System.setProperty(AuthConstant.SYSTEM_ACCESSKEY_SECRET, "accessKeyIdTest");
         AlibabaCloudCredentials credential = provider.getCredentials();
         String accessKeyId = credential.getAccessKeyId();
         String accessKeySecret = credential.getAccessKeySecret();
         Assert.assertEquals("accessKeyIdTest", accessKeyId);
         Assert.assertEquals("accessKeyIdTest", accessKeySecret);
+        Assert.assertNull(credential.getSecurityToken());
+        Assert.assertEquals("access_key", credential.getType());
+
+        System.setProperty(AuthConstant.SYSTEM_ACCESSKEYSECRET, "accessKeySecretTest");
+        credential = provider.getCredentials();
+        accessKeyId = credential.getAccessKeyId();
+        accessKeySecret = credential.getAccessKeySecret();
+        Assert.assertEquals("accessKeyIdTest", accessKeyId);
+        Assert.assertEquals("accessKeySecretTest", accessKeySecret);
+        Assert.assertNull(credential.getSecurityToken());
+        Assert.assertEquals("access_key", credential.getType());
+
+        System.setProperty(AuthConstant.SYSTEM_SESSION_TOKEN, "sessionTokenTest");
+        credential = provider.getCredentials();
+        accessKeyId = credential.getAccessKeyId();
+        accessKeySecret = credential.getAccessKeySecret();
+        String sessionToken = credential.getSecurityToken();
+        Assert.assertEquals("accessKeyIdTest", accessKeyId);
+        Assert.assertEquals("accessKeySecretTest", accessKeySecret);
+        Assert.assertEquals("sessionTokenTest", sessionToken);
 
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYID, "");
         Assert.assertNull(provider.getCredentials());
 
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYSECRET, "");
+        System.setProperty(AuthConstant.SYSTEM_ACCESSKEY_SECRET, "");
+        System.setProperty(AuthConstant.SYSTEM_SESSION_TOKEN, "");
     }
 }

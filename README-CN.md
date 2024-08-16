@@ -102,6 +102,8 @@ public class DemoTest {
         config.setRoleSessionName("RoleSessionName");
         // 可选, 限制 STS Token 的权限
         config.setPolicy("policy");
+        // 可选, 角色外部 ID, 防止出现混淆代理人问题
+        config.setExternalId("externalId");
         // 可选, 限制 STS Token 的有效时间
         config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
@@ -135,8 +137,6 @@ public class DemoTest {
         config.setRoleSessionName("RoleSessionName");
         // 可选, 限制 STS Token 的权限
         config.setPolicy("policy");
-        // 可选, 角色外部 ID, 防止出现混淆代理人问题
-        config.setExternalId("externalId");
         // 可选, 限制 STS Token 的有效时间
         config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
@@ -214,7 +214,7 @@ public class DemoTest {
 
 1.系统属性
 
-在系统属性里寻找环境凭证，如果定义了 `alibabacloud.accessKeyId` 和 `alibabacloud.accessKeyIdSecret` 系统属性且不为空，程序将使用它们创建默认凭证。
+在系统属性里寻找环境凭证，如果定义了 `alibabacloud.accessKeyId` 和 `alibabacloud.accessKeySecret` 系统属性且不为空，程序将使用它们创建默认凭证。如果定义了 `alibabacloud.accessKeyId`、`alibabacloud.accessKeySecret` 和 `alibabacloud.sessionToken` 环境变量且不为空，则创建 STS 方式的临时凭证，注意：该 token 存在过期时间，推荐在临时环境中使用。
 
 2.环境凭证
 

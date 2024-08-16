@@ -19,10 +19,10 @@ public class EnvironmentVariableCredentialsProvider implements AlibabaCloudCrede
         if (accessKeyId == null || accessKeySecret == null) {
             return null;
         }
-        if (accessKeyId.length() == 0) {
+        if (StringUtils.isEmpty(accessKeyId)) {
             throw new CredentialException("Environment variable accessKeyId cannot be empty");
         }
-        if (accessKeySecret.length() == 0) {
+        if (StringUtils.isEmpty(accessKeySecret)) {
             throw new CredentialException("Environment variable accessKeySecret cannot be empty");
         }
         if (!StringUtils.isEmpty(securityToken)) {
