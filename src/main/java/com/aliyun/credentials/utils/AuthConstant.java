@@ -3,6 +3,8 @@ package com.aliyun.credentials.utils;
 public class AuthConstant {
     public static final String SYSTEM_ACCESSKEYID = "alibabacloud.accessKeyId";
     public static final String SYSTEM_ACCESSKEYSECRET = "alibabacloud.accessKeyIdSecret";
+    public static final String SYSTEM_ACCESSKEY_SECRET = "alibabacloud.accessKeySecret";
+    public static final String SYSTEM_SESSION_TOKEN = "alibabacloud.sessionToken";
 
     public static final String DEFAULT_CREDENTIALS_FILE_PATH = System.getProperty("user.home") +
             "/.alibabacloud/credentials.ini";

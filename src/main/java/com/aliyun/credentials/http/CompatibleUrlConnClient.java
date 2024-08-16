@@ -6,10 +6,9 @@ import javax.net.ssl.*;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
-import java.util.Map;
+import java.security.KeyStore;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 public class CompatibleUrlConnClient implements Closeable {
 
@@ -78,9 +77,24 @@ public class CompatibleUrlConnClient implements Closeable {
     }
 
 
-    public SSLSocketFactory createSSLSocketFactory() {
+    private SSLSocketFactory createSSLSocketFactory(boolean ignoreSSLCert) {
         try {
-            X509TrustManager compositeX509TrustManager = new X509TrustManagerImp();
+            X509TrustManagerImp compositeX509TrustManager;
+            if (ignoreSSLCert) {
+                compositeX509TrustManager = new X509TrustManagerImp(true);
+            } else {
+                // get trustManager using default certification from jdk
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                tmf.init((KeyStore) null);
+                List<TrustManager> trustManagerList = new ArrayList<TrustManager>(Arrays.asList(tmf.getTrustManagers()));
+                final List<X509TrustManager> finalTrustManagerList = new ArrayList<X509TrustManager>();
+                for (TrustManager tm : trustManagerList) {
+                    if (tm instanceof X509TrustManager) {
+                        finalTrustManagerList.add((X509TrustManager) tm);
+                    }
+                }
+                compositeX509TrustManager = new X509TrustManagerImp(finalTrustManagerList);
+            }
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, new TrustManager[]{compositeX509TrustManager},
                     new java.security.SecureRandom());
@@ -90,6 +104,9 @@ public class CompatibleUrlConnClient implements Closeable {
         }
     }
 
+    private HostnameVerifier createHostnameVerifier(boolean ignoreSSLCert) {
+        return DefaultHostnameVerifier.getInstance(ignoreSSLCert);
+    }
 
     public void checkHttpRequest(HttpRequest request) {
         String strUrl = request.getSysUrl();
@@ -104,7 +121,21 @@ public class CompatibleUrlConnClient implements Closeable {
 
     public HttpURLConnection initHttpConnection(URL url, HttpRequest request) {
         try {
-            HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+            HttpURLConnection httpConn = null;
+
+            if ("https".equalsIgnoreCase(url.getProtocol())) {
+                SSLSocketFactory sslSocketFactory = createSSLSocketFactory(false);
+                HttpsURLConnection httpsConn = (HttpsURLConnection) url.openConnection();
+                httpsConn.setSSLSocketFactory(sslSocketFactory);
+                HostnameVerifier hostnameVerifier = createHostnameVerifier(false);
+                httpsConn.setHostnameVerifier(hostnameVerifier);
+                httpConn = httpsConn;
+            }
+
+            if (httpConn == null) {
+                httpConn = (HttpURLConnection) url.openConnection();
+            }
+
             httpConn.setRequestMethod(request.getSysMethod().toString());
             httpConn.setInstanceFollowRedirects(false);
             httpConn.setDoOutput(true);

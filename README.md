@@ -102,6 +102,9 @@ public class DemoTest {
         config.setRoleSessionName("RoleSessionName");
         // Not required, limit the permissions of STS Token
         config.setPolicy("policy");
+        // Not required, the external ID of the RAM role
+        // This parameter is provided by an external party and is used to prevent the confused deputy problem.
+        config.setExternalId("externalId");
         // Not required, limit the Valid time of STS Token
         config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
@@ -135,9 +138,6 @@ public class DemoTest {
         config.setRoleSessionName("RoleSessionName");
         // Not required, limit the permissions of STS Token
         config.setPolicy("policy");
-        // Not required, the external ID of the RAM role
-        // This parameter is provided by an external party and is used to prevent the confused deputy problem.
-        config.setExternalId("externalId");
         // Not required, limit the Valid time of STS Token
         config.setRoleSessionExpiration(3600);
         Client client = new Client(config);
@@ -215,7 +215,7 @@ The default credential provider chain looks for available credentials, with foll
 
 1. System Properties
 
-    Look for environment credentials in system properties. If the `alibabacloud.accessKeyId` and `alibabacloud.accessKeyIdSecret` system properties are defined and not empty, the program will use them to create default credentials.
+    Look for environment credentials in system properties. If the `alibabacloud.accessKeyId` and `alibabacloud.accessKeySecret` system properties are defined and not empty, the program will use them to create default credentials. If the `alibabacloud.accessKeyId`, `alibabacloud.accessKeySecret` and `alibabacloud.sessionToken` environment variables are defined and are not empty, the program will use them to create temporary security credentials(STS). Note: This token has an expiration time, it is recommended to use it in a temporary environment.
 
 2. Environment Credentials
 

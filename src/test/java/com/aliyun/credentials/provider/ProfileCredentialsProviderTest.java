@@ -28,6 +28,7 @@ public class ProfileCredentialsProviderTest {
         String filePath = ProfileCredentialsProviderTest.class.getClassLoader().
                 getResource("configTest.ini").getPath();
         AuthUtils.setEnvironmentCredentialsFile(filePath);
+        AuthUtils.setClientType(null);
         provider = new ProfileCredentialsProvider();
         Assert.assertNotNull(provider.getCredentials());
 
