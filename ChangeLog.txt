@@ -1,3 +1,7 @@
+2024-08-19 Version: 0.3.7
+1.feat: support system property alibabacloud.sessionToken.
+2.feat: optimize SSLSocketFactory implementation.
+
 2024-07-31 Version: 0.3.6
 1.fix: security reinforcement for HTTP requests.
 2.fix: update com.aliyun:tea version.
