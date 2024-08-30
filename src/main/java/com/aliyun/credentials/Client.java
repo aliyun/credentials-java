@@ -4,6 +4,7 @@ import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.utils.Validate;
 
 public class Client {
@@ -67,9 +68,32 @@ public class Client {
                             .readTimeout(config.timeout)
                             .build();
                 case AuthConstant.RAM_ROLE_ARN:
+                    AlibabaCloudCredentialsProvider innerProvider;
+                    if (StringUtils.isEmpty(config.securityToken)) {
+                        innerProvider = StaticCredentialsProvider.builder()
+                                .credential(CredentialModel.builder()
+                                        .accessKeyId(Validate.notNull(
+                                                config.accessKeyId, "AccessKeyId must not be null."))
+                                        .accessKeySecret(Validate.notNull(
+                                                config.accessKeySecret, "AccessKeySecret must not be null."))
+                                        .type(AuthConstant.ACCESS_KEY)
+                                        .build())
+                                .build();
+                    } else {
+                        innerProvider = StaticCredentialsProvider.builder()
+                                .credential(CredentialModel.builder()
+                                        .accessKeyId(Validate.notNull(
+                                                config.accessKeyId, "AccessKeyId must not be null."))
+                                        .accessKeySecret(Validate.notNull(
+                                                config.accessKeySecret, "AccessKeySecret must not be null."))
+                                        .securityToken(Validate.notNull(
+                                                config.securityToken, "SecurityToken must not be null."))
+                                        .type(AuthConstant.STS)
+                                        .build())
+                                .build();
+                    }
                     return RamRoleArnCredentialProvider.builder()
-                            .accessKeyId(config.accessKeyId)
-                            .accessKeySecret(config.accessKeySecret)
+                            .credentialsProvider(innerProvider)
                             .durationSeconds(config.roleSessionExpiration)
                             .roleArn(config.roleArn)
                             .roleSessionName(config.roleSessionName)
@@ -115,8 +139,8 @@ public class Client {
     }
 
     /**
-     * @deprecated Use getCredential().getAccessKeyId() instead of
      * @return Access key ID
+     * @deprecated Use getCredential().getAccessKeyId() instead of
      */
     @Deprecated
     public String getAccessKeyId() {
@@ -124,8 +148,8 @@ public class Client {
     }
 
     /**
-     * @deprecated Use getCredential().getAccessKeySecret() instead of
      * @return Access key secret
+     * @deprecated Use getCredential().getAccessKeySecret() instead of
      */
     @Deprecated
     public String getAccessKeySecret() {
@@ -133,8 +157,8 @@ public class Client {
     }
 
     /**
-     * @deprecated Use getCredential().getSecurityToken() instead of
      * @return Security token
+     * @deprecated Use getCredential().getSecurityToken() instead of
      */
     @Deprecated
     public String getSecurityToken() {
@@ -142,8 +166,8 @@ public class Client {
     }
 
     /**
-     * @deprecated Use getCredential().getType() instead of
      * @return Credentials provider type
+     * @deprecated Use getCredential().getType() instead of
      */
     @Deprecated
     public String getType() {
@@ -151,8 +175,8 @@ public class Client {
     }
 
     /**
-     * @deprecated Use getCredential().getBearerToken() instead of
      * @return Bearer token
+     * @deprecated Use getCredential().getBearerToken() instead of
      */
     @Deprecated
     public String getBearerToken() {
