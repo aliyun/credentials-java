@@ -1,4 +1,5 @@
 package com.aliyun.credentials;
+
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.provider.*;
@@ -8,11 +9,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.text.ParseException;
 
 public class ClientTest {
 
@@ -50,7 +49,7 @@ public class ClientTest {
     }
 
     @Test
-    public void getProviderTest() throws ParseException, IOException, CredentialException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void getProviderTest() throws CredentialException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Config config = new Config();
         config.type = (AuthConstant.ACCESS_KEY);
         config.roleName = "test";
@@ -72,6 +71,24 @@ public class ClientTest {
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
         config.type = "default";
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
+
+        config.type = AuthConstant.RAM_ROLE_ARN;
+        RamRoleArnCredentialProvider provider = (RamRoleArnCredentialProvider) getProvider.invoke(credential, config);
+        Class<RamRoleArnCredentialProvider> ramClazz = RamRoleArnCredentialProvider.class;
+        Method getCredentialsProvider = ramClazz.getDeclaredMethod("getCredentialsProvider");
+        getCredentialsProvider.setAccessible(true);
+        Assert.assertTrue(getCredentialsProvider.invoke(provider) instanceof StaticCredentialsProvider);
+        Assert.assertEquals(AuthConstant.ACCESS_KEY, ((StaticCredentialsProvider) getCredentialsProvider.invoke(provider)).getCredentials().getType());
+        config.securityToken = "";
+        provider = (RamRoleArnCredentialProvider) getProvider.invoke(credential, config);
+        Assert.assertTrue(getCredentialsProvider.invoke(provider) instanceof StaticCredentialsProvider);
+        Assert.assertEquals(AuthConstant.ACCESS_KEY, ((StaticCredentialsProvider) getCredentialsProvider.invoke(provider)).getCredentials().getType());
+        Assert.assertNull(((StaticCredentialsProvider) getCredentialsProvider.invoke(provider)).getCredentials().getSecurityToken());
+        config.securityToken = "token";
+        provider = (RamRoleArnCredentialProvider) getProvider.invoke(credential, config);
+        Assert.assertTrue(getCredentialsProvider.invoke(provider) instanceof StaticCredentialsProvider);
+        Assert.assertEquals(AuthConstant.STS, ((StaticCredentialsProvider) getCredentialsProvider.invoke(provider)).getCredentials().getType());
+        Assert.assertEquals("token", ((StaticCredentialsProvider) getCredentialsProvider.invoke(provider)).getCredentials().getSecurityToken());
     }
 
     @Test

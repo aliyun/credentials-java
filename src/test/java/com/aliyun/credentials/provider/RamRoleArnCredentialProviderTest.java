@@ -11,10 +11,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -98,7 +94,7 @@ public class RamRoleArnCredentialProviderTest {
     }
 
     @Test
-    public void createCredentialTest() throws NoSuchAlgorithmException, IOException, KeyManagementException {
+    public void createCredentialTest() {
         Configuration config = new Configuration();
         RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
@@ -142,7 +138,7 @@ public class RamRoleArnCredentialProviderTest {
 
     @Test
     public void builderTest() {
-        RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
+        RamRoleArnCredentialProvider originalProvider = RamRoleArnCredentialProvider.builder()
                 .accessKeyId("test")
                 .accessKeySecret("test")
                 .durationSeconds(1000)
@@ -155,17 +151,27 @@ public class RamRoleArnCredentialProviderTest {
                 .connectionTimeout(2000)
                 .readTimeout(2000)
                 .build();
-        Assert.assertEquals(2000, provider.getConnectTimeout());
-        Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals(1000, provider.getDurationSeconds());
-        Assert.assertEquals("test", provider.getAccessKeyId());
-        Assert.assertEquals("test", provider.getAccessKeySecret());
+        Assert.assertEquals(2000, originalProvider.getConnectTimeout());
+        Assert.assertEquals(2000, originalProvider.getReadTimeout());
+        Assert.assertEquals(1000, originalProvider.getDurationSeconds());
+        Assert.assertEquals("test", originalProvider.getAccessKeyId());
+        Assert.assertEquals("test", originalProvider.getAccessKeySecret());
+        Assert.assertEquals("test", originalProvider.getRoleArn());
+        Assert.assertEquals("test", originalProvider.getRoleSessionName());
+        Assert.assertEquals("test", originalProvider.getPolicy());
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
+        Assert.assertEquals("cn-hangzhou", originalProvider.getRegionId());
+        Assert.assertEquals("test", originalProvider.getExternalId());
+        Assert.assertNull(originalProvider.getCredentials());
+
+        RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
+                .credentialsProvider(originalProvider)
+                .durationSeconds(1000)
+                .roleArn("test")
+                .build();
         Assert.assertEquals("test", provider.getRoleArn());
-        Assert.assertEquals("test", provider.getRoleSessionName());
-        Assert.assertEquals("test", provider.getPolicy());
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
-        Assert.assertEquals("cn-hangzhou", provider.getRegionId());
-        Assert.assertEquals("test", provider.getExternalId());
+        Assert.assertEquals("javaSdkRoleSessionName", provider.getRoleSessionName());
+        Assert.assertEquals("sts.aliyuncs.com", provider.getSTSEndpoint());
         Assert.assertNull(provider.getCredentials());
     }
 

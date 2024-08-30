@@ -29,10 +29,9 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     /**
      * An identifier for the assumed role session.
      */
-    private String roleSessionName = "defaultSessionName";
+    private String roleSessionName = "javaSdkRoleSessionName";
 
-    private String accessKeyId;
-    private String accessKeySecret;
+    private final AlibabaCloudCredentialsProvider credentialsProvider;
     private String regionId = "cn-hangzhou";
     private String policy;
 
@@ -77,8 +76,13 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     public RamRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleArn) {
         super(new BuilderImpl());
         this.roleArn = roleArn;
-        this.accessKeyId = accessKeyId;
-        this.accessKeySecret = accessKeySecret;
+        this.credentialsProvider = StaticCredentialsProvider.builder()
+                .credential(CredentialModel.builder()
+                        .accessKeyId(accessKeyId)
+                        .accessKeySecret(accessKeySecret)
+                        .type(AuthConstant.ACCESS_KEY)
+                        .build())
+                .build();
     }
 
     @Deprecated
@@ -100,8 +104,20 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         this.connectTimeout = builder.connectionTimeout;
         this.readTimeout = builder.readTimeout;
         this.STSEndpoint = builder.STSEndpoint;
-        this.accessKeyId = Validate.notNull(builder.accessKeyId, "AccessKeyId must not be null.");
-        this.accessKeySecret = Validate.notNull(builder.accessKeySecret, "AccessKeySecret must not be null.");
+        if (null != builder.credentialsProvider) {
+            this.credentialsProvider = builder.credentialsProvider;
+        } else {
+            this.credentialsProvider = StaticCredentialsProvider.builder()
+                    .credential(CredentialModel.builder()
+                            .accessKeyId(Validate.notNull(
+                                    builder.accessKeyId, "AccessKeyId must not be null."))
+                            .accessKeySecret(Validate.notNull(
+                                    builder.accessKeySecret, "AccessKeySecret must not be null."))
+                            .type(AuthConstant.ACCESS_KEY)
+                            .build())
+                    .build();
+        }
+
         this.externalId = builder.externalId;
     }
 
@@ -135,7 +151,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setUrlParameter("Version", "2015-04-01");
         httpRequest.setUrlParameter("DurationSeconds", String.valueOf(durationSeconds));
         httpRequest.setUrlParameter("RoleArn", this.roleArn);
-        httpRequest.setUrlParameter("AccessKeyId", this.accessKeyId);
+
         httpRequest.setUrlParameter("RoleSessionName", this.roleSessionName);
         if (policy != null) {
             httpRequest.setUrlParameter("Policy", this.policy);
@@ -146,9 +162,17 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setSysMethod(MethodType.GET);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
+
+        CredentialModel credentials = this.credentialsProvider.getCredentials();
+        Validate.notNull(credentials, "Unable to load original credentials from the providers in RAM role arn.");
+        httpRequest.setUrlParameter("AccessKeyId", credentials.getAccessKeyId());
+        if (!StringUtils.isEmpty(credentials.getSecurityToken())) {
+            httpRequest.setUrlParameter("SecurityToken", credentials.getSecurityToken());
+        }
         String strToSign = parameterHelper.composeStringToSign(MethodType.GET, httpRequest.getUrlParameters());
-        String signature = parameterHelper.signString(strToSign, this.accessKeySecret + "&");
+        String signature = parameterHelper.signString(strToSign, credentials.getAccessKeySecret() + "&");
         httpRequest.setUrlParameter("Signature", signature);
+
         httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
                 "https"));
         HttpResponse httpResponse = client.syncInvoke(httpRequest);
@@ -194,20 +218,26 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         this.roleSessionName = roleSessionName;
     }
 
+    private AlibabaCloudCredentialsProvider getCredentialsProvider() {
+        return this.credentialsProvider;
+    }
+
     public String getAccessKeyId() {
-        return accessKeyId;
+        return this.credentialsProvider.getCredentials().getAccessKeyId();
     }
 
     public void setAccessKeyId(String accessKeyId) {
-        this.accessKeyId = accessKeyId;
+        CredentialModel credentialModel = this.credentialsProvider.getCredentials();
+        credentialModel.setAccessKeyId(accessKeyId);
     }
 
     public String getAccessKeySecret() {
-        return accessKeySecret;
+        return this.credentialsProvider.getCredentials().getAccessKeySecret();
     }
 
     public void setAccessKeySecret(String accessKeySecret) {
-        this.accessKeySecret = accessKeySecret;
+        CredentialModel credentialModel = this.credentialsProvider.getCredentials();
+        credentialModel.setAccessKeySecret(accessKeySecret);
     }
 
     public String getRegionId() {
@@ -253,6 +283,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     public void setExternalId(String externalId) {
         this.externalId = externalId;
     }
+
     public String getExternalId() {
         return this.externalId;
     }
@@ -278,6 +309,8 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         Builder accessKeySecret(String accessKeySecret);
 
+        Builder credentialsProvider(AlibabaCloudCredentialsProvider credentialsProvider);
+
         Builder externalId(String externalId);
 
         @Override
@@ -288,7 +321,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
             extends SessionCredentialsProvider.BuilderImpl<RamRoleArnCredentialProvider, Builder>
             implements Builder {
         private String roleSessionName = StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME")) ?
-                "defaultSessionName"
+                "javaSdkRoleSessionName"
                 : System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME");
         private int durationSeconds = 3600;
         private String roleArn = System.getenv("ALIBABA_CLOUD_ROLE_ARN");
@@ -299,6 +332,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         private String STSEndpoint = "sts.aliyuncs.com";
         private String accessKeyId;
         private String accessKeySecret;
+        private AlibabaCloudCredentialsProvider credentialsProvider;
         private String externalId;
 
         public Builder roleSessionName(String roleSessionName) {
@@ -354,6 +388,11 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         public Builder accessKeySecret(String accessKeySecret) {
             this.accessKeySecret = accessKeySecret;
+            return this;
+        }
+
+        public Builder credentialsProvider(AlibabaCloudCredentialsProvider credentialsProvider) {
+            this.credentialsProvider = credentialsProvider;
             return this;
         }
 
