@@ -18,6 +18,7 @@ public class AuthUtils {
     private static volatile String environmentOIDCTokenFilePath;
     private static volatile String privateKey;
     private static volatile String OIDCToken;
+    private static volatile Boolean disableCLIProfile;
 
     public static String getPrivateKey(String filePath) {
         FileInputStream in = null;
@@ -198,6 +199,19 @@ public class AuthUtils {
 
     public static void setEnvironmentCredentialsFile(String environmentCredentialsFile) {
         AuthUtils.environmentCredentialsFile = environmentCredentialsFile;
+    }
+
+    public static void disableCLIProfile(boolean disableCLIProfile) {
+        AuthUtils.disableCLIProfile = disableCLIProfile;
+    }
+
+    public static boolean isDisableCLIProfile() {
+        if (null != AuthUtils.disableCLIProfile) {
+            return AuthUtils.disableCLIProfile;
+        } else if (null != System.getenv("ALIBABA_CLOUD_CLI_PROFILE_DISABLED")) {
+            return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_CLI_PROFILE_DISABLED"));
+        }
+        return false;
     }
 
 }
