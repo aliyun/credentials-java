@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class URLCredentialProvider extends SessionCredentialsProvider {
 
-    private URL credentialsURI;
+    private final URL credentialsURI;
     /**
      * Unit of millisecond
      */

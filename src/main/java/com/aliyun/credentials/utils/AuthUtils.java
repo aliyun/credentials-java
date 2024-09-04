@@ -19,6 +19,7 @@ public class AuthUtils {
     private static volatile String privateKey;
     private static volatile String OIDCToken;
     private static volatile Boolean disableCLIProfile;
+    private static volatile String environmentCredentialsURI;
 
     public static String getPrivateKey(String filePath) {
         FileInputStream in = null;
@@ -212,6 +213,16 @@ public class AuthUtils {
             return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_CLI_PROFILE_DISABLED"));
         }
         return false;
+    }
+
+    public static void setEnvironmentCredentialsURI(String environmentCredentialsURI) {
+        AuthUtils.environmentCredentialsURI = environmentCredentialsURI;
+    }
+
+    public static String getEnvironmentCredentialsURI() {
+        return null == AuthUtils.environmentCredentialsURI ?
+                System.getenv("ALIBABA_CLOUD_CREDENTIALS_URI")
+                : AuthUtils.environmentCredentialsURI;
     }
 
 }
