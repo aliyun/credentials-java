@@ -1,3 +1,10 @@
+2024-09-04 Version: 0.3.8
+1.feat: support IMDS v2 default for ecs ram role.
+2.feat: support role chain for RAM role arn.
+3.feat: support CLI profile credentials provider.
+4.feat: reuse last provider as default and support credentials uri provider in chain.
+4.improve exception handling.
+
 2024-08-19 Version: 0.3.7
 1.feat: support system property alibabacloud.sessionToken.
 2.feat: optimize SSLSocketFactory implementation.
