@@ -2,7 +2,6 @@ package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

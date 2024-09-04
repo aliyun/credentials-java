@@ -7,11 +7,22 @@ import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.text.ParseException;
 
 public class DefaultCredentialsProviderTest {
+
+    static class CredentialsProviderForTest implements AlibabaCloudCredentialsProvider {
+
+        @Override
+        public CredentialModel getCredentials() {
+            return CredentialModel.builder()
+                    .accessKeyId("")
+                    .accessKeySecret("")
+                    .type(AuthConstant.ACCESS_KEY)
+                    .build();
+        }
+    }
+
     @Test
     public void userConfigurationProvidersTest() {
         SystemPropertiesCredentialsProvider provider = new SystemPropertiesCredentialsProvider();
@@ -28,7 +39,9 @@ public class DefaultCredentialsProviderTest {
 
     @Test
     public void getCredentialsTest() throws NoSuchFieldException, IllegalAccessException {
-        DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
+        DefaultCredentialsProvider provider = DefaultCredentialsProvider.builder()
+                .reuseLastProviderEnabled(false)
+                .build();
         AuthUtils.setEnvironmentECSMetaData("");
         try {
             new DefaultCredentialsProvider();
@@ -50,16 +63,7 @@ public class DefaultCredentialsProviderTest {
                 throw new CredentialException("test");
             }
         });
-        DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
-            @Override
-            public CredentialModel getCredentials() {
-                return CredentialModel.builder()
-                        .accessKeyId("")
-                        .accessKeySecret("")
-                        .type(AuthConstant.ACCESS_KEY)
-                        .build();
-            }
-        });
+        DefaultCredentialsProvider.addCredentialsProvider(new CredentialsProviderForTest());
         credential = provider.getCredentials();
         Assert.assertEquals("", credential.getAccessKeyId());
         Assert.assertEquals("", credential.getAccessKeySecret());
@@ -82,10 +86,21 @@ public class DefaultCredentialsProviderTest {
         } catch (CredentialException e) {
             Assert.assertTrue(e.getMessage().contains("Unable to load credentials from any of the providers in the chain"));
         }
+
+        AuthUtils.setEnvironmentCredentialsURI("http://test");
+        provider = new DefaultCredentialsProvider();
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("URLCredentialProvider: Failed to get credentials from server: http://test"));
+        }
+
+        AuthUtils.setEnvironmentCredentialsURI(null);
     }
 
     @Test
-    public void defaultCredentialsProviderTest() throws ClassCastException, CredentialException, IOException, ParseException {
+    public void defaultCredentialsProviderTest() throws ClassCastException, CredentialException {
         DefaultCredentialsProvider.clearCredentialsProvider();
         AuthUtils.setEnvironmentECSMetaData("test");
         AuthUtils.setEnvironmentAccessKeyId("test");
@@ -104,5 +119,51 @@ public class DefaultCredentialsProviderTest {
         AuthUtils.setClientType("test");
         Assert.assertEquals("test", AuthUtils.getClientType());
         AuthUtils.setClientType("default");
+    }
+
+    @Test
+    public void reuseLastProviderEnabledTest() throws NoSuchFieldException, IllegalAccessException {
+        DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
+        AuthUtils.setEnvironmentAccessKeyId("test");
+        AuthUtils.setEnvironmentAccessKeySecret("test");
+        CredentialModel credential = provider.getCredentials();
+        Assert.assertEquals("test", credential.getAccessKeyId());
+        Assert.assertEquals("test", credential.getAccessKeySecret());
+
+        Field providerField = DefaultCredentialsProvider.class.getDeclaredField("lastUsedCredentialsProvider");
+        providerField.setAccessible(true);
+        Field reuseEnableField = DefaultCredentialsProvider.class.getDeclaredField("reuseLastProviderEnabled");
+        reuseEnableField.setAccessible(true);
+
+        Assert.assertTrue(providerField.get(provider) instanceof EnvironmentVariableCredentialsProvider);
+        Assert.assertTrue((Boolean) reuseEnableField.get(provider));
+
+        DefaultCredentialsProvider.addCredentialsProvider(new CredentialsProviderForTest());
+        credential = provider.getCredentials();
+        Assert.assertEquals("test", credential.getAccessKeyId());
+        Assert.assertEquals("test", credential.getAccessKeySecret());
+        Assert.assertTrue(providerField.get(provider) instanceof EnvironmentVariableCredentialsProvider);
+        Assert.assertTrue((Boolean) reuseEnableField.get(provider));
+
+        DefaultCredentialsProvider.clearCredentialsProvider();
+        provider = DefaultCredentialsProvider.builder()
+                .reuseLastProviderEnabled(false)
+                .build();
+        credential = provider.getCredentials();
+        Assert.assertEquals("test", credential.getAccessKeyId());
+        Assert.assertEquals("test", credential.getAccessKeySecret());
+        Assert.assertTrue(providerField.get(provider) instanceof EnvironmentVariableCredentialsProvider);
+        Assert.assertFalse((Boolean) reuseEnableField.get(provider));
+
+        DefaultCredentialsProvider.addCredentialsProvider(new CredentialsProviderForTest());
+        credential = provider.getCredentials();
+        Assert.assertEquals("", credential.getAccessKeyId());
+        Assert.assertEquals("", credential.getAccessKeySecret());
+        Assert.assertFalse(providerField.get(provider) instanceof EnvironmentVariableCredentialsProvider);
+        Assert.assertFalse((Boolean) reuseEnableField.get(provider));
+
+        AuthUtils.setEnvironmentAccessKeyId(null);
+        AuthUtils.setEnvironmentAccessKeySecret(null);
+        DefaultCredentialsProvider.clearCredentialsProvider();
     }
 }
