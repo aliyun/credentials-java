@@ -87,6 +87,22 @@ public class DefaultCredentialsProviderTest {
             Assert.assertTrue(e.getMessage().contains("Unable to load credentials from any of the providers in the chain"));
         }
 
+        AuthUtils.setEnvironmentRoleArn("test");
+        AuthUtils.setEnvironmentOIDCProviderArn("test");
+        AuthUtils.setEnvironmentOIDCTokenFilePath("test");
+        Assert.assertTrue(AuthUtils.environmentEnableOIDC());
+        provider = new DefaultCredentialsProvider();
+        try {
+            provider.getCredentials();
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("OIDCTokenFilePath test is not exists."));
+        }
+        AuthUtils.setEnvironmentRoleArn(null);
+        AuthUtils.setEnvironmentOIDCProviderArn(null);
+        AuthUtils.setEnvironmentOIDCTokenFilePath(null);
+        Assert.assertFalse(AuthUtils.environmentEnableOIDC());
+
         AuthUtils.setEnvironmentCredentialsURI("http://test");
         provider = new DefaultCredentialsProvider();
         try {

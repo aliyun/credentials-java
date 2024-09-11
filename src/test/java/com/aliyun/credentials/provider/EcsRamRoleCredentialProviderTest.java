@@ -1,6 +1,9 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.Configuration;
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
+import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
@@ -12,6 +15,86 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class EcsRamRoleCredentialProviderTest {
+
+    @Test
+    public void constructorTest() {
+        try {
+            new EcsRamRoleCredentialProvider("");
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
+                    e.getMessage());
+        }
+
+        EcsRamRoleCredentialProvider provider = new EcsRamRoleCredentialProvider("test");
+        ECSMetadataServiceCredentialsFetcher fetcher = provider.getFetcher();
+        Assert.assertFalse(fetcher.getDisableIMDSv1());
+        Assert.assertEquals(1000, fetcher.getReadTimeout());
+        Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertEquals("test", fetcher.getRoleName());
+        Assert.assertEquals("http://100.100.100.200/latest/meta-data/ram/security-credentials/test", fetcher.getCredentialUrl().toString());
+
+        Configuration configuration = new Configuration();
+        configuration.setRoleName("test");
+        configuration.setConnectTimeout(2000);
+        configuration.setReadTimeout(2000);
+        provider = new EcsRamRoleCredentialProvider(configuration);
+        fetcher = provider.getFetcher();
+        Assert.assertFalse(fetcher.getDisableIMDSv1());
+        Assert.assertEquals(2000, fetcher.getReadTimeout());
+        Assert.assertEquals(2000, fetcher.getConnectionTimeout());
+        Assert.assertEquals("test", fetcher.getRoleName());
+        Assert.assertEquals("http://100.100.100.200/latest/meta-data/ram/security-credentials/test", fetcher.getCredentialUrl().toString());
+
+        configuration.setRoleName(null);
+        try {
+            new EcsRamRoleCredentialProvider(configuration);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
+                    e.getMessage());
+        }
+
+        Config config = new Config();
+        config.roleName = "test";
+        config.connectTimeout = 2000;
+        config.timeout = 2000;
+        provider = new EcsRamRoleCredentialProvider(config);
+        fetcher = provider.getFetcher();
+        Assert.assertFalse(fetcher.getDisableIMDSv1());
+        Assert.assertEquals(2000, fetcher.getReadTimeout());
+        Assert.assertEquals(2000, fetcher.getConnectionTimeout());
+        Assert.assertEquals("test", fetcher.getRoleName());
+        Assert.assertEquals("http://100.100.100.200/latest/meta-data/ram/security-credentials/test", fetcher.getCredentialUrl().toString());
+
+        config.disableIMDSv1 = true;
+        provider = new EcsRamRoleCredentialProvider(config);
+        fetcher = provider.getFetcher();
+        Assert.assertTrue(fetcher.getDisableIMDSv1());
+        Assert.assertEquals(2000, fetcher.getReadTimeout());
+        Assert.assertEquals(2000, fetcher.getConnectionTimeout());
+        Assert.assertEquals("test", fetcher.getRoleName());
+        Assert.assertEquals("http://100.100.100.200/latest/meta-data/ram/security-credentials/test", fetcher.getCredentialUrl().toString());
+
+        config.roleName = null;
+        try {
+            new EcsRamRoleCredentialProvider(config);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to get token from ECS Metadata Service. HttpCode=0, ResponseMessage=",
+                    e.getMessage());
+        }
+
+        config.disableIMDSv1 = false;
+        try {
+            new EcsRamRoleCredentialProvider(config);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
+                    e.getMessage());
+        }
+    }
+
     @Test
     public void ecsRamRoleCredentialProviderTest() {
         EcsRamRoleCredentialProvider provider = new EcsRamRoleCredentialProvider("test");

@@ -27,28 +27,35 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         Assert.assertEquals(1000, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
         Assert.assertFalse(fetcher.getDisableIMDSv1());
-        Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
+        Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 1200, 800);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1000, fetcher.getReadTimeout());
         Assert.assertEquals(1200, fetcher.getConnectionTimeout());
         Assert.assertFalse(fetcher.getDisableIMDSv1());
-        Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
+        Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
         Assert.assertFalse(fetcher.getDisableIMDSv1());
-        Assert.assertEquals(0, fetcher.getMetadataTokenDuration());
+        Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 180, 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
         Assert.assertEquals(1000, fetcher.getConnectionTimeout());
         Assert.assertTrue(fetcher.getDisableIMDSv1());
-        Assert.assertEquals(180, fetcher.getMetadataTokenDuration());
+        Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
+
+        fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 900, 1200);
+        Assert.assertEquals("id", fetcher.getRoleName());
+        Assert.assertEquals(1200, fetcher.getReadTimeout());
+        Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertTrue(fetcher.getDisableIMDSv1());
+        Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
     }
 
     @Test
