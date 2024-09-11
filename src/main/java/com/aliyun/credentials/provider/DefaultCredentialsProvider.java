@@ -153,7 +153,7 @@ class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
         }
         Config config = parseProfile(CLI_CREDENTIALS_CONFIG_PATH);
         if (null == config) {
-            throw new CredentialException("Unable to get profile form empty CLI credentials file.");
+            throw new CredentialException("Unable to get profile from empty CLI credentials file.");
         }
         String refreshedProfileName = System.getenv("ALIBABA_CLOUD_PROFILE");
         if (shouldReloadCredentialsProvider(refreshedProfileName)) {

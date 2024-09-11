@@ -63,7 +63,6 @@ public class Client {
                     return EcsRamRoleCredentialProvider.builder()
                             .roleName(config.roleName)
                             .disableIMDSv1(config.disableIMDSv1)
-                            .metadataTokenDuration(config.metadataTokenDuration)
                             .connectionTimeout(config.connectTimeout)
                             .readTimeout(config.timeout)
                             .build();

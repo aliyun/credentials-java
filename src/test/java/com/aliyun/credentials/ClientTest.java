@@ -51,7 +51,7 @@ public class ClientTest {
     @Test
     public void getProviderTest() throws CredentialException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Config config = new Config();
-        config.type = (AuthConstant.ACCESS_KEY);
+        config.type = AuthConstant.ACCESS_KEY;
         config.roleName = "test";
         config.accessKeySecret = "test";
         config.accessKeyId = "test";
@@ -89,6 +89,21 @@ public class ClientTest {
         Assert.assertTrue(getCredentialsProvider.invoke(provider) instanceof StaticCredentialsProvider);
         Assert.assertEquals(AuthConstant.STS, ((StaticCredentialsProvider) getCredentialsProvider.invoke(provider)).getCredentials().getType());
         Assert.assertEquals("token", ((StaticCredentialsProvider) getCredentialsProvider.invoke(provider)).getCredentials().getSecurityToken());
+
+        config.type = AuthConstant.BEARER;
+        config.bearerToken = "token";
+        Assert.assertTrue(getProvider.invoke(credential, config) instanceof StaticCredentialsProvider);
+
+        config.type = AuthConstant.OIDC_ROLE_ARN;
+        config.roleArn = "test";
+        config.roleSessionExpiration = 3600;
+        config.oidcProviderArn = "test";
+        config.oidcTokenFilePath = "test";
+        Assert.assertTrue(getProvider.invoke(credential, config) instanceof OIDCRoleArnCredentialProvider);
+
+        config.type = AuthConstant.CREDENTIALS_URI;
+        config.credentialsURI = "http://test";
+        Assert.assertTrue(getProvider.invoke(credential, config) instanceof URLCredentialProvider);
     }
 
     @Test
