@@ -1,3 +1,6 @@
+2024-09-12 Version: 0.3.10
+1.fix: update to env ALIBABA_CLOUD_IMDSV1_DISABLED for imds v1 disabled
+
 2024-09-12 Version: 0.3.9
 1.refactor: get metadata token every time refresh credentials
 
