@@ -159,7 +159,7 @@ public class DemoTest {
         config.setType("ecs_ram_role");
         // 账户RoleName，非必填，不填则自动获取，建议设置，可以减少请求
         config.setRoleName("RoleName");
-        // 禁用 V1 兜底，获取安全令牌失败则报错，可以设置环境变量来开启：ALIBABA_CLOUD_IMDSV1_DISABLE=true
+        // 禁用 V1 兜底，获取安全令牌失败则报错，可以设置环境变量来开启：ALIBABA_CLOUD_IMDSV1_DISABLED=true
         config.setDisableIMDSv1(true);
         Client client = new Client(config);
     }

@@ -150,8 +150,8 @@ public class AuthUtils {
     public static boolean getDisableECSIMDSv1() {
         if (null != AuthUtils.disableECSIMDSv1) {
             return AuthUtils.disableECSIMDSv1;
-        } else if (null != System.getenv("ALIBABA_CLOUD_IMDSV1_DISABLE")) {
-            return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_IMDSV1_DISABLE"));
+        } else if (null != System.getenv("ALIBABA_CLOUD_IMDSV1_DISABLED")) {
+            return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_IMDSV1_DISABLED"));
         }
         return false;
     }
