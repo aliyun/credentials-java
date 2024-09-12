@@ -1,3 +1,6 @@
+2024-09-12 Version: 0.3.9
+1.refactor: get metadata token every time refresh credentials
+
 2024-09-04 Version: 0.3.8
 1.feat: support IMDS v2 default for ecs ram role.
 2.feat: support role chain for RAM role arn.

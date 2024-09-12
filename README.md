@@ -160,8 +160,8 @@ public class DemoTest {
         config.setType("ecs_ram_role");
         // `roleName` is optional. It will be retrieved automatically if not set. It is highly recommended to set it up to reduce requests
         config.setRoleName("RoleName");
-        // `enableIMDSv2` is optional and is recommended to be turned on. It can be replaced by setting environment variable: ALIBABA_CLOUD_ECS_IMDSV2_ENABLE
-        config.enableIMDSv2(true);
+        // `disableIMDSv1` is optional and is recommended to be turned on. It can be replaced by setting environment variable: ALIBABA_CLOUD_IMDSV1_DISABLE
+        config.setDisableIMDSv1(true);
         Client client = new Client(config);
     }
 }
