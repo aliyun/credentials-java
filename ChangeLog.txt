@@ -1,3 +1,6 @@
+2024-09-27 Version: 0.3.11
+1.refactor: remove ini4j && improve ini config file parsing.
+
 2024-09-12 Version: 0.3.10
 1.fix: update to env ALIBABA_CLOUD_IMDSV1_DISABLED for imds v1 disabled
 
