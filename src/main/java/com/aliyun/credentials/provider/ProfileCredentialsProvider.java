@@ -2,23 +2,21 @@ package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
+import com.aliyun.credentials.utils.ProfileUtils;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.StringUtils;
-import org.ini4j.Profile;
-import org.ini4j.Wini;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
-    private static volatile Wini ini;
+    private static volatile Map<String, Map<String, String>> ini;
 
-    private static Wini getIni(String filePath) throws IOException {
+    private static Map<String, Map<String, String>> getIni(String filePath) throws IOException {
         if (null == ini) {
-            ini = new Wini(new File(filePath));
+            ini = ProfileUtils.parseFile(filePath);
         }
         return ini;
     }
@@ -32,11 +30,11 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
         if (filePath.length() == 0) {
             throw new CredentialException("The specified credentials file is empty.");
         }
-        Wini ini;
+        Map<String, Map<String, String>> ini;
         try {
             ini = getIni(filePath);
         } catch (IOException e) {
-            throw new CredentialException(String.format("Unable to open credentials file: %s.",filePath));
+            throw new CredentialException(String.format("Unable to open credentials file: %s.", filePath));
         }
         Map<String, Map<String, String>> client = loadIni(ini);
         Map<String, String> clientConfig = client.get(AuthUtils.getClientType());
@@ -47,12 +45,12 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
         return createCredential(clientConfig, credentialsProviderFactory);
     }
 
-    private Map<String, Map<String, String>> loadIni(Wini ini) {
+    private Map<String, Map<String, String>> loadIni(Map<String, Map<String, String>> ini) {
         Map<String, Map<String, String>> client = new HashMap<String, Map<String, String>>(16);
-        boolean enable;
-        for (Map.Entry<String, Profile.Section> clientType : ini.entrySet()) {
-            enable = clientType.getValue().get(AuthConstant.INI_ENABLE, boolean.class);
-            if (enable) {
+        String enable;
+        for (Map.Entry<String, Map<String, String>> clientType : ini.entrySet()) {
+            enable = clientType.getValue().get(AuthConstant.INI_ENABLE);
+            if (Boolean.parseBoolean(enable)) {
                 Map<String, String> clientConfig = new HashMap<String, String>(16);
                 for (Map.Entry<String, String> enabledClient : clientType.getValue().entrySet()) {
                     clientConfig.put(enabledClient.getKey(), enabledClient.getValue());

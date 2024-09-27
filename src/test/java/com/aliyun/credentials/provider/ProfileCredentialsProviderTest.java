@@ -300,8 +300,8 @@ public class ProfileCredentialsProviderTest {
         getIni.setAccessible(true);
         String file = ProfileCredentialsProviderTest.class.getClassLoader().
                 getResource("configTest.ini").getPath();
-        Wini firstIni = (Wini) getIni.invoke(profileCredentialsProvider, file);
-        Wini secondIni = (Wini) getIni.invoke(profileCredentialsProvider, file);
+        Map<String, Map<String, String>> firstIni = (Map<String, Map<String, String>>) getIni.invoke(profileCredentialsProvider, file);
+        Map<String, Map<String, String>> secondIni = (Map<String, Map<String, String>>) getIni.invoke(profileCredentialsProvider, file);
         Assert.assertTrue(firstIni == secondIni);
     }
 }
