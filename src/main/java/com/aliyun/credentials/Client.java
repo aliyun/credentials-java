@@ -1,5 +1,6 @@
 package com.aliyun.credentials;
 
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.*;
@@ -27,20 +28,58 @@ public class Client {
     }
 
     private AlibabaCloudCredentialsProvider getProvider(Config config) {
-        try {
-            switch (config.type) {
-                case AuthConstant.ACCESS_KEY:
-                    return StaticCredentialsProvider.builder()
+        switch (config.type) {
+            case AuthConstant.ACCESS_KEY:
+                return StaticCredentialsProvider.builder()
+                        .credential(CredentialModel.builder()
+                                .accessKeyId(Validate.notNull(
+                                        config.accessKeyId, "AccessKeyId must not be null."))
+                                .accessKeySecret(Validate.notNull(
+                                        config.accessKeySecret, "AccessKeySecret must not be null."))
+                                .type(config.type)
+                                .build())
+                        .build();
+            case AuthConstant.STS:
+                return StaticCredentialsProvider.builder()
+                        .credential(CredentialModel.builder()
+                                .accessKeyId(Validate.notNull(
+                                        config.accessKeyId, "AccessKeyId must not be null."))
+                                .accessKeySecret(Validate.notNull(
+                                        config.accessKeySecret, "AccessKeySecret must not be null."))
+                                .securityToken(Validate.notNull(
+                                        config.securityToken, "SecurityToken must not be null."))
+                                .type(config.type)
+                                .build())
+                        .build();
+            case AuthConstant.BEARER:
+                return StaticCredentialsProvider.builder()
+                        .credential(CredentialModel.builder()
+                                .bearerToken(Validate.notNull(
+                                        config.bearerToken, "BearerToken must not be null."))
+                                .type(config.type)
+                                .build())
+                        .build();
+            case AuthConstant.ECS_RAM_ROLE:
+                return EcsRamRoleCredentialProvider.builder()
+                        .roleName(config.roleName)
+                        .disableIMDSv1(config.disableIMDSv1)
+                        .connectionTimeout(config.connectTimeout)
+                        .readTimeout(config.timeout)
+                        .build();
+            case AuthConstant.RAM_ROLE_ARN:
+                AlibabaCloudCredentialsProvider innerProvider;
+                if (StringUtils.isEmpty(config.securityToken)) {
+                    innerProvider = StaticCredentialsProvider.builder()
                             .credential(CredentialModel.builder()
                                     .accessKeyId(Validate.notNull(
                                             config.accessKeyId, "AccessKeyId must not be null."))
                                     .accessKeySecret(Validate.notNull(
                                             config.accessKeySecret, "AccessKeySecret must not be null."))
-                                    .type(config.type)
+                                    .type(AuthConstant.ACCESS_KEY)
                                     .build())
                             .build();
-                case AuthConstant.STS:
-                    return StaticCredentialsProvider.builder()
+                } else {
+                    innerProvider = StaticCredentialsProvider.builder()
                             .credential(CredentialModel.builder()
                                     .accessKeyId(Validate.notNull(
                                             config.accessKeyId, "AccessKeyId must not be null."))
@@ -48,93 +87,51 @@ public class Client {
                                             config.accessKeySecret, "AccessKeySecret must not be null."))
                                     .securityToken(Validate.notNull(
                                             config.securityToken, "SecurityToken must not be null."))
-                                    .type(config.type)
+                                    .type(AuthConstant.STS)
                                     .build())
                             .build();
-                case AuthConstant.BEARER:
-                    return StaticCredentialsProvider.builder()
-                            .credential(CredentialModel.builder()
-                                    .bearerToken(Validate.notNull(
-                                            config.bearerToken, "BearerToken must not be null."))
-                                    .type(config.type)
-                                    .build())
-                            .build();
-                case AuthConstant.ECS_RAM_ROLE:
-                    return EcsRamRoleCredentialProvider.builder()
-                            .roleName(config.roleName)
-                            .disableIMDSv1(config.disableIMDSv1)
-                            .connectionTimeout(config.connectTimeout)
-                            .readTimeout(config.timeout)
-                            .build();
-                case AuthConstant.RAM_ROLE_ARN:
-                    AlibabaCloudCredentialsProvider innerProvider;
-                    if (StringUtils.isEmpty(config.securityToken)) {
-                        innerProvider = StaticCredentialsProvider.builder()
-                                .credential(CredentialModel.builder()
-                                        .accessKeyId(Validate.notNull(
-                                                config.accessKeyId, "AccessKeyId must not be null."))
-                                        .accessKeySecret(Validate.notNull(
-                                                config.accessKeySecret, "AccessKeySecret must not be null."))
-                                        .type(AuthConstant.ACCESS_KEY)
-                                        .build())
-                                .build();
-                    } else {
-                        innerProvider = StaticCredentialsProvider.builder()
-                                .credential(CredentialModel.builder()
-                                        .accessKeyId(Validate.notNull(
-                                                config.accessKeyId, "AccessKeyId must not be null."))
-                                        .accessKeySecret(Validate.notNull(
-                                                config.accessKeySecret, "AccessKeySecret must not be null."))
-                                        .securityToken(Validate.notNull(
-                                                config.securityToken, "SecurityToken must not be null."))
-                                        .type(AuthConstant.STS)
-                                        .build())
-                                .build();
-                    }
-                    return RamRoleArnCredentialProvider.builder()
-                            .credentialsProvider(innerProvider)
-                            .durationSeconds(config.roleSessionExpiration)
-                            .roleArn(config.roleArn)
-                            .roleSessionName(config.roleSessionName)
-                            .policy(config.policy)
-                            .STSEndpoint(config.STSEndpoint)
-                            .externalId(config.externalId)
-                            .connectionTimeout(config.connectTimeout)
-                            .readTimeout(config.timeout)
-                            .build();
-                case AuthConstant.RSA_KEY_PAIR:
-                    return RsaKeyPairCredentialProvider.builder()
-                            .publicKeyId(config.publicKeyId)
-                            .privateKeyFile(config.privateKeyFile)
-                            .durationSeconds(config.roleSessionExpiration)
-                            .STSEndpoint(config.STSEndpoint)
-                            .connectionTimeout(config.connectTimeout)
-                            .readTimeout(config.timeout)
-                            .build();
-                case AuthConstant.OIDC_ROLE_ARN:
-                    return OIDCRoleArnCredentialProvider.builder()
-                            .durationSeconds(config.roleSessionExpiration)
-                            .roleArn(config.roleArn)
-                            .roleSessionName(config.roleSessionName)
-                            .oidcProviderArn(config.oidcProviderArn)
-                            .oidcTokenFilePath(config.oidcTokenFilePath)
-                            .policy(config.policy)
-                            .STSEndpoint(config.STSEndpoint)
-                            .connectionTimeout(config.connectTimeout)
-                            .readTimeout(config.timeout)
-                            .build();
-                case AuthConstant.CREDENTIALS_URI:
-                    return URLCredentialProvider.builder()
-                            .credentialsURI(config.credentialsURI)
-                            .connectionTimeout(config.connectTimeout)
-                            .readTimeout(config.timeout)
-                            .build();
-                default:
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+                }
+                return RamRoleArnCredentialProvider.builder()
+                        .credentialsProvider(innerProvider)
+                        .durationSeconds(config.roleSessionExpiration)
+                        .roleArn(config.roleArn)
+                        .roleSessionName(config.roleSessionName)
+                        .policy(config.policy)
+                        .STSEndpoint(config.STSEndpoint)
+                        .externalId(config.externalId)
+                        .connectionTimeout(config.connectTimeout)
+                        .readTimeout(config.timeout)
+                        .build();
+            case AuthConstant.RSA_KEY_PAIR:
+                return RsaKeyPairCredentialProvider.builder()
+                        .publicKeyId(config.publicKeyId)
+                        .privateKeyFile(config.privateKeyFile)
+                        .durationSeconds(config.roleSessionExpiration)
+                        .STSEndpoint(config.STSEndpoint)
+                        .connectionTimeout(config.connectTimeout)
+                        .readTimeout(config.timeout)
+                        .build();
+            case AuthConstant.OIDC_ROLE_ARN:
+                return OIDCRoleArnCredentialProvider.builder()
+                        .durationSeconds(config.roleSessionExpiration)
+                        .roleArn(config.roleArn)
+                        .roleSessionName(config.roleSessionName)
+                        .oidcProviderArn(config.oidcProviderArn)
+                        .oidcTokenFilePath(config.oidcTokenFilePath)
+                        .policy(config.policy)
+                        .STSEndpoint(config.STSEndpoint)
+                        .connectionTimeout(config.connectTimeout)
+                        .readTimeout(config.timeout)
+                        .build();
+            case AuthConstant.CREDENTIALS_URI:
+                return URLCredentialProvider.builder()
+                        .credentialsURI(config.credentialsURI)
+                        .connectionTimeout(config.connectTimeout)
+                        .readTimeout(config.timeout)
+                        .build();
+            default:
+                throw new CredentialException("invalid type option, support: access_key, sts, ecs_ram_role, ram_role_arn, rsa_key_pair");
         }
-        return new DefaultCredentialsProvider();
     }
 
     /**

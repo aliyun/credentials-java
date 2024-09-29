@@ -44,10 +44,13 @@ public class CredentialTest {
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RamRoleArnCredentialProvider);
         config.setType(AuthConstant.RSA_KEY_PAIR);
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RsaKeyPairCredentialProvider);
-        config.setType(null);
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
         config.setType("default");
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
+        try {
+            getProvider.invoke(credential, config);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("invalid type option, support: access_key, sts, ecs_ram_role, ram_role_arn, rsa_key_pair", e.getCause().getLocalizedMessage());
+        }
     }
 
     @Test
