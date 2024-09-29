@@ -26,21 +26,20 @@ public class ClientTest {
         Assert.assertEquals("654321", credential.getAccessKeySecret());
         Assert.assertEquals(AuthConstant.ACCESS_KEY, credential.getType());
         Assert.assertNull(credential.getSecurityToken());
+    }
 
-        AuthUtils.setEnvironmentCredentialsFile(null);
-        // Clear the contents of the global credentials.ini
-        Field field = ProfileCredentialsProvider.class.getDeclaredField("ini");
-        field.setAccessible(true);
-        field.set(ProfileCredentialsProvider.class, null);
+    @Test
+    public void defaultCredentialTest() {
+        AuthUtils.disableCLIProfile(true);
         try {
-            credential = new Client();
+            Client credential = new Client();
             credential.getCredential();
             Assert.fail();
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("Unable to load credentials from any of the providers in the chain"));
         }
         try {
-            credential = new Client(new DefaultCredentialsProvider());
+            Client credential = new Client(new DefaultCredentialsProvider());
             credential.getCredential();
             Assert.fail();
         } catch (Exception e) {
@@ -67,11 +66,14 @@ public class ClientTest {
         config.publicKeyId = "test";
         config.privateKeyFile = "/test";
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RsaKeyPairCredentialProvider);
-        config.type = null;
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
         config.type = "default";
-        Assert.assertTrue(getProvider.invoke(credential, config) instanceof DefaultCredentialsProvider);
-
+        try {
+            getProvider.invoke(credential, config);
+            Assert.fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Assert.assertEquals("invalid type option, support: access_key, sts, ecs_ram_role, ram_role_arn, rsa_key_pair", e.getCause().getLocalizedMessage());
+        }
         config.type = AuthConstant.RAM_ROLE_ARN;
         RamRoleArnCredentialProvider provider = (RamRoleArnCredentialProvider) getProvider.invoke(credential, config);
         Class<RamRoleArnCredentialProvider> ramClazz = RamRoleArnCredentialProvider.class;
