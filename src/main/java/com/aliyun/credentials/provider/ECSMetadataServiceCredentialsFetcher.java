@@ -8,6 +8,8 @@ import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.ParameterHelper;
+import com.aliyun.credentials.utils.ProviderName;
+import com.aliyun.credentials.utils.StringUtils;
 import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
@@ -26,39 +28,27 @@ public class ECSMetadataServiceCredentialsFetcher {
     private final boolean disableIMDSv1;
     private final int metadataTokenDuration = 21600;
 
-    public ECSMetadataServiceCredentialsFetcher(String roleName, int connectionTimeout, int readTimeout) {
-        if (connectionTimeout > 1000) {
-            this.connectionTimeout = connectionTimeout;
-        }
-        if (readTimeout > 1000) {
-            this.readTimeout = readTimeout;
-        }
+    public ECSMetadataServiceCredentialsFetcher(String roleName, Integer connectionTimeout, Integer readTimeout) {
+        this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
+        this.readTimeout = readTimeout == null ? 1000 : readTimeout;
         this.disableIMDSv1 = false;
         this.roleName = roleName;
         setCredentialUrl();
     }
 
     @Deprecated
-    public ECSMetadataServiceCredentialsFetcher(String roleName, boolean disableIMDSv1, int metadataTokenDuration, int connectionTimeout, int readTimeout) {
-        if (connectionTimeout > 1000) {
-            this.connectionTimeout = connectionTimeout;
-        }
-        if (readTimeout > 1000) {
-            this.readTimeout = readTimeout;
-        }
+    public ECSMetadataServiceCredentialsFetcher(String roleName, Boolean disableIMDSv1, Integer metadataTokenDuration, Integer connectionTimeout, Integer readTimeout) {
+        this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
+        this.readTimeout = readTimeout == null ? 1000 : readTimeout;
         this.disableIMDSv1 = disableIMDSv1;
         this.roleName = roleName;
         setCredentialUrl();
     }
 
-    public ECSMetadataServiceCredentialsFetcher(String roleName, boolean disableIMDSv1, int connectionTimeout, int readTimeout) {
-        if (connectionTimeout > 1000) {
-            this.connectionTimeout = connectionTimeout;
-        }
-        if (readTimeout > 1000) {
-            this.readTimeout = readTimeout;
-        }
-        this.disableIMDSv1 = disableIMDSv1;
+    public ECSMetadataServiceCredentialsFetcher(String roleName, Boolean disableIMDSv1, Integer connectionTimeout, Integer readTimeout) {
+        this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
+        this.readTimeout = readTimeout == null ? 1000 : readTimeout;
+        this.disableIMDSv1 = disableIMDSv1 == null ? false : disableIMDSv1;
         this.roleName = roleName;
         setCredentialUrl();
     }
@@ -83,7 +73,11 @@ public class ECSMetadataServiceCredentialsFetcher {
     }
 
     public String getMetadata(CompatibleUrlConnClient client) {
-        HttpRequest request = new HttpRequest(credentialUrl.toString());
+        return getMetadata(client, credentialUrl.toString());
+    }
+
+    private String getMetadata(CompatibleUrlConnClient client, String url) {
+        HttpRequest request = new HttpRequest(url);
         request.setSysMethod(MethodType.GET);
         request.setSysConnectTimeout(connectionTimeout);
         request.setSysReadTimeout(readTimeout);
@@ -97,8 +91,6 @@ public class ECSMetadataServiceCredentialsFetcher {
             response = client.syncInvoke(request);
         } catch (Exception e) {
             throw new CredentialException("Failed to connect ECS Metadata Service: " + e);
-        } finally {
-            client.close();
         }
 
         if (response.getResponseCode() == 404) {
@@ -113,7 +105,11 @@ public class ECSMetadataServiceCredentialsFetcher {
     }
 
     public RefreshResult<CredentialModel> fetch(CompatibleUrlConnClient client) {
-        String jsonContent = getMetadata(client);
+        String roleName = this.roleName;
+        if (StringUtils.isEmpty(this.roleName)) {
+            roleName = getMetadata(client, "http://" + metadataServiceHost + URL_IN_ECS_METADATA);
+        }
+        String jsonContent = getMetadata(client, "http://" + metadataServiceHost + URL_IN_ECS_METADATA + roleName);
         Map<String, String> result = new Gson().fromJson(jsonContent, Map.class);
 
         if (!"Success".equals(result.get("Code"))) {
@@ -125,6 +121,7 @@ public class ECSMetadataServiceCredentialsFetcher {
                 .accessKeySecret(result.get("AccessKeySecret"))
                 .securityToken(result.get("SecurityToken"))
                 .type(AuthConstant.ECS_RAM_ROLE)
+                .providerName(ProviderName.ECS_RAM_ROLE)
                 .expiration(expiration)
                 .build();
         return RefreshResult.builder(credential)
@@ -180,7 +177,7 @@ public class ECSMetadataServiceCredentialsFetcher {
     }
 
     private String throwErrorOrReturn(Exception e) {
-        if (getDisableIMDSv1()) {
+        if (this.disableIMDSv1) {
             throw new CredentialException("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: " + e.getMessage());
         }
         return null;

@@ -2,10 +2,7 @@ package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
-import com.aliyun.credentials.utils.ProfileUtils;
-import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.utils.AuthUtils;
-import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.credentials.utils.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -82,12 +79,13 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
         String accessKeyId = clientConfig.get(AuthConstant.INI_ACCESS_KEY_ID);
         String accessKeySecret = clientConfig.get(AuthConstant.INI_ACCESS_KEY_IDSECRET);
         if (StringUtils.isEmpty(accessKeyId) || StringUtils.isEmpty(accessKeySecret)) {
-            return null;
+            throw new CredentialException("The configured access_key_id or access_key_secret is empty.");
         }
         return CredentialModel.builder()
                 .accessKeyId(accessKeyId)
                 .accessKeySecret(accessKeySecret)
                 .type(AuthConstant.ACCESS_KEY)
+                .providerName(String.format("%s/%s", this.getProviderName(), ProviderName.STATIC_AK))
                 .build();
     }
 
@@ -114,7 +112,14 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
                         .regionId(regionId)
                         .policy(policy)
                         .build());
-        return provider.getCredentials();
+        CredentialModel credential = provider.getCredentials();
+        return CredentialModel.builder()
+                .accessKeyId(credential.getAccessKeyId())
+                .accessKeySecret(credential.getAccessKeySecret())
+                .securityToken(credential.getSecurityToken())
+                .type(credential.getType())
+                .providerName(String.format("%s/%s", this.getProviderName(), credential.getProviderName()))
+                .build();
     }
 
     private CredentialModel getSTSOIDCRoleSessionCredentials(Map<String, String> clientConfig,
@@ -140,7 +145,14 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
                         .regionId(regionId)
                         .policy(policy)
                         .build());
-        return provider.getCredentials();
+        CredentialModel credential = provider.getCredentials();
+        return CredentialModel.builder()
+                .accessKeyId(credential.getAccessKeyId())
+                .accessKeySecret(credential.getAccessKeySecret())
+                .securityToken(credential.getSecurityToken())
+                .type(credential.getType())
+                .providerName(String.format("%s/%s", this.getProviderName(), credential.getProviderName()))
+                .build();
     }
 
     private CredentialModel getSTSGetSessionAccessKeyCredentials(Map<String, String> clientConfig,
@@ -157,9 +169,16 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
         RsaKeyPairCredentialProvider provider = factory.createCredentialsProvider(
                 RsaKeyPairCredentialProvider.builder()
                         .publicKeyId(publicKeyId)
-                        .privateKeyFile(privateKey)
+                        .privateKey(privateKey)
                         .build());
-        return provider.getCredentials();
+        CredentialModel credential = provider.getCredentials();
+        return CredentialModel.builder()
+                .accessKeyId(credential.getAccessKeyId())
+                .accessKeySecret(credential.getAccessKeySecret())
+                .securityToken(credential.getSecurityToken())
+                .type(credential.getType())
+                .providerName(String.format("%s/%s", this.getProviderName(), credential.getProviderName()))
+                .build();
     }
 
     private CredentialModel getInstanceProfileCredentials(Map<String, String> clientConfig,
@@ -172,6 +191,22 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
                 EcsRamRoleCredentialProvider.builder()
                         .roleName(roleName)
                         .build());
-        return provider.getCredentials();
+        CredentialModel credential = provider.getCredentials();
+        return CredentialModel.builder()
+                .accessKeyId(credential.getAccessKeyId())
+                .accessKeySecret(credential.getAccessKeySecret())
+                .securityToken(credential.getSecurityToken())
+                .type(credential.getType())
+                .providerName(String.format("%s/%s", this.getProviderName(), credential.getProviderName()))
+                .build();
+    }
+
+    @Override
+    public String getProviderName() {
+        return ProviderName.PROFILE;
+    }
+
+    @Override
+    public void close() {
     }
 }

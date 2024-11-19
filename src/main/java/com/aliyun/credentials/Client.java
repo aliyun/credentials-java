@@ -5,6 +5,7 @@ import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.utils.Validate;
 
@@ -37,6 +38,7 @@ public class Client {
                                 .accessKeySecret(Validate.notNull(
                                         config.accessKeySecret, "AccessKeySecret must not be null."))
                                 .type(config.type)
+                                .providerName(ProviderName.STATIC_AK)
                                 .build())
                         .build();
             case AuthConstant.STS:
@@ -49,6 +51,7 @@ public class Client {
                                 .securityToken(Validate.notNull(
                                         config.securityToken, "SecurityToken must not be null."))
                                 .type(config.type)
+                                .providerName(ProviderName.STATIC_STS)
                                 .build())
                         .build();
             case AuthConstant.BEARER:
@@ -76,6 +79,7 @@ public class Client {
                                     .accessKeySecret(Validate.notNull(
                                             config.accessKeySecret, "AccessKeySecret must not be null."))
                                     .type(AuthConstant.ACCESS_KEY)
+                                    .providerName(ProviderName.STATIC_AK)
                                     .build())
                             .build();
                 } else {
@@ -88,6 +92,7 @@ public class Client {
                                     .securityToken(Validate.notNull(
                                             config.securityToken, "SecurityToken must not be null."))
                                     .type(AuthConstant.STS)
+                                    .providerName(ProviderName.STATIC_STS)
                                     .build())
                             .build();
                 }

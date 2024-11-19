@@ -68,6 +68,34 @@ public class AuthUtilsTest {
         AuthUtils.setEnvironmentOIDCProviderArn(null);
         AuthUtils.setEnvironmentOIDCTokenFilePath(null);
         Assert.assertFalse(AuthUtils.environmentEnableOIDC());
+
+        Assert.assertNull(AuthUtils.getEnvironmentRoleSessionName());
+        AuthUtils.setEnvironmentRoleSessionName("test");
+        Assert.assertEquals("test", AuthUtils.getEnvironmentRoleSessionName());
+        AuthUtils.setEnvironmentRoleSessionName(null);
+
+        Assert.assertNull(AuthUtils.getEnvironmentSTSRegion());
+        AuthUtils.setEnvironmentSTSRegion("test");
+        Assert.assertEquals("test", AuthUtils.getEnvironmentSTSRegion());
+        AuthUtils.setEnvironmentSTSRegion(null);
+
+        Assert.assertFalse(AuthUtils.isDisableECSMetaData());
+        AuthUtils.disableECSMetaData(true);
+        Assert.assertTrue(AuthUtils.isDisableECSMetaData());
+        AuthUtils.disableECSMetaData(false);
+        Assert.assertFalse(AuthUtils.isDisableECSMetaData());
+
+        Assert.assertFalse(AuthUtils.isEnableVpcEndpoint());
+        AuthUtils.enableVpcEndpoint(true);
+        Assert.assertTrue(AuthUtils.isEnableVpcEndpoint());
+        AuthUtils.enableVpcEndpoint(false);
+        Assert.assertFalse(AuthUtils.isEnableVpcEndpoint());
+
+        Assert.assertFalse(AuthUtils.isDisableCLIProfile());
+        AuthUtils.disableCLIProfile(true);
+        Assert.assertTrue(AuthUtils.isDisableCLIProfile());
+        AuthUtils.disableCLIProfile(false);
+        Assert.assertFalse(AuthUtils.isDisableCLIProfile());
     }
 
     @Test

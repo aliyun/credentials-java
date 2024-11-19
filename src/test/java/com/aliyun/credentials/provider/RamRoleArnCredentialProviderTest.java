@@ -7,6 +7,7 @@ import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -24,6 +25,7 @@ public class RamRoleArnCredentialProviderTest {
     public void constructorTest() {
         RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider("id", "secret",
                 "name", "arn", "region", "policy");
+        Assert.assertEquals("ram_role_arn", provider.getProviderName());
         Assert.assertEquals("name", provider.getRoleSessionName());
         Assert.assertEquals("region", provider.getRegionId());
         Assert.assertEquals("policy", provider.getPolicy());
@@ -148,7 +150,81 @@ public class RamRoleArnCredentialProviderTest {
 
     @Test
     public void builderTest() {
-        RamRoleArnCredentialProvider originalProvider = RamRoleArnCredentialProvider.builder()
+        RamRoleArnCredentialProvider originalProvider;
+        try {
+            RamRoleArnCredentialProvider.builder().build();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("RoleArn or environment variable ALIBABA_CLOUD_ROLE_ARN cannot be empty.", e.getMessage());
+        }
+
+        try {
+            RamRoleArnCredentialProvider.builder()
+                    .durationSeconds(100)
+                    .build();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Session duration should be in the range of 900s - max session duration.", e.getMessage());
+        }
+
+        originalProvider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .roleArn("test")
+                .build();
+        Assert.assertEquals("sts.aliyuncs.com", originalProvider.getSTSEndpoint());
+
+        AuthUtils.setEnvironmentSTSRegion("cn-beijing");
+        originalProvider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .roleArn("test")
+                .build();
+        Assert.assertEquals("sts.cn-beijing.aliyuncs.com", originalProvider.getSTSEndpoint());
+
+        originalProvider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .stsRegionId("cn-hangzhou")
+                .roleArn("test")
+                .build();
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
+
+        AuthUtils.enableVpcEndpoint(true);
+        originalProvider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .stsRegionId("cn-hangzhou")
+                .roleArn("test")
+                .build();
+        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
+
+        originalProvider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .stsRegionId("cn-hangzhou")
+                .enableVpc(true)
+                .roleArn("test")
+                .build();
+        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
+
+        originalProvider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .STSEndpoint("sts.cn-shanghai.aliyuncs.com")
+                .stsRegionId("cn-hangzhou")
+                .enableVpc(true)
+                .roleArn("test")
+                .build();
+        Assert.assertEquals("sts.cn-shanghai.aliyuncs.com", originalProvider.getSTSEndpoint());
+
+        originalProvider = RamRoleArnCredentialProvider.builder()
                 .accessKeyId("test")
                 .accessKeySecret("test")
                 .durationSeconds(1000)
@@ -179,13 +255,16 @@ public class RamRoleArnCredentialProviderTest {
             Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
         }
 
+        AuthUtils.setEnvironmentSTSRegion(null);
+        AuthUtils.enableVpcEndpoint(false);
+
         RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
                 .credentialsProvider(originalProvider)
                 .durationSeconds(1000)
                 .roleArn("test")
                 .build();
         Assert.assertEquals("test", provider.getRoleArn());
-        Assert.assertEquals("javaSdkRoleSessionName", provider.getRoleSessionName());
+        Assert.assertTrue(provider.getRoleSessionName().contains("credentials-java-"));
         Assert.assertEquals("sts.aliyuncs.com", provider.getSTSEndpoint());
         try {
             provider.getCredentials();
@@ -193,6 +272,7 @@ public class RamRoleArnCredentialProviderTest {
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
         }
+        provider.close();
     }
 
 }

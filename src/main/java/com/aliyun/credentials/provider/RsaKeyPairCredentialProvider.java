@@ -8,10 +8,7 @@ import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
-import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.utils.AuthUtils;
-import com.aliyun.credentials.utils.ParameterHelper;
-import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.credentials.utils.*;
 import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 
@@ -32,8 +29,8 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
     /**
      * Unit of millisecond
      */
-    private int connectTimeout = 1000;
-    private int readTimeout = 1000;
+    private int connectTimeout = 5000;
+    private int readTimeout = 10000;
 
     /**
      * Endpoint of RAM OpenAPI
@@ -61,21 +58,38 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
     }
 
     @Deprecated
-    public RsaKeyPairCredentialProvider(String publicKeyId, String privateKey) {
+    public RsaKeyPairCredentialProvider(String publicKeyId, String privateKeyFile) {
         super(new BuilderImpl());
         this.publicKeyId = publicKeyId;
-        this.privateKey = privateKey;
+        this.privateKeyFile = Validate.notNull(privateKeyFile, "PrivateKeyFile must not be null.");
+        if (!StringUtils.isEmpty(this.privateKeyFile)) {
+            this.privateKey = AuthUtils.getPrivateKey(this.privateKeyFile);
+        }
     }
 
     private RsaKeyPairCredentialProvider(BuilderImpl builder) {
         super(builder);
-        this.durationSeconds = builder.durationSeconds;
+        this.durationSeconds = builder.durationSeconds == null ? 3600 : builder.durationSeconds;
+        if (this.durationSeconds < 900) {
+            throw new IllegalArgumentException("Session duration should be in the range of 900s - max session duration.");
+        }
         this.regionId = builder.regionId;
-        this.connectTimeout = builder.connectionTimeout;
-        this.readTimeout = builder.readTimeout;
-        this.STSEndpoint = builder.STSEndpoint;
+        this.connectTimeout = builder.connectionTimeout == null ? 5000 : builder.connectionTimeout;
+        this.readTimeout = builder.readTimeout == null ? 10000 : builder.readTimeout;
         this.publicKeyId = Validate.notNull(builder.publicKeyId, "PublicKeyId must not be null.");
-        this.privateKeyFile = Validate.notNull(builder.privateKeyFile, "privateKeyFile must not be null.");
+        this.privateKey = Validate.notNull(builder.privateKey, "PrivateKey must not be null.");
+        if (!StringUtils.isEmpty(builder.STSEndpoint)) {
+            this.STSEndpoint = builder.STSEndpoint;
+        } else {
+            String prefix = builder.enableVpc != null ? (builder.enableVpc ? "sts-vpc" : "sts") : AuthUtils.isEnableVpcEndpoint() ? "sts-vpc" : "sts";
+            if (!StringUtils.isEmpty(builder.stsRegionId)) {
+                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, builder.stsRegionId);
+            } else if (!StringUtils.isEmpty(AuthUtils.getEnvironmentSTSRegion())) {
+                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, AuthUtils.getEnvironmentSTSRegion());
+            } else {
+                this.STSEndpoint = "sts.ap-northeast-1.aliyuncs.com";
+            }
+        }
     }
 
     public static Builder builder() {
@@ -95,8 +109,8 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
     }
 
     public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) {
-        if (!StringUtils.isEmpty(this.privateKeyFile)) {
-            this.privateKey = AuthUtils.getOIDCToken(this.privateKeyFile);
+        if (StringUtils.isEmpty(this.privateKey)) {
+            throw new IllegalArgumentException("PrivateKey must not be empty.");
         }
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
@@ -133,6 +147,7 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
                 .accessKeyId(result.get("SessionAccessKeyId"))
                 .accessKeySecret(result.get("SessionAccessKeySecret"))
                 .type(AuthConstant.RSA_KEY_PAIR)
+                .providerName(this.getProviderName())
                 .expiration(expiration)
                 .build();
         return RefreshResult.builder(credential)
@@ -196,20 +211,35 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         this.STSEndpoint = STSEndpoint;
     }
 
+    @Override
+    public String getProviderName() {
+        return ProviderName.RSA_KEY_PAIR;
+    }
+
+    @Override
+    public void close() {
+    }
+
     public interface Builder extends SessionCredentialsProvider.Builder<RsaKeyPairCredentialProvider, Builder> {
-        Builder durationSeconds(int durationSeconds);
+        Builder durationSeconds(Integer durationSeconds);
 
         Builder regionId(String regionId);
 
-        Builder connectionTimeout(int connectionTimeout);
+        Builder connectionTimeout(Integer connectionTimeout);
 
-        Builder readTimeout(int readTimeout);
+        Builder readTimeout(Integer readTimeout);
 
         Builder STSEndpoint(String STSEndpoint);
+
+        Builder stsRegionId(String stsRegionId);
+
+        Builder enableVpc(Boolean enableVpc);
 
         Builder publicKeyId(String publicKeyId);
 
         Builder privateKeyFile(String privateKeyFile);
+
+        Builder privateKey(String privateKey);
 
         @Override
         RsaKeyPairCredentialProvider build();
@@ -218,18 +248,17 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
     private static final class BuilderImpl
             extends SessionCredentialsProvider.BuilderImpl<RsaKeyPairCredentialProvider, Builder>
             implements Builder {
-
-        private int durationSeconds = 3600;
-
-        private String regionId = "cn-hangzhou";
-
-        private int connectionTimeout = 1000;
-        private int readTimeout = 1000;
-        private String STSEndpoint = "sts.aliyuncs.com";
+        private Integer durationSeconds;
+        private String regionId;
+        private Integer connectionTimeout;
+        private Integer readTimeout;
+        private String STSEndpoint;
+        private String stsRegionId;
+        private Boolean enableVpc;
         private String publicKeyId;
-        private String privateKeyFile;
+        private String privateKey;
 
-        public Builder durationSeconds(int durationSeconds) {
+        public Builder durationSeconds(Integer durationSeconds) {
             this.durationSeconds = durationSeconds;
             return this;
         }
@@ -241,12 +270,12 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder connectionTimeout(int connectionTimeout) {
+        public Builder connectionTimeout(Integer connectionTimeout) {
             this.connectionTimeout = connectionTimeout;
             return this;
         }
 
-        public Builder readTimeout(int readTimeout) {
+        public Builder readTimeout(Integer readTimeout) {
             this.readTimeout = readTimeout;
             return this;
         }
@@ -256,15 +285,33 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
+        public Builder stsRegionId(String stsRegionId) {
+            this.stsRegionId = stsRegionId;
+            return this;
+        }
+
+        public Builder enableVpc(Boolean enableVpc) {
+            this.enableVpc = enableVpc;
+            return this;
+        }
+
         public Builder publicKeyId(String publicKeyId) {
             this.publicKeyId = publicKeyId;
             return this;
         }
 
         public Builder privateKeyFile(String privateKeyFile) {
-            this.privateKeyFile = privateKeyFile;
+            if (!StringUtils.isEmpty(privateKeyFile)) {
+                this.privateKey = AuthUtils.getPrivateKey(privateKeyFile);
+            }
             return this;
         }
+
+        public Builder privateKey(String privateKey) {
+            this.privateKey = privateKey;
+            return this;
+        }
+
 
         @Override
         public RsaKeyPairCredentialProvider build() {

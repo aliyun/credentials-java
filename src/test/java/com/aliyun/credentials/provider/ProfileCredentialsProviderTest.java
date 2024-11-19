@@ -1,6 +1,7 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.exception.CredentialException;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import org.ini4j.Wini;
@@ -30,6 +31,7 @@ public class ProfileCredentialsProviderTest {
         AuthUtils.setEnvironmentCredentialsFile(filePath);
         AuthUtils.setClientType(null);
         provider = new ProfileCredentialsProvider();
+        Assert.assertEquals("profile", provider.getProviderName());
         Assert.assertNotNull(provider.getCredentials());
 
         AuthUtils.setClientType("client5");
@@ -39,6 +41,7 @@ public class ProfileCredentialsProviderTest {
         } catch (CredentialException e) {
             Assert.assertEquals("Client is not open in the specified credentials file.", e.getMessage());
         }
+        provider.close();
 
         AuthUtils.setClientType("default");
     }
@@ -72,15 +75,39 @@ public class ProfileCredentialsProviderTest {
         client.put(AuthConstant.INI_TYPE, AuthConstant.ACCESS_KEY);
         client.put(AuthConstant.INI_ACCESS_KEY_ID, "test");
         client.put(AuthConstant.INI_ACCESS_KEY_IDSECRET, null);
-        Assert.assertNull(createCredential.invoke(provider, client, factory));
+        try {
+            createCredential.invoke(provider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("The configured access_key_id or access_key_secret is empty.",
+                    e.getCause().getLocalizedMessage());
+        }
 
         client.put(AuthConstant.INI_ACCESS_KEY_ID, null);
-        Assert.assertNull(createCredential.invoke(provider, client, factory));
+        try {
+            createCredential.invoke(provider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("The configured access_key_id or access_key_secret is empty.",
+                    e.getCause().getLocalizedMessage());
+        }
 
         client.clear();
         client.put(AuthConstant.INI_ACCESS_KEY_ID, AuthConstant.INI_TYPE_RAM);
         client.put(AuthConstant.INI_TYPE, "access_key");
-        Assert.assertNull(createCredential.invoke(provider, client, factory));
+        try {
+            createCredential.invoke(provider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("The configured access_key_id or access_key_secret is empty.",
+                    e.getCause().getLocalizedMessage());
+        }
+
+        client.clear();
+        client.put(AuthConstant.INI_ACCESS_KEY_ID, AuthConstant.INI_TYPE_RAM);
+        client.put(AuthConstant.INI_ACCESS_KEY_IDSECRET, AuthConstant.INI_TYPE_RAM);
+        client.put(AuthConstant.INI_TYPE, "access_key");
+        Assert.assertNotNull(createCredential.invoke(provider, client, factory));
     }
 
     @Test
@@ -215,6 +242,28 @@ public class ProfileCredentialsProviderTest {
             Assert.assertEquals("sads (No such file or directory)",
                     e.getCause().getLocalizedMessage());
         }
+
+
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        client.put(AuthConstant.INI_PUBLIC_KEY_ID, "");
+        client.put(AuthConstant.INI_PRIVATE_KEY_FILE, file);
+        try {
+            createCredential.invoke(provider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("The configured public_key_id or private_key_file content is empty.",
+                    e.getCause().getLocalizedMessage());
+        }
+
+        client.put(AuthConstant.INI_PUBLIC_KEY_ID, "test");
+        try {
+            createCredential.invoke(provider, client, factory);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getCause().getLocalizedMessage().contains("InvalidAccessKeyId.NotFound"));
+        }
+
         AuthUtils.setPrivateKey(null);
     }
 
@@ -236,11 +285,11 @@ public class ProfileCredentialsProviderTest {
         client.put(AuthConstant.DEFAULT_REGION, AuthConstant.INI_TYPE_ARN);
         RamRoleArnCredentialProvider ramRoleArnCredentialProvider =
                 Mockito.mock(RamRoleArnCredentialProvider.class);
-        Mockito.when(ramRoleArnCredentialProvider.getCredentials()).thenReturn(null);
+        Mockito.when(ramRoleArnCredentialProvider.getCredentials()).thenReturn(CredentialModel.builder().build());
         CredentialsProviderFactory factory = Mockito.mock(CredentialsProviderFactory.class);
         Mockito.when(factory.createCredentialsProvider(Mockito.any(RamRoleArnCredentialProvider.class))).
                 thenReturn(ramRoleArnCredentialProvider);
-        Assert.assertNull(createCredential.invoke(profileCredentialsProvider, client, factory));
+        Assert.assertNotNull(createCredential.invoke(profileCredentialsProvider, client, factory));
 
         client.clear();
         client.put(AuthConstant.INI_TYPE, AuthConstant.INI_TYPE_OIDC);
@@ -255,10 +304,10 @@ public class ProfileCredentialsProviderTest {
 
         OIDCRoleArnCredentialProvider oidcRoleArnCredentialProvider =
                 Mockito.mock(OIDCRoleArnCredentialProvider.class);
-        Mockito.when(oidcRoleArnCredentialProvider.getCredentials()).thenReturn(null);
+        Mockito.when(oidcRoleArnCredentialProvider.getCredentials()).thenReturn(CredentialModel.builder().build());
         Mockito.when(factory.createCredentialsProvider(Mockito.any(OIDCRoleArnCredentialProvider.class))).
                 thenReturn(oidcRoleArnCredentialProvider);
-        Assert.assertNull(createCredential.invoke(profileCredentialsProvider, client, factory));
+        Assert.assertNotNull(createCredential.invoke(profileCredentialsProvider, client, factory));
 
         client.clear();
         client.put(AuthConstant.INI_TYPE, AuthConstant.INI_TYPE_KEY_PAIR);
@@ -268,7 +317,7 @@ public class ProfileCredentialsProviderTest {
         AuthUtils.setPrivateKey("test");
         RsaKeyPairCredentialProvider rsaKeyPairCredentialProvider =
                 Mockito.mock(RsaKeyPairCredentialProvider.class);
-        Mockito.when(rsaKeyPairCredentialProvider.getCredentials()).thenReturn(null);
+        Mockito.when(rsaKeyPairCredentialProvider.getCredentials()).thenReturn(CredentialModel.builder().build());
         Mockito.when(factory.createCredentialsProvider(Mockito.any(RsaKeyPairCredentialProvider.class))).
                 thenReturn(rsaKeyPairCredentialProvider);
         try {
@@ -285,10 +334,10 @@ public class ProfileCredentialsProviderTest {
         client.put(AuthConstant.INI_ROLE_NAME, AuthConstant.INI_TYPE_KEY_PAIR);
         EcsRamRoleCredentialProvider ecsRamRoleCredentialProvider =
                 Mockito.mock(EcsRamRoleCredentialProvider.class);
-        Mockito.when(ecsRamRoleCredentialProvider.getCredentials()).thenReturn(null);
+        Mockito.when(ecsRamRoleCredentialProvider.getCredentials()).thenReturn(CredentialModel.builder().build());
         Mockito.when(factory.createCredentialsProvider(Mockito.any(EcsRamRoleCredentialProvider.class))).
                 thenReturn(ecsRamRoleCredentialProvider);
-        Assert.assertNull(createCredential.invoke(profileCredentialsProvider, client, factory));
+        Assert.assertNotNull(createCredential.invoke(profileCredentialsProvider, client, factory));
     }
 
     @Test

@@ -5,7 +5,7 @@ import com.aliyun.credentials.models.CredentialModel;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
-public abstract class SessionCredentialsProvider implements AlibabaCloudCredentialsProvider, AutoCloseable {
+public abstract class SessionCredentialsProvider implements AlibabaCloudCredentialsProvider {
     private final boolean asyncCredentialUpdateEnabled;
     private RefreshCachedSupplier<CredentialModel> credentialsCache;
     private final Callable<RefreshResult<CredentialModel>> refreshCallable = new Callable<RefreshResult<CredentialModel>>() {

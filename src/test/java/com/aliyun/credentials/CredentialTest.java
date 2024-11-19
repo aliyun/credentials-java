@@ -1,9 +1,6 @@
 package com.aliyun.credentials;
 
-import com.aliyun.credentials.provider.DefaultCredentialsProvider;
-import com.aliyun.credentials.provider.EcsRamRoleCredentialProvider;
-import com.aliyun.credentials.provider.RamRoleArnCredentialProvider;
-import com.aliyun.credentials.provider.RsaKeyPairCredentialProvider;
+import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,6 +31,10 @@ public class CredentialTest {
         config.setRoleName("test");
         config.setAccessKeySecret("test");
         config.setAccessKeyId("test");
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        config.setPublicKeyId("test");
+        config.setPrivateKeyFile(file);
         Credential credential = new Credential(config);
         Class<Credential> clazz = Credential.class;
         Method getProvider = clazz.getDeclaredMethod("getProvider", Configuration.class);
@@ -60,6 +61,10 @@ public class CredentialTest {
         config.setAccessKeyId("test");
         config.setAccessKeySecret("test");
         config.setSecurityToken("test");
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        config.setPublicKeyId("test");
+        config.setPrivateKeyFile(file);
         Credential credential = PowerMockito.spy(new Credential(config));
         Assert.assertTrue(credential.getCredential(config) instanceof StsCredential);
         config.setType(AuthConstant.RSA_KEY_PAIR);

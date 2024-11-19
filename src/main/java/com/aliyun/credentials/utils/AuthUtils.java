@@ -14,12 +14,16 @@ public class AuthUtils {
     private static volatile Boolean disableECSIMDSv1;
     private static volatile String environmentCredentialsFile;
     private static volatile String environmentRoleArn;
+    private static volatile String environmentRoleSessionName;
     private static volatile String environmentOIDCProviderArn;
     private static volatile String environmentOIDCTokenFilePath;
     private static volatile String privateKey;
     private static volatile String OIDCToken;
     private static volatile Boolean disableCLIProfile;
+    private static volatile Boolean disableECSMetaData;
     private static volatile String environmentCredentialsURI;
+    private static volatile Boolean enableVpcEndpoint;
+    private static volatile String environmentSTSRegion;
 
     public static String getPrivateKey(String filePath) {
         FileInputStream in = null;
@@ -166,6 +170,16 @@ public class AuthUtils {
                 : AuthUtils.environmentRoleArn;
     }
 
+    public static void setEnvironmentRoleSessionName(String environmentRoleSessionName) {
+        AuthUtils.environmentRoleSessionName = environmentRoleSessionName;
+    }
+
+    public static String getEnvironmentRoleSessionName() {
+        return null == AuthUtils.environmentRoleSessionName ?
+                System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME")
+                : AuthUtils.environmentRoleSessionName;
+    }
+
     public static void setEnvironmentOIDCProviderArn(String environmentOIDCProviderArn) {
         AuthUtils.environmentOIDCProviderArn = environmentOIDCProviderArn;
     }
@@ -215,6 +229,19 @@ public class AuthUtils {
         return false;
     }
 
+    public static void disableECSMetaData(boolean disableECSMetaData) {
+        AuthUtils.disableECSMetaData = disableECSMetaData;
+    }
+
+    public static boolean isDisableECSMetaData() {
+        if (null != AuthUtils.disableECSMetaData) {
+            return AuthUtils.disableECSMetaData;
+        } else if (null != System.getenv("ALIBABA_CLOUD_ECS_METADATA_DISABLED")) {
+            return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_ECS_METADATA_DISABLED"));
+        }
+        return false;
+    }
+
     public static void setEnvironmentCredentialsURI(String environmentCredentialsURI) {
         AuthUtils.environmentCredentialsURI = environmentCredentialsURI;
     }
@@ -223,6 +250,29 @@ public class AuthUtils {
         return null == AuthUtils.environmentCredentialsURI ?
                 System.getenv("ALIBABA_CLOUD_CREDENTIALS_URI")
                 : AuthUtils.environmentCredentialsURI;
+    }
+
+    public static void enableVpcEndpoint(boolean enableVpcEndpoint) {
+        AuthUtils.enableVpcEndpoint = enableVpcEndpoint;
+    }
+
+    public static boolean isEnableVpcEndpoint() {
+        if (null != AuthUtils.enableVpcEndpoint) {
+            return AuthUtils.enableVpcEndpoint;
+        } else if (null != System.getenv("ALIBABA_CLOUD_VPC_ENDPOINT_ENABLED")) {
+            return Boolean.parseBoolean(System.getenv("ALIBABA_CLOUD_VPC_ENDPOINT_ENABLED"));
+        }
+        return false;
+    }
+
+    public static void setEnvironmentSTSRegion(String environmentSTSRegion) {
+        AuthUtils.environmentSTSRegion = environmentSTSRegion;
+    }
+
+    public static String getEnvironmentSTSRegion() {
+        return null == AuthUtils.environmentSTSRegion ?
+                System.getenv("ALIBABA_CLOUD_STS_REGION")
+                : AuthUtils.environmentSTSRegion;
     }
 
 }

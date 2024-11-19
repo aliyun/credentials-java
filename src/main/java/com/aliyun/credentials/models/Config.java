@@ -22,7 +22,7 @@ public class Config extends TeaModel {
     @NameInMap("roleName")
     public String roleName;
     @NameInMap("disableIMDSv1")
-    public Boolean disableIMDSv1 = false;
+    public Boolean disableIMDSv1;
     @NameInMap("enableIMDSv2")
     public Boolean enableIMDSv2;
     @NameInMap("metadataTokenDuration")
@@ -34,9 +34,9 @@ public class Config extends TeaModel {
     @NameInMap("host")
     public String host;
     @NameInMap("readTimeout")
-    public int timeout = 10000;
+    public Integer timeout;
     @NameInMap("connectTimeout")
-    public int connectTimeout = 5000;
+    public Integer connectTimeout;
     @NameInMap("proxy")
     public String proxy;
     @NameInMap("policy")
@@ -50,7 +50,7 @@ public class Config extends TeaModel {
     @NameInMap("credentialsURI")
     public String credentialsURI;
     @NameInMap("STSEndpoint")
-    public String STSEndpoint = "sts.aliyuncs.com";
+    public String STSEndpoint;
     /**
      * <p>external id for ram role arn</p>
      */
@@ -243,7 +243,7 @@ public class Config extends TeaModel {
         return this;
     }
 
-    public int getTimeout() {
+    public Integer getTimeout() {
         return timeout;
     }
 
@@ -252,7 +252,7 @@ public class Config extends TeaModel {
         return this;
     }
 
-    public int getConnectTimeout() {
+    public Integer getConnectTimeout() {
         return connectTimeout;
     }
 
