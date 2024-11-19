@@ -12,10 +12,10 @@ public class ConfigTest {
         Map<String, Object> map = new HashMap<>();
         Config config = Config.build(map);
         Assert.assertEquals(21600, (int) config.getMetadataTokenDuration());
-        Assert.assertEquals(10000, config.getTimeout());
-        Assert.assertEquals(5000, config.getConnectTimeout());
+        Assert.assertNull(config.getTimeout());
+        Assert.assertNull(config.getConnectTimeout());
         Assert.assertEquals(3600, config.getRoleSessionExpiration());
-        Assert.assertEquals("sts.aliyuncs.com", config.getSTSEndpoint());
+        Assert.assertNull(config.getSTSEndpoint());
 
         map.put("type", "test");
         map.put("accessKeyId", "test");
@@ -53,8 +53,8 @@ public class ConfigTest {
         Assert.assertEquals(180, (int) config.getMetadataTokenDuration());
         Assert.assertEquals("test", config.getSecurityToken());
         Assert.assertEquals("test", config.getHost());
-        Assert.assertEquals(2000, config.getTimeout());
-        Assert.assertEquals(2000, config.getConnectTimeout());
+        Assert.assertEquals(2000, (int) config.getTimeout());
+        Assert.assertEquals(2000, (int) config.getConnectTimeout());
         Assert.assertEquals("test", config.getPolicy());
         Assert.assertEquals(1000, config.getRoleSessionExpiration());
         Assert.assertEquals("test", config.getOidcProviderArn());
@@ -89,7 +89,8 @@ public class ConfigTest {
                 .setOidcTokenFilePath("test")
                 .setCredentialsUri("test")
                 .setSTSEndpoint("test")
-                .setExternalId("test");
+                .setExternalId("test")
+                .setProxy("test");
         Assert.assertEquals("test", config.getType());
         Assert.assertEquals("test", config.getAccessKeyId());
         Assert.assertEquals("test", config.getAccessKeySecret());
@@ -100,12 +101,12 @@ public class ConfigTest {
         Assert.assertEquals("test", config.getRoleName());
         Assert.assertEquals(true, config.getEnableIMDSv2());
         Assert.assertEquals(true, config.getDisableIMDSv1());
-        Assert.assertEquals(180, (int)config.getMetadataTokenDuration());
+        Assert.assertEquals(180, (int) config.getMetadataTokenDuration());
         Assert.assertEquals(180, (int) config.getMetadataTokenDuration());
         Assert.assertEquals("test", config.getSecurityToken());
         Assert.assertEquals("test", config.getHost());
-        Assert.assertEquals(2000, config.getTimeout());
-        Assert.assertEquals(2000, config.getConnectTimeout());
+        Assert.assertEquals(2000, (int) config.getTimeout());
+        Assert.assertEquals(2000, (int) config.getConnectTimeout());
         Assert.assertEquals("test", config.getPolicy());
         Assert.assertEquals(1000, config.getRoleSessionExpiration());
         Assert.assertEquals("test", config.getOidcProviderArn());
@@ -113,5 +114,6 @@ public class ConfigTest {
         Assert.assertEquals("test", config.getCredentialsUri());
         Assert.assertEquals("test", config.getSTSEndpoint());
         Assert.assertEquals("test", config.getExternalId());
+        Assert.assertEquals("test", config.getProxy());
     }
 }

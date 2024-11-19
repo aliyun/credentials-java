@@ -7,6 +7,7 @@ import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -17,12 +18,21 @@ import static org.mockito.Mockito.when;
 public class RsaKeyPairCredentialProviderTest {
     @Test
     public void constructorTest() {
+        try {
+            new RsaKeyPairCredentialProvider(null, null);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("PrivateKeyFile must not be null.", e.getMessage());
+        }
         Configuration config = new Configuration();
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
         config.setPublicKeyId("test");
-        config.setPrivateKeyFile("test");
+        config.setPrivateKeyFile(file);
         config.setConnectTimeout(2000);
         config.setReadTimeout(2000);
         RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider(config);
+        Assert.assertEquals("rsa_key_pair", provider.getProviderName());
         Assert.assertEquals(2000, provider.getConnectTimeout());
         Assert.assertEquals(2000, provider.getReadTimeout());
         Assert.assertEquals("test", provider.getPrivateKey());
@@ -33,7 +43,7 @@ public class RsaKeyPairCredentialProviderTest {
 
         Config config1 = new Config();
         config1.publicKeyId = "test";
-        config1.privateKeyFile = "test";
+        config1.privateKeyFile = file;
         config1.connectTimeout = 2000;
         config1.timeout = 2000;
         provider = new RsaKeyPairCredentialProvider(config1);
@@ -48,7 +58,9 @@ public class RsaKeyPairCredentialProviderTest {
 
     @Test
     public void getCredentialsTest() {
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider(null, null);
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", file);
         try {
             provider.getCredentials();
             Assert.fail();
@@ -59,7 +71,9 @@ public class RsaKeyPairCredentialProviderTest {
 
     @Test
     public void createCredentialTest() {
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", "test");
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", file);
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
         response.setResponseCode(200);
@@ -71,7 +85,9 @@ public class RsaKeyPairCredentialProviderTest {
 
     @Test
     public void getSet() {
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", "test");
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", file);
         provider.setConnectTimeout(888);
         Assert.assertEquals(888, provider.getConnectTimeout());
 
@@ -92,5 +108,102 @@ public class RsaKeyPairCredentialProviderTest {
 
         provider.setSTSEndpoint("www.aliyun.com");
         Assert.assertEquals("www.aliyun.com", provider.getSTSEndpoint());
+    }
+
+    @Test
+    public void builderTest() {
+        RsaKeyPairCredentialProvider provider;
+        try {
+            RsaKeyPairCredentialProvider.builder().build();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("PublicKeyId must not be null.", e.getMessage());
+        }
+
+        try {
+            RsaKeyPairCredentialProvider.builder()
+                    .publicKeyId("test")
+                    .build();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("PrivateKey must not be null.", e.getMessage());
+        }
+
+        try {
+            RsaKeyPairCredentialProvider.builder()
+                    .durationSeconds(100)
+                    .build();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Session duration should be in the range of 900s - max session duration.", e.getMessage());
+        }
+
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+
+        provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .build();
+        Assert.assertEquals("sts.ap-northeast-1.aliyuncs.com", provider.getSTSEndpoint());
+
+        AuthUtils.setEnvironmentSTSRegion("cn-beijing");
+        provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKey("test")
+                .build();
+        Assert.assertEquals("sts.cn-beijing.aliyuncs.com", provider.getSTSEndpoint());
+
+        provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .stsRegionId("cn-hangzhou")
+                .build();
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+
+        AuthUtils.enableVpcEndpoint(true);
+        provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .stsRegionId("cn-hangzhou")
+                .build();
+        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+
+        provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .stsRegionId("cn-hangzhou")
+                .enableVpc(true)
+                .build();
+        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+
+        provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .STSEndpoint("sts.cn-shanghai.aliyuncs.com")
+                .stsRegionId("cn-hangzhou")
+                .enableVpc(true)
+                .build();
+        Assert.assertEquals("sts.cn-shanghai.aliyuncs.com", provider.getSTSEndpoint());
+
+        provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .durationSeconds(1000)
+                .STSEndpoint("sts.aliyuncs.com")
+                .regionId("cn-hangzhou")
+                .connectionTimeout(2000)
+                .readTimeout(2000)
+                .build();
+        Assert.assertEquals(2000, provider.getConnectTimeout());
+        Assert.assertEquals(2000, provider.getReadTimeout());
+        Assert.assertEquals(1000, provider.getDurationSeconds());
+        Assert.assertEquals("test", provider.getPublicKeyId());
+        Assert.assertEquals("sts.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("cn-hangzhou", provider.getRegionId());
+
+        AuthUtils.setEnvironmentSTSRegion(null);
+        AuthUtils.enableVpcEndpoint(false);
+        provider.close();
     }
 }

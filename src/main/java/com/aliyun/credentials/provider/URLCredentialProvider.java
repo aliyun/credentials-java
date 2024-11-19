@@ -8,10 +8,7 @@ import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
-import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.utils.ParameterHelper;
-import com.aliyun.credentials.utils.StringUtils;
-import com.aliyun.tea.utils.Validate;
+import com.aliyun.credentials.utils.*;
 import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
@@ -24,8 +21,8 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
     /**
      * Unit of millisecond
      */
-    private int connectTimeout = 1000;
-    private int readTimeout = 1000;
+    private int connectTimeout = 5000;
+    private int readTimeout = 10000;
 
     @Deprecated
     public URLCredentialProvider() {
@@ -70,13 +67,17 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
 
     private URLCredentialProvider(BuilderImpl builder) {
         super(builder);
+        String credentialsURI = builder.credentialsURI == null ? AuthUtils.getEnvironmentCredentialsURI() : builder.credentialsURI;
+        if (StringUtils.isEmpty(credentialsURI)) {
+            throw new IllegalArgumentException("Credential URI or environment variable ALIBABA_CLOUD_CREDENTIALS_URI cannot be empty.");
+        }
         try {
-            this.credentialsURI = new URL(Validate.notNull(builder.credentialsURI, "Credentials URI is not valid."));
+            this.credentialsURI = new URL(credentialsURI);
         } catch (MalformedURLException e) {
             throw new CredentialException("Credential URI is not valid.");
         }
-        this.connectTimeout = builder.connectionTimeout;
-        this.readTimeout = builder.readTimeout;
+        this.connectTimeout = builder.connectionTimeout == null ? 5000 : builder.connectionTimeout;
+        this.readTimeout = builder.readTimeout == null ? 10000 : builder.readTimeout;
     }
 
     public static Builder builder() {
@@ -127,6 +128,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
                     .accessKeySecret(map.get("AccessKeySecret"))
                     .securityToken(map.get("SecurityToken"))
                     .type(AuthConstant.CREDENTIALS_URI)
+                    .providerName(this.getProviderName())
                     .expiration(expiration)
                     .build();
             return RefreshResult.builder(credential)
@@ -157,14 +159,23 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
         this.readTimeout = readTimeout;
     }
 
+    @Override
+    public String getProviderName() {
+        return ProviderName.CREDENTIALS_URI;
+    }
+
+    @Override
+    public void close() {
+    }
+
     public interface Builder extends SessionCredentialsProvider.Builder<URLCredentialProvider, Builder> {
         Builder credentialsURI(URL credentialsURI);
 
         Builder credentialsURI(String credentialsURI);
 
-        Builder connectionTimeout(int connectionTimeout);
+        Builder connectionTimeout(Integer connectionTimeout);
 
-        Builder readTimeout(int readTimeout);
+        Builder readTimeout(Integer readTimeout);
 
         @Override
         URLCredentialProvider build();
@@ -174,9 +185,9 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
             extends SessionCredentialsProvider.BuilderImpl<URLCredentialProvider, Builder>
             implements Builder {
 
-        private String credentialsURI = System.getenv("ALIBABA_CLOUD_CREDENTIALS_URI");
-        private int connectionTimeout = 1000;
-        private int readTimeout = 1000;
+        private String credentialsURI;
+        private Integer connectionTimeout;
+        private Integer readTimeout;
 
         public Builder credentialsURI(URL credentialsURI) {
             this.credentialsURI = credentialsURI.toString();
@@ -188,12 +199,12 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder connectionTimeout(int connectionTimeout) {
+        public Builder connectionTimeout(Integer connectionTimeout) {
             this.connectionTimeout = connectionTimeout;
             return this;
         }
 
-        public Builder readTimeout(int readTimeout) {
+        public Builder readTimeout(Integer readTimeout) {
             this.readTimeout = readTimeout;
             return this;
         }

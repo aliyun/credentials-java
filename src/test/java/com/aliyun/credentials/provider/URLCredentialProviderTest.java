@@ -5,7 +5,9 @@ import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
+import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -22,7 +24,21 @@ public class URLCredentialProviderTest {
     public void constructorTest() throws MalformedURLException {
         URLCredentialProvider provider;
         try {
+            new URLCredentialProvider();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI cannot be null.",
+                    e.toString());
+        }
+        try {
             new URLCredentialProvider("");
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI cannot be null.",
+                    e.toString());
+        }
+        try {
+            new URLCredentialProvider((URL) null);
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI cannot be null.",
@@ -37,6 +53,7 @@ public class URLCredentialProviderTest {
         }
 
         provider = new URLCredentialProvider(new URL("http://test"));
+        Assert.assertEquals("credentials_uri", provider.getProviderName());
         Assert.assertEquals("http://test", provider.getURL());
 
         provider = new URLCredentialProvider("http://test");
@@ -51,6 +68,38 @@ public class URLCredentialProviderTest {
                 .credentialsURI(new URL("http://test"))
                 .build();
         Assert.assertEquals("http://test", provider.getURL());
+        provider.close();
+
+        Config config = new Config();
+        config.setCredentialsUri("url");
+        config.setConnectTimeout(2000);
+        config.setTimeout(2000);
+        try {
+            new URLCredentialProvider(config);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI is not valid.",
+                    e.toString());
+        }
+
+        try {
+            URLCredentialProvider.builder().build();
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertEquals("Credential URI or environment variable ALIBABA_CLOUD_CREDENTIALS_URI cannot be empty.",
+                    e.getMessage());
+        }
+
+        provider = URLCredentialProvider.builder()
+                .credentialsURI(new URL("http://test1"))
+                .credentialsURI("http://test2")
+                .readTimeout(2000)
+                .connectionTimeout(2000)
+                .build();
+        Assert.assertEquals("credentials_uri", provider.getProviderName());
+        Assert.assertEquals(2000, provider.getConnectTimeout());
+        Assert.assertEquals(2000, provider.getReadTimeout());
+        Assert.assertEquals("http://test2", provider.getURL());
     }
 
     @Test

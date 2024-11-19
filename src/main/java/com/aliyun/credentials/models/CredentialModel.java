@@ -2,14 +2,16 @@
 package com.aliyun.credentials.models;
 
 import com.aliyun.credentials.AlibabaCloudCredentials;
+import com.aliyun.credentials.api.ICredentials;
 import com.aliyun.tea.*;
 
-public class CredentialModel extends TeaModel implements AlibabaCloudCredentials {
+public class CredentialModel extends TeaModel implements AlibabaCloudCredentials, ICredentials {
     public String accessKeyId;
     public String accessKeySecret;
     public String securityToken;
     public String bearerToken;
     public String type;
+    public String providerName;
     public long expiration;
 
     private CredentialModel(Builder builder) {
@@ -18,6 +20,7 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
         this.securityToken = builder.securityToken;
         this.bearerToken = builder.bearerToken;
         this.type = builder.type;
+        this.providerName = builder.providerName;
         this.expiration = builder.expiration;
     }
 
@@ -79,12 +82,18 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
         return this.bearerToken;
     }
 
+    @Override
+    public String getProviderName() {
+        return providerName;
+    }
+
     public static final class Builder {
         private String accessKeyId;
         private String accessKeySecret;
         private String securityToken;
         private String bearerToken;
         private String type;
+        private String providerName;
         private long expiration;
 
         public Builder accessKeyId(String accessKeyId) {
@@ -109,6 +118,11 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
 
         public Builder type(String type) {
             this.type = type;
+            return this;
+        }
+
+        public Builder providerName(String providerName) {
+            this.providerName = providerName;
             return this;
         }
 

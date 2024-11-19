@@ -3,7 +3,7 @@ package com.aliyun.credentials.provider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.utils.AuthUtils;
+import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
 
 public class SystemPropertiesCredentialsProvider implements AlibabaCloudCredentialsProvider {
@@ -27,12 +27,23 @@ public class SystemPropertiesCredentialsProvider implements AlibabaCloudCredenti
                     .accessKeySecret(accessKeySecret)
                     .securityToken(securityToken)
                     .type(AuthConstant.STS)
+                    .providerName(this.getProviderName())
                     .build();
         }
         return CredentialModel.builder()
                 .accessKeyId(accessKeyId)
                 .accessKeySecret(accessKeySecret)
                 .type(AuthConstant.ACCESS_KEY)
+                .providerName(this.getProviderName())
                 .build();
+    }
+
+    @Override
+    public String getProviderName() {
+        return ProviderName.SYSTEM;
+    }
+
+    @Override
+    public void close() {
     }
 }

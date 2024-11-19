@@ -1,10 +1,12 @@
 package com.aliyun.credentials.provider;
 
 import com.aliyun.credentials.Configuration;
+import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
+import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
 
 public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
@@ -15,8 +17,9 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
     public EcsRamRoleCredentialProvider(String roleName) {
         super(new BuilderImpl());
         if (StringUtils.isEmpty(roleName)) {
-            CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-            roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
+            try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
+                roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
+            }
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(roleName);
     }
@@ -25,9 +28,10 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
     public EcsRamRoleCredentialProvider(Configuration config) {
         super(new BuilderImpl());
         if (StringUtils.isEmpty(config.getRoleName())) {
-            CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-            String roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
-            config.setRoleName(roleName);
+            try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
+                String roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
+                config.setRoleName(roleName);
+            }
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(config.getRoleName(), config.getConnectTimeout(), config.getReadTimeout());
     }
@@ -37,13 +41,15 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
         super(new BuilderImpl());
         String roleName = config.roleName;
         if (StringUtils.isEmpty(roleName)) {
-            CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-            roleName = new ECSMetadataServiceCredentialsFetcher(
-                    "",
-                    config.disableIMDSv1,
-                    config.connectTimeout,
-                    config.timeout
-            ).fetchRoleName(client);
+            try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
+                roleName = new ECSMetadataServiceCredentialsFetcher(
+                        "",
+                        config.disableIMDSv1,
+                        config.connectTimeout,
+                        config.timeout
+                ).fetchRoleName(client);
+            }
+
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(
                 roleName,
@@ -54,19 +60,14 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
 
     private EcsRamRoleCredentialProvider(BuilderImpl builder) {
         super(builder);
-        String roleName = builder.roleName;
-        if (StringUtils.isEmpty(roleName)) {
-            CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-            roleName = new ECSMetadataServiceCredentialsFetcher(
-                    "",
-                    builder.disableIMDSv1,
-                    builder.connectionTimeout,
-                    builder.readTimeout
-            ).fetchRoleName(client);
+        if (AuthUtils.isDisableECSMetaData()) {
+            throw new CredentialException("IMDS credentials is disabled.");
         }
+        String roleName = builder.roleName == null ? AuthUtils.getEnvironmentECSMetaData() : builder.roleName;
+        boolean disableIMDSv1 = builder.disableIMDSv1 == null ? AuthUtils.getDisableECSIMDSv1() : builder.disableIMDSv1;
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(
                 roleName,
-                builder.disableIMDSv1,
+                disableIMDSv1,
                 builder.connectionTimeout,
                 builder.readTimeout);
     }
@@ -77,8 +78,9 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
 
     @Override
     public RefreshResult<CredentialModel> refreshCredentials() {
-        CompatibleUrlConnClient client = new CompatibleUrlConnClient();
-        return fetcher.fetch(client);
+        try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
+            return fetcher.fetch(client);
+        }
     }
 
     public ECSMetadataServiceCredentialsFetcher getFetcher() {
@@ -89,10 +91,19 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
         this.fetcher = fetcher;
     }
 
+    @Override
+    public String getProviderName() {
+        return ProviderName.ECS_RAM_ROLE;
+    }
+
+    @Override
+    public void close() {
+    }
+
     public interface Builder extends SessionCredentialsProvider.Builder<EcsRamRoleCredentialProvider, Builder> {
         Builder roleName(String roleName);
 
-        Builder disableIMDSv1(boolean disableIMDSv1);
+        Builder disableIMDSv1(Boolean disableIMDSv1);
 
         @Deprecated
         Builder enableIMDSv2(boolean enableIMDSv2);
@@ -100,9 +111,9 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
         @Deprecated
         Builder metadataTokenDuration(int metadataTokenDuration);
 
-        Builder connectionTimeout(int connectionTimeout);
+        Builder connectionTimeout(Integer connectionTimeout);
 
-        Builder readTimeout(int readTimeout);
+        Builder readTimeout(Integer readTimeout);
 
         @Override
         EcsRamRoleCredentialProvider build();
@@ -112,18 +123,18 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             extends SessionCredentialsProvider.BuilderImpl<EcsRamRoleCredentialProvider, Builder>
             implements Builder {
         private String roleName;
-        private boolean disableIMDSv1 = AuthUtils.getDisableECSIMDSv1();
-        private boolean enableIMDSv2 = AuthUtils.getEnableECSIMDSv2();
-        private int metadataTokenDuration = 21600;
-        private int connectionTimeout = 1000;
-        private int readTimeout = 1000;
+        private Boolean disableIMDSv1;
+        private boolean enableIMDSv2;
+        private int metadataTokenDuration;
+        private Integer connectionTimeout;
+        private Integer readTimeout;
 
         public Builder roleName(String roleName) {
             this.roleName = roleName;
             return this;
         }
 
-        public Builder disableIMDSv1(boolean disableIMDSv1) {
+        public Builder disableIMDSv1(Boolean disableIMDSv1) {
             this.disableIMDSv1 = disableIMDSv1;
             return this;
         }
@@ -140,12 +151,12 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder connectionTimeout(int connectionTimeout) {
+        public Builder connectionTimeout(Integer connectionTimeout) {
             this.connectionTimeout = connectionTimeout;
             return this;
         }
 
-        public Builder readTimeout(int readTimeout) {
+        public Builder readTimeout(Integer readTimeout) {
             this.readTimeout = readTimeout;
             return this;
         }

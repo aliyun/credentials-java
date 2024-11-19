@@ -24,14 +24,14 @@ public class ECSMetadataServiceCredentialsFetcherTest {
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("test", 800, 800);
         Assert.assertEquals("test", fetcher.getRoleName());
-        Assert.assertEquals(1000, fetcher.getReadTimeout());
-        Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertEquals(800, fetcher.getReadTimeout());
+        Assert.assertEquals(800, fetcher.getConnectionTimeout());
         Assert.assertFalse(fetcher.getDisableIMDSv1());
         Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 1200, 800);
         Assert.assertEquals("id", fetcher.getRoleName());
-        Assert.assertEquals(1000, fetcher.getReadTimeout());
+        Assert.assertEquals(800, fetcher.getReadTimeout());
         Assert.assertEquals(1200, fetcher.getConnectionTimeout());
         Assert.assertFalse(fetcher.getDisableIMDSv1());
         Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
@@ -39,21 +39,21 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
-        Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertEquals(900, fetcher.getConnectionTimeout());
         Assert.assertFalse(fetcher.getDisableIMDSv1());
         Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 180, 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
-        Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertEquals(900, fetcher.getConnectionTimeout());
         Assert.assertTrue(fetcher.getDisableIMDSv1());
         Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
 
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
-        Assert.assertEquals(1000, fetcher.getConnectionTimeout());
+        Assert.assertEquals(900, fetcher.getConnectionTimeout());
         Assert.assertTrue(fetcher.getDisableIMDSv1());
         Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
     }

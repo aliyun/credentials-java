@@ -11,6 +11,7 @@ public class EnvironmentVariableCredentialsProviderTest {
     @Test
     public void getCredentialsTest() {
         EnvironmentVariableCredentialsProvider provider = new EnvironmentVariableCredentialsProvider();
+        Assert.assertEquals("env", provider.getProviderName());
         try {
             provider.getCredentials();
             Assert.fail();
@@ -70,6 +71,7 @@ public class EnvironmentVariableCredentialsProviderTest {
         AuthUtils.setEnvironmentAccessKeyId(null);
         AuthUtils.setEnvironmentAccessKeySecret(null);
         AuthUtils.setEnvironmentSecurityToken(null);
+        provider.close();
     }
 
 }

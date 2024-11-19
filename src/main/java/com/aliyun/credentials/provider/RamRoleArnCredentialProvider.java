@@ -8,9 +8,7 @@ import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
-import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.utils.ParameterHelper;
-import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.credentials.utils.*;
 import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 
@@ -38,8 +36,8 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     /**
      * Unit of millisecond
      */
-    private int connectTimeout = 1000;
-    private int readTimeout = 1000;
+    private int connectTimeout = 10000;
+    private int readTimeout = 5000;
 
     /**
      * Endpoint of RAM OpenAPI
@@ -81,6 +79,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
                         .accessKeyId(accessKeyId)
                         .accessKeySecret(accessKeySecret)
                         .type(AuthConstant.ACCESS_KEY)
+                        .providerName(ProviderName.STATIC_AK)
                         .build())
                 .build();
     }
@@ -96,16 +95,52 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
     private RamRoleArnCredentialProvider(BuilderImpl builder) {
         super(builder);
-        this.roleSessionName = builder.roleSessionName;
-        this.durationSeconds = builder.durationSeconds;
-        this.roleArn = builder.roleArn;
+        this.roleSessionName = builder.roleSessionName == null ? !StringUtils.isEmpty(AuthUtils.getEnvironmentRoleSessionName()) ?
+                AuthUtils.getEnvironmentRoleSessionName() : "credentials-java-" + System.currentTimeMillis() : builder.roleSessionName;
+        this.durationSeconds = builder.durationSeconds == null ? 3600 : builder.durationSeconds;
+        if (this.durationSeconds < 900) {
+            throw new IllegalArgumentException("Session duration should be in the range of 900s - max session duration.");
+        }
+
+        this.roleArn = builder.roleArn == null ? AuthUtils.getEnvironmentRoleArn() : builder.roleArn;
+        if (StringUtils.isEmpty(this.roleArn)) {
+            throw new IllegalArgumentException("RoleArn or environment variable ALIBABA_CLOUD_ROLE_ARN cannot be empty.");
+        }
+
         this.regionId = builder.regionId;
         this.policy = builder.policy;
-        this.connectTimeout = builder.connectionTimeout;
-        this.readTimeout = builder.readTimeout;
-        this.STSEndpoint = builder.STSEndpoint;
+        this.externalId = builder.externalId;
+        this.connectTimeout = builder.connectionTimeout == null ? 5000 : builder.connectionTimeout;
+        this.readTimeout = builder.readTimeout == null ? 10000 : builder.readTimeout;
+
+        if (!StringUtils.isEmpty(builder.STSEndpoint)) {
+            this.STSEndpoint = builder.STSEndpoint;
+        } else {
+            String prefix = builder.enableVpc != null ? (builder.enableVpc ? "sts-vpc" : "sts") : AuthUtils.isEnableVpcEndpoint() ? "sts-vpc" : "sts";
+            if (!StringUtils.isEmpty(builder.stsRegionId)) {
+                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, builder.stsRegionId);
+            } else if (!StringUtils.isEmpty(AuthUtils.getEnvironmentSTSRegion())) {
+                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, AuthUtils.getEnvironmentSTSRegion());
+            } else {
+                this.STSEndpoint = "sts.aliyuncs.com";
+            }
+        }
+
         if (null != builder.credentialsProvider) {
             this.credentialsProvider = builder.credentialsProvider;
+        } else if (null != builder.securityToken) {
+            this.credentialsProvider = StaticCredentialsProvider.builder()
+                    .credential(CredentialModel.builder()
+                            .accessKeyId(Validate.notNull(
+                                    builder.accessKeyId, "AccessKeyId must not be null."))
+                            .accessKeySecret(Validate.notNull(
+                                    builder.accessKeySecret, "AccessKeySecret must not be null."))
+                            .securityToken(Validate.notNull(
+                                    builder.securityToken, "SecurityToken must not be null."))
+                            .type(AuthConstant.STS)
+                            .providerName(ProviderName.STATIC_STS)
+                            .build())
+                    .build();
         } else {
             this.credentialsProvider = StaticCredentialsProvider.builder()
                     .credential(CredentialModel.builder()
@@ -114,11 +149,10 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
                             .accessKeySecret(Validate.notNull(
                                     builder.accessKeySecret, "AccessKeySecret must not be null."))
                             .type(AuthConstant.ACCESS_KEY)
+                            .providerName(ProviderName.STATIC_AK)
                             .build())
                     .build();
         }
-
-        this.externalId = builder.externalId;
     }
 
     public static Builder builder() {
@@ -183,12 +217,16 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
             throw new CredentialException(String.format("Error retrieving credentials from RamRoleArn result: %s.", httpResponse.getHttpContentString()));
         }
         Map<String, String> result = (Map<String, String>) map.get("Credentials");
+        if (!result.containsKey("AccessKeyId") || !result.containsKey("AccessKeySecret") || !result.containsKey("SecurityToken")) {
+            throw new CredentialException(String.format("Error retrieving credentials from RamRoleArn result: %s.", httpResponse.getHttpContentString()));
+        }
         long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
         CredentialModel credential = CredentialModel.builder()
                 .accessKeyId(result.get("AccessKeyId"))
                 .accessKeySecret(result.get("AccessKeySecret"))
                 .securityToken(result.get("SecurityToken"))
                 .type(AuthConstant.RAM_ROLE_ARN)
+                .providerName(String.format("%s/%s", this.getProviderName(), credentials.getProviderName()))
                 .expiration(expiration)
                 .build();
         return RefreshResult.builder(credential)
@@ -286,10 +324,19 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         return this.externalId;
     }
 
+    @Override
+    public String getProviderName() {
+        return ProviderName.RAM_ROLE_ARN;
+    }
+
+    @Override
+    public void close() {
+    }
+
     public interface Builder extends SessionCredentialsProvider.Builder<RamRoleArnCredentialProvider, Builder> {
         Builder roleSessionName(String roleSessionName);
 
-        Builder durationSeconds(int durationSeconds);
+        Builder durationSeconds(Integer durationSeconds);
 
         Builder roleArn(String roleArn);
 
@@ -297,15 +344,21 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         Builder policy(String policy);
 
-        Builder connectionTimeout(int connectionTimeout);
+        Builder connectionTimeout(Integer connectionTimeout);
 
-        Builder readTimeout(int readTimeout);
+        Builder readTimeout(Integer readTimeout);
 
         Builder STSEndpoint(String STSEndpoint);
+
+        Builder stsRegionId(String stsRegionId);
+
+        Builder enableVpc(Boolean enableVpc);
 
         Builder accessKeyId(String accessKeyId);
 
         Builder accessKeySecret(String accessKeySecret);
+
+        Builder securityToken(String securityToken);
 
         Builder credentialsProvider(AlibabaCloudCredentialsProvider credentialsProvider);
 
@@ -318,18 +371,19 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
     private static final class BuilderImpl
             extends SessionCredentialsProvider.BuilderImpl<RamRoleArnCredentialProvider, Builder>
             implements Builder {
-        private String roleSessionName = StringUtils.isEmpty(System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME")) ?
-                "javaSdkRoleSessionName"
-                : System.getenv("ALIBABA_CLOUD_ROLE_SESSION_NAME");
-        private int durationSeconds = 3600;
-        private String roleArn = System.getenv("ALIBABA_CLOUD_ROLE_ARN");
-        private String regionId = "cn-hangzhou";
+        private String roleSessionName;
+        private Integer durationSeconds;
+        private String roleArn;
+        private String regionId;
         private String policy;
-        private int connectionTimeout = 1000;
-        private int readTimeout = 1000;
-        private String STSEndpoint = "sts.aliyuncs.com";
+        private Integer connectionTimeout;
+        private Integer readTimeout;
+        private String STSEndpoint;
+        private String stsRegionId;
+        private Boolean enableVpc;
         private String accessKeyId;
         private String accessKeySecret;
+        private String securityToken;
         private AlibabaCloudCredentialsProvider credentialsProvider;
         private String externalId;
 
@@ -340,7 +394,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder durationSeconds(int durationSeconds) {
+        public Builder durationSeconds(Integer durationSeconds) {
             this.durationSeconds = durationSeconds;
             return this;
         }
@@ -364,18 +418,28 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder connectionTimeout(int connectionTimeout) {
+        public Builder connectionTimeout(Integer connectionTimeout) {
             this.connectionTimeout = connectionTimeout;
             return this;
         }
 
-        public Builder readTimeout(int readTimeout) {
+        public Builder readTimeout(Integer readTimeout) {
             this.readTimeout = readTimeout;
             return this;
         }
 
         public Builder STSEndpoint(String STSEndpoint) {
             this.STSEndpoint = STSEndpoint;
+            return this;
+        }
+
+        public Builder stsRegionId(String stsRegionId) {
+            this.stsRegionId = stsRegionId;
+            return this;
+        }
+
+        public Builder enableVpc(Boolean enableVpc) {
+            this.enableVpc = enableVpc;
             return this;
         }
 
@@ -386,6 +450,11 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         public Builder accessKeySecret(String accessKeySecret) {
             this.accessKeySecret = accessKeySecret;
+            return this;
+        }
+
+        public Builder securityToken(String securityToken) {
+            this.securityToken = securityToken;
             return this;
         }
 

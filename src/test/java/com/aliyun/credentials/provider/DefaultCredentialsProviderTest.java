@@ -19,7 +19,17 @@ public class DefaultCredentialsProviderTest {
                     .accessKeyId("")
                     .accessKeySecret("")
                     .type(AuthConstant.ACCESS_KEY)
+                    .providerName(this.getProviderName())
                     .build();
+        }
+
+        @Override
+        public String getProviderName() {
+            return "test";
+        }
+
+        @Override
+        public void close() {
         }
     }
 
@@ -42,18 +52,14 @@ public class DefaultCredentialsProviderTest {
         DefaultCredentialsProvider provider = DefaultCredentialsProvider.builder()
                 .reuseLastProviderEnabled(false)
                 .build();
+        new DefaultCredentialsProvider();
         AuthUtils.setEnvironmentECSMetaData("");
-        try {
-            new DefaultCredentialsProvider();
-            Assert.fail();
-        } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
-                    e.getMessage());
-        }
+        new DefaultCredentialsProvider();
 
         AuthUtils.setEnvironmentAccessKeyId("test");
         AuthUtils.setEnvironmentAccessKeySecret("test");
         CredentialModel credential = provider.getCredentials();
+        Assert.assertEquals("default/env", credential.getProviderName());
         Assert.assertEquals("test", credential.getAccessKeyId());
         Assert.assertEquals("test", credential.getAccessKeySecret());
 
@@ -61,6 +67,15 @@ public class DefaultCredentialsProviderTest {
             @Override
             public CredentialModel getCredentials() {
                 throw new CredentialException("test");
+            }
+
+            @Override
+            public String getProviderName() {
+                return "";
+            }
+
+            @Override
+            public void close() {
             }
         });
         DefaultCredentialsProvider.addCredentialsProvider(new CredentialsProviderForTest());
@@ -111,6 +126,7 @@ public class DefaultCredentialsProviderTest {
         } catch (CredentialException e) {
             Assert.assertTrue(e.getMessage().contains("URLCredentialProvider: Failed to get credentials from server: http://test"));
         }
+        provider.close();
 
         AuthUtils.setEnvironmentCredentialsURI(null);
     }
