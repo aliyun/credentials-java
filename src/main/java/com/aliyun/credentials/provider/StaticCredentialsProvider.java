@@ -30,4 +30,13 @@ public class StaticCredentialsProvider implements AlibabaCloudCredentialsProvide
             return new StaticCredentialsProvider(this);
         }
     }
+
+    @Override
+    public String getProviderName() {
+        return this.credential != null ? this.credential.getProviderName() : null;
+    }
+
+    @Override
+    public void close() {
+    }
 }

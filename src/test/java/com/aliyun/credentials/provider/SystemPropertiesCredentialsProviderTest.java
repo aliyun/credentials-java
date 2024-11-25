@@ -10,6 +10,7 @@ public class SystemPropertiesCredentialsProviderTest {
     @Test
     public void getCredentialsTest() {
         SystemPropertiesCredentialsProvider provider = new SystemPropertiesCredentialsProvider();
+        Assert.assertEquals("system", provider.getProviderName());
         try {
             provider.getCredentials();
             Assert.fail();
@@ -64,5 +65,6 @@ public class SystemPropertiesCredentialsProviderTest {
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEYSECRET, "");
         System.setProperty(AuthConstant.SYSTEM_ACCESSKEY_SECRET, "");
         System.setProperty(AuthConstant.SYSTEM_SESSION_TOKEN, "");
+        provider.close();
     }
 }

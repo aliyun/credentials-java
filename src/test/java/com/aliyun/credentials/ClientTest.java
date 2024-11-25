@@ -9,7 +9,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.powermock.api.mockito.PowerMockito;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -45,6 +44,7 @@ public class ClientTest {
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("Unable to load credentials from any of the providers in the chain"));
         }
+        AuthUtils.disableCLIProfile(false);
     }
 
     @Test
@@ -61,10 +61,13 @@ public class ClientTest {
         config.type = AuthConstant.ECS_RAM_ROLE;
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof EcsRamRoleCredentialProvider);
         config.type = AuthConstant.RAM_ROLE_ARN;
+        config.roleArn = "arn:aws:iam::123456789012:role/test";
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RamRoleArnCredentialProvider);
         config.type = AuthConstant.RSA_KEY_PAIR;
         config.publicKeyId = "test";
-        config.privateKeyFile = "/test";
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        config.privateKeyFile = file;
         Assert.assertTrue(getProvider.invoke(credential, config) instanceof RsaKeyPairCredentialProvider);
         config.type = "default";
         try {

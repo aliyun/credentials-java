@@ -92,6 +92,8 @@ public class CLIProfileCredentialsProviderTest {
         AlibabaCloudCredentialsProvider credentialsProvider = provider.reloadCredentialsProvider(config, "AK");
         Assert.assertTrue(credentialsProvider instanceof StaticCredentialsProvider);
         CredentialModel credential = credentialsProvider.getCredentials();
+        Assert.assertEquals("cli_profile", provider.getProviderName());
+        Assert.assertEquals("static_ak", credentialsProvider.getProviderName());
         Assert.assertEquals("akid", credential.getAccessKeyId());
         Assert.assertEquals("secret", credential.getAccessKeySecret());
         Assert.assertNull(credential.getSecurityToken());
@@ -165,6 +167,7 @@ public class CLIProfileCredentialsProviderTest {
         } catch (Exception e) {
             Assert.assertTrue(e.getMessage().contains("InvalidAccessKeyId.NotFound"));
         }
+        provider.close();
 
         System.setProperty("user.home", homePath);
     }
