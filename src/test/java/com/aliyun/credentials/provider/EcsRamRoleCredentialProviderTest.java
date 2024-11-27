@@ -136,6 +136,6 @@ public class EcsRamRoleCredentialProviderTest {
         provider.setFetcher(fetcher);
         Assert.assertEquals(fetcher, provider.getFetcher());
         Assert.assertEquals(AuthConstant.ECS_RAM_ROLE, provider.getCredentials().getType());
-        Assert.assertFalse(provider.isAsyncCredentialUpdateEnabled());
+        Assert.assertTrue(provider.isAsyncCredentialUpdateEnabled());
     }
 }

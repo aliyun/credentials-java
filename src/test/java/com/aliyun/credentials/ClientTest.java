@@ -7,7 +7,6 @@ import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -118,7 +117,7 @@ public class ClientTest {
         config.accessKeyId = "test";
         config.accessKeySecret = "test";
         config.securityToken = "test";
-        Client credential = PowerMockito.spy(new Client(config));
+        Client credential = new Client(config);
         Assert.assertEquals(AuthConstant.STS, credential.getType());
         config.type = AuthConstant.RSA_KEY_PAIR;
         config.publicKeyId = "test";
