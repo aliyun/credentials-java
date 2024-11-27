@@ -2,7 +2,6 @@ package com.aliyun.credentials.http;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
 
 import static org.mockito.Mockito.*;
 
@@ -50,7 +49,7 @@ public class CompatibleUrlConnClientTest {
     @Test
     public void buildHttpConnectionTest() {
         CompatibleUrlConnClient client0 = new CompatibleUrlConnClient();
-        CompatibleUrlConnClient client = PowerMockito.spy(client0);
+        CompatibleUrlConnClient client = spy(client0);
         HttpRequest request = mock(HttpRequest.class);
         when(request.getSysMethod()).thenReturn(MethodType.POST);
         when(request.getSysUrl()).thenReturn("https://www.aliyun.com");
