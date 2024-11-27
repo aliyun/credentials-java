@@ -5,10 +5,14 @@ import com.aliyun.credentials.http.MethodType;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
+import org.apache.commons.codec.binary.Base64;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ParameterHelper {
     private final static String TIME_ZONE = "UTC";
@@ -16,14 +20,42 @@ public class ParameterHelper {
     private final static String SEPARATOR = "&";
     public static final String ENCODING = "UTF-8";
     private static final String ALGORITHM_NAME = "HmacSHA1";
+    private static AtomicLong seqId = new AtomicLong(0);
+    private static final long processStartTime = System.currentTimeMillis();
 
     public static String getUniqueNonce() {
-        StringBuffer uniqueNonce = new StringBuffer();
-        UUID uuid = UUID.randomUUID();
-        uniqueNonce.append(uuid.toString());
-        uniqueNonce.append(System.currentTimeMillis());
-        uniqueNonce.append(Thread.currentThread().getId());
-        return uniqueNonce.toString();
+        // thread id
+        long threadId = Thread.currentThread().getId();
+        // timestamp: ms
+        long currentTime = System.currentTimeMillis();
+        // sequence number
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        long seq = seqId.getAndIncrement();
+        long rand = random.nextLong();
+
+        StringBuffer sb = new StringBuffer();
+        sb.append(processStartTime).append('-')
+                .append(threadId).append('-')
+                .append(currentTime).append('-')
+                .append(seq).append('-')
+                .append(rand);
+        try {
+            // hash
+            MessageDigest digest = MessageDigest.getInstance("MD5");
+            // hex
+            byte[] msg = sb.toString().getBytes();
+            sb.setLength(0);
+            for (byte b : digest.digest(msg)) {
+                String hex = Integer.toHexString(b & 0xFF);
+                if (hex.length() < 2) {
+                    sb.append(0);
+                }
+                sb.append(hex);
+            }
+        } catch (NoSuchAlgorithmException e) {
+            throw new CredentialException(e.getMessage(), e);
+        }
+        return sb.toString();
     }
 
 
@@ -41,6 +73,12 @@ public class ParameterHelper {
         } catch (ParseException e) {
             throw new CredentialException(e.getMessage(), e);
         }
+    }
+
+    public static String getTimeString(long milliseconds) {
+        Date date = new Date(milliseconds);
+        SimpleDateFormat df = new SimpleDateFormat(FORMAT_ISO8601);
+        return df.format(date);
     }
 
     public String composeStringToSign(MethodType method, Map<String, String> queries) {
@@ -69,7 +107,7 @@ public class ParameterHelper {
             Mac mac = Mac.getInstance(ALGORITHM_NAME);
             mac.init(new SecretKeySpec(accessKeySecret.getBytes(ENCODING), ALGORITHM_NAME));
             byte[] signData = mac.doFinal(stringToSign.getBytes(ENCODING));
-            return DatatypeConverter.printBase64Binary(signData);
+            return Base64.encodeBase64String(signData);
         } catch (Exception e) {
             throw new CredentialException(e.getMessage(), e);
         }

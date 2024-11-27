@@ -14,12 +14,13 @@ import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Map;
 
 public class ECSMetadataServiceCredentialsFetcher {
     private static final String URL_IN_ECS_METADATA = "/latest/meta-data/ram/security-credentials/";
     private static final String URL_IN_METADATA_TOKEN = "/latest/api/token";
-    private static final String ECS_METADAT_FETCH_ERROR_MSG = "Failed to get RAM session credentials from ECS metadata service.";
+    private static final String ECS_METADATA_FETCH_ERROR_MSG = "Failed to get RAM session credentials from ECS metadata service.";
     private URL credentialUrl;
     private final String roleName;
     private final String metadataServiceHost = "100.100.100.200";
@@ -98,7 +99,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         }
 
         if (response.getResponseCode() != 200) {
-            throw new CredentialException(ECS_METADAT_FETCH_ERROR_MSG + " HttpCode=" + response.getResponseCode());
+            throw new CredentialException(ECS_METADATA_FETCH_ERROR_MSG + " HttpCode=" + response.getResponseCode());
         }
 
         return new String(response.getHttpContent());
@@ -113,7 +114,10 @@ public class ECSMetadataServiceCredentialsFetcher {
         Map<String, String> result = new Gson().fromJson(jsonContent, Map.class);
 
         if (!"Success".equals(result.get("Code"))) {
-            throw new CredentialException(ECS_METADAT_FETCH_ERROR_MSG);
+            throw new CredentialException(ECS_METADATA_FETCH_ERROR_MSG);
+        }
+        if (!result.containsKey("AccessKeyId") || !result.containsKey("AccessKeySecret") || !result.containsKey("SecurityToken")) {
+            throw new CredentialException(String.format("Error retrieving credentials from IMDS result: %s.", jsonContent));
         }
         long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
         CredentialModel credential = CredentialModel.builder()
@@ -125,9 +129,22 @@ public class ECSMetadataServiceCredentialsFetcher {
                 .expiration(expiration)
                 .build();
         return RefreshResult.builder(credential)
-                .staleTime(expiration - 3 * 60 * 1000)
+                .staleTime(getStaleTime(expiration))
+                .prefetchTime(getPrefetchTime(expiration))
                 .build();
 
+    }
+
+    private long getStaleTime(long expiration) {
+        return expiration <= 0 ?
+                new Date().getTime() + 60 * 60 * 1000
+                : expiration - 15 * 60 * 1000;
+    }
+
+    private long getPrefetchTime(long expiration) {
+        return expiration <= 0 ?
+                new Date().getTime() + 5 * 60 * 1000
+                : new Date().getTime() + 60 * 60 * 1000;
     }
 
     public URL getCredentialUrl() {

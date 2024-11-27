@@ -44,6 +44,7 @@ public class ProfileCredentialsProviderTest {
         provider.close();
 
         AuthUtils.setClientType("default");
+        AuthUtils.setEnvironmentCredentialsFile(null);
     }
 
     @Test

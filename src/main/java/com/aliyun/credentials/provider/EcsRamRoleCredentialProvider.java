@@ -8,10 +8,21 @@ import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
+import com.aliyun.tea.logging.ClientLogger;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
+import static com.aliyun.credentials.provider.RefreshCachedSupplier.StaleValueBehavior.ALLOW;
 
 public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
-
+    private static final ClientLogger logger = new ClientLogger(EcsRamRoleCredentialProvider.class);
+    private static final int ASYNC_REFRESH_INTERVAL_TIME_MINUTES = 1;
     private ECSMetadataServiceCredentialsFetcher fetcher;
+    private volatile ScheduledExecutorService executor;
+    private volatile boolean shouldRefresh = false;
 
     @Deprecated
     public EcsRamRoleCredentialProvider(String roleName) {
@@ -22,6 +33,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             }
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(roleName);
+        checkCredentialsUpdateAsynchronously();
     }
 
     @Deprecated
@@ -34,6 +46,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             }
         }
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(config.getRoleName(), config.getConnectTimeout(), config.getReadTimeout());
+        checkCredentialsUpdateAsynchronously();
     }
 
     @Deprecated
@@ -56,6 +69,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
                 config.disableIMDSv1,
                 config.connectTimeout,
                 config.timeout);
+        checkCredentialsUpdateAsynchronously();
     }
 
     private EcsRamRoleCredentialProvider(BuilderImpl builder) {
@@ -70,6 +84,37 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
                 disableIMDSv1,
                 builder.connectionTimeout,
                 builder.readTimeout);
+        checkCredentialsUpdateAsynchronously();
+    }
+
+    private void checkCredentialsUpdateAsynchronously() {
+        if (isAsyncCredentialUpdateEnabled()) {
+            executor = Executors.newScheduledThreadPool(1, new ThreadFactory() {
+                public Thread newThread(Runnable r) {
+                    Thread t = Executors.defaultThreadFactory().newThread(r);
+                    t.setName("imds-credentials-check-and-refresh");
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
+            executor.scheduleWithFixedDelay(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (shouldRefresh) {
+                            logger.info("Begin checking or refreshing credentials asynchronously");
+                            getCredentials();
+                        }
+                    } catch (Exception re) {
+                        handleAsyncRefreshError(re);
+                    }
+                }
+
+                private void handleAsyncRefreshError(Exception e) {
+                    logger.warning("Failed when checking or refreshing credentials asynchronously, error: {}.", e.getMessage());
+                }
+            }, 0, ASYNC_REFRESH_INTERVAL_TIME_MINUTES, TimeUnit.MINUTES);
+        }
     }
 
     public static Builder builder() {
@@ -79,7 +124,9 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
     @Override
     public RefreshResult<CredentialModel> refreshCredentials() {
         try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
-            return fetcher.fetch(client);
+            RefreshResult<CredentialModel> result = fetcher.fetch(client);
+            shouldRefresh = true;
+            return result;
         }
     }
 
@@ -98,6 +145,11 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
 
     @Override
     public void close() {
+        super.close();
+        if (executor != null) {
+            executor.shutdownNow();
+            executor = null;
+        }
     }
 
     public interface Builder extends SessionCredentialsProvider.Builder<EcsRamRoleCredentialProvider, Builder> {
@@ -128,6 +180,12 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
         private int metadataTokenDuration;
         private Integer connectionTimeout;
         private Integer readTimeout;
+
+        private BuilderImpl() {
+            this.asyncCredentialUpdateEnabled = true;
+            this.jitterEnabled = true;
+            this.staleValueBehavior = ALLOW;
+        }
 
         public Builder roleName(String roleName) {
             this.roleName = roleName;

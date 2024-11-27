@@ -30,11 +30,7 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
         defaultProviders.add(new SystemPropertiesCredentialsProvider());
         defaultProviders.add(new EnvironmentVariableCredentialsProvider());
         if (AuthUtils.environmentEnableOIDC()) {
-            defaultProviders.add(OIDCRoleArnCredentialProvider.builder()
-                    .roleArn(AuthUtils.getEnvironmentRoleArn())
-                    .oidcProviderArn(AuthUtils.getEnvironmentOIDCProviderArn())
-                    .oidcTokenFilePath(AuthUtils.getEnvironmentOIDCTokenFilePath())
-                    .build());
+            defaultProviders.add(OIDCRoleArnCredentialProvider.builder().build());
         }
         defaultProviders.add(CLIProfileCredentialsProvider.builder().build());
         defaultProviders.add(new ProfileCredentialsProvider());
@@ -99,7 +95,7 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
                 errorMessages.add(provider.getClass().getSimpleName() + ": " + e.getMessage());
             }
         }
-        throw new CredentialException("Unable to load credentials from any of the providers in the chain: ." + errorMessages);
+        throw new CredentialException("Unable to load credentials from any of the providers in the chain: " + errorMessages);
     }
 
     @Deprecated
@@ -139,7 +135,7 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
             return this;
         }
 
-        DefaultCredentialsProvider build() {
+        public DefaultCredentialsProvider build() {
             return new DefaultCredentialsProvider(this);
         }
     }

@@ -6,7 +6,6 @@ import com.aliyun.credentials.http.*;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.*;
-import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 
 import java.io.UnsupportedEncodingException;
@@ -26,7 +25,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     private String roleArn;
     private String oidcProviderArn;
 
-    private String oidcToken;
+    private volatile String oidcToken;
     private String oidcTokenFilePath;
 
     /**
@@ -121,7 +120,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
     private OIDCRoleArnCredentialProvider(BuilderImpl builder) {
         super(builder);
-        this.roleSessionName  = builder.roleSessionName == null ? !StringUtils.isEmpty(AuthUtils.getEnvironmentRoleSessionName()) ?
+        this.roleSessionName = builder.roleSessionName == null ? !StringUtils.isEmpty(AuthUtils.getEnvironmentRoleSessionName()) ?
                 AuthUtils.getEnvironmentRoleSessionName() : "credentials-java-" + System.currentTimeMillis() : builder.roleSessionName;
         this.durationSeconds = builder.durationSeconds == null ? 3600 : builder.durationSeconds;
         if (this.durationSeconds < 900) {
@@ -184,7 +183,8 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     }
 
     public RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) throws UnsupportedEncodingException {
-        this.oidcToken = AuthUtils.getOIDCToken(oidcTokenFilePath);
+        String token = AuthUtils.getOIDCToken(oidcTokenFilePath);
+        this.oidcToken = token;
         ParameterHelper parameterHelper = new ParameterHelper();
         HttpRequest httpRequest = new HttpRequest();
         httpRequest.setUrlParameter("Action", "AssumeRoleWithOIDC");
@@ -194,9 +194,11 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         body.put("DurationSeconds", String.valueOf(durationSeconds));
         body.put("RoleArn", this.roleArn);
         body.put("OIDCProviderArn", this.oidcProviderArn);
-        body.put("OIDCToken", this.oidcToken);
+        body.put("OIDCToken", token);
         body.put("RoleSessionName", this.roleSessionName);
-        body.put("Policy", this.policy);
+        if (policy != null) {
+            body.put("Policy", this.policy);
+        }
         StringBuilder content = new StringBuilder();
         boolean first = true;
         for (Map.Entry<String, String> entry : body.entrySet()) {
@@ -331,6 +333,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
     @Override
     public void close() {
+        super.close();
     }
 
     public interface Builder extends SessionCredentialsProvider.Builder<OIDCRoleArnCredentialProvider, Builder> {
@@ -379,9 +382,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         private Boolean enableVpc;
 
         public Builder roleSessionName(String roleSessionName) {
-            if (!StringUtils.isEmpty(roleSessionName)) {
-                this.roleSessionName = roleSessionName;
-            }
+            this.roleSessionName = roleSessionName;
             return this;
         }
 
@@ -391,30 +392,22 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         }
 
         public Builder roleArn(String roleArn) {
-            if (!StringUtils.isEmpty(roleArn)) {
-                this.roleArn = roleArn;
-            }
+            this.roleArn = roleArn;
             return this;
         }
 
         public Builder oidcProviderArn(String oidcProviderArn) {
-            if (!StringUtils.isEmpty(oidcProviderArn)) {
-                this.oidcProviderArn = oidcProviderArn;
-            }
+            this.oidcProviderArn = oidcProviderArn;
             return this;
         }
 
         public Builder oidcTokenFilePath(String oidcTokenFilePath) {
-            if (!StringUtils.isEmpty(oidcTokenFilePath)) {
-                this.oidcTokenFilePath = oidcTokenFilePath;
-            }
+            this.oidcTokenFilePath = oidcTokenFilePath;
             return this;
         }
 
         public Builder regionId(String regionId) {
-            if (!StringUtils.isEmpty(regionId)) {
-                this.regionId = regionId;
-            }
+            this.regionId = regionId;
             return this;
         }
 
