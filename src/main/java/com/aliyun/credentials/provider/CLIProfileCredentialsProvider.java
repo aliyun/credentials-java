@@ -26,7 +26,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         this.currentProfileName = builder.profileName == null ? System.getenv("ALIBABA_CLOUD_PROFILE") : builder.profileName;
     }
 
-    static Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -173,7 +173,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
     public void close() {
     }
 
-    static final class Builder {
+    public static final class Builder {
         private String profileName;
 
         public Builder profileName(String profileName) {
@@ -181,7 +181,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
             return this;
         }
 
-        CLIProfileCredentialsProvider build() {
+        public CLIProfileCredentialsProvider build() {
             return new CLIProfileCredentialsProvider(this);
         }
     }

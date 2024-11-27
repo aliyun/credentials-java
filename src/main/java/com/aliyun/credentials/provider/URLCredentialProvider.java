@@ -74,7 +74,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
         try {
             this.credentialsURI = new URL(credentialsURI);
         } catch (MalformedURLException e) {
-            throw new CredentialException("Credential URI is not valid.");
+            throw new IllegalArgumentException("Credential URI is not valid.");
         }
         this.connectTimeout = builder.connectionTimeout == null ? 5000 : builder.connectionTimeout;
         this.readTimeout = builder.readTimeout == null ? 10000 : builder.readTimeout;
@@ -121,22 +121,24 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
                     + "\nHttpCode=" + response.getResponseCode()
                     + "\nHttpRAWContent=" + response.getHttpContentString(), e);
         }
-        if (map.containsKey("Code") && map.get("Code").equals("Success")) {
-            long expiration = ParameterHelper.getUTCDate(map.get("Expiration")).getTime();
-            CredentialModel credential = CredentialModel.builder()
-                    .accessKeyId(map.get("AccessKeyId"))
-                    .accessKeySecret(map.get("AccessKeySecret"))
-                    .securityToken(map.get("SecurityToken"))
-                    .type(AuthConstant.CREDENTIALS_URI)
-                    .providerName(this.getProviderName())
-                    .expiration(expiration)
-                    .build();
-            return RefreshResult.builder(credential)
-                    .staleTime(getStaleTime(expiration))
-                    .build();
-        } else {
+        if (null == map || !map.containsKey("Code") || !map.get("Code").equals("Success")) {
             throw new CredentialException(String.format("Error retrieving credentials from credentialsURI result: %s.", response.getHttpContentString()));
         }
+        if (!map.containsKey("AccessKeyId") || !map.containsKey("AccessKeySecret") || !map.containsKey("SecurityToken") || !map.containsKey("Expiration")) {
+            throw new CredentialException(String.format("Error retrieving credentials from credentialsURI result: %s.", response.getHttpContentString()));
+        }
+        long expiration = ParameterHelper.getUTCDate(map.get("Expiration")).getTime();
+        CredentialModel credential = CredentialModel.builder()
+                .accessKeyId(map.get("AccessKeyId"))
+                .accessKeySecret(map.get("AccessKeySecret"))
+                .securityToken(map.get("SecurityToken"))
+                .type(AuthConstant.CREDENTIALS_URI)
+                .providerName(this.getProviderName())
+                .expiration(expiration)
+                .build();
+        return RefreshResult.builder(credential)
+                .staleTime(getStaleTime(expiration))
+                .build();
     }
 
     public String getURL() {
@@ -166,6 +168,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
 
     @Override
     public void close() {
+        super.close();
     }
 
     public interface Builder extends SessionCredentialsProvider.Builder<URLCredentialProvider, Builder> {

@@ -2,12 +2,12 @@ package com.aliyun.credentials;
 
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.Config;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -30,6 +30,7 @@ public class ClientTest {
     @Test
     public void defaultCredentialTest() {
         AuthUtils.disableCLIProfile(true);
+        AuthUtils.setEnvironmentCredentialsFile("");
         try {
             Client credential = new Client();
             credential.getCredential();
@@ -118,7 +119,7 @@ public class ClientTest {
         config.accessKeyId = "test";
         config.accessKeySecret = "test";
         config.securityToken = "test";
-        Client credential = PowerMockito.spy(new Client(config));
+        Client credential = new Client(config);
         Assert.assertEquals(AuthConstant.STS, credential.getType());
         config.type = AuthConstant.RSA_KEY_PAIR;
         config.publicKeyId = "test";

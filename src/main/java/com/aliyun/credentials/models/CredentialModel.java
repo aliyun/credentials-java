@@ -87,6 +87,11 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
         return providerName;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Credential(accessKeyId=%s, accessKeySecret=%s, securityToken=%s, providerName=%s, expiration=%s)", accessKeyId, accessKeySecret, securityToken, providerName, expiration);
+    }
+
     public static final class Builder {
         private String accessKeyId;
         private String accessKeySecret;

@@ -218,6 +218,7 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
 
     @Override
     public void close() {
+        super.close();
     }
 
     public interface Builder extends SessionCredentialsProvider.Builder<RsaKeyPairCredentialProvider, Builder> {
