@@ -4,7 +4,6 @@ import com.aliyun.credentials.provider.*;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -65,7 +64,7 @@ public class CredentialTest {
                 getResource("private_key.txt").getPath();
         config.setPublicKeyId("test");
         config.setPrivateKeyFile(file);
-        Credential credential = PowerMockito.spy(new Credential(config));
+        Credential credential = new Credential(config);
         Assert.assertTrue(credential.getCredential(config) instanceof StsCredential);
         config.setType(AuthConstant.RSA_KEY_PAIR);
         try {

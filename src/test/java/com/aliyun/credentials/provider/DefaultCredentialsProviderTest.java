@@ -155,9 +155,9 @@ public class DefaultCredentialsProviderTest {
 
     @Test
     public void reuseLastProviderEnabledTest() throws NoSuchFieldException, IllegalAccessException {
-        DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
         AuthUtils.setEnvironmentAccessKeyId("test");
         AuthUtils.setEnvironmentAccessKeySecret("test");
+        DefaultCredentialsProvider provider = new DefaultCredentialsProvider();
         CredentialModel credential = provider.getCredentials();
         Assert.assertEquals("test", credential.getAccessKeyId());
         Assert.assertEquals("test", credential.getAccessKeySecret());
@@ -191,7 +191,7 @@ public class DefaultCredentialsProviderTest {
         credential = provider.getCredentials();
         Assert.assertEquals("", credential.getAccessKeyId());
         Assert.assertEquals("", credential.getAccessKeySecret());
-        Assert.assertFalse(providerField.get(provider) instanceof EnvironmentVariableCredentialsProvider);
+        Assert.assertTrue(providerField.get(provider) instanceof CredentialsProviderForTest);
         Assert.assertFalse((Boolean) reuseEnableField.get(provider));
 
         AuthUtils.setEnvironmentAccessKeyId(null);

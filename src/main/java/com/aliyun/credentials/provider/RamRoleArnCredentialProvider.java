@@ -128,7 +128,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         if (null != builder.credentialsProvider) {
             this.credentialsProvider = builder.credentialsProvider;
-        } else if (null != builder.securityToken) {
+        } else if (!StringUtils.isEmpty(builder.securityToken)) {
             this.credentialsProvider = StaticCredentialsProvider.builder()
                     .credential(CredentialModel.builder()
                             .accessKeyId(Validate.notNull(
@@ -388,9 +388,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         private String externalId;
 
         public Builder roleSessionName(String roleSessionName) {
-            if (!StringUtils.isEmpty(roleSessionName)) {
-                this.roleSessionName = roleSessionName;
-            }
+            this.roleSessionName = roleSessionName;
             return this;
         }
 
@@ -400,16 +398,12 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         }
 
         public Builder roleArn(String roleArn) {
-            if (!StringUtils.isEmpty(roleArn)) {
-                this.roleArn = roleArn;
-            }
+            this.roleArn = roleArn;
             return this;
         }
 
         public Builder regionId(String regionId) {
-            if (!StringUtils.isEmpty(regionId)) {
-                this.regionId = regionId;
-            }
+            this.regionId = regionId;
             return this;
         }
 

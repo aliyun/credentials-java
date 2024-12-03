@@ -26,7 +26,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         this.currentProfileName = builder.profileName == null ? System.getenv("ALIBABA_CLOUD_PROFILE") : builder.profileName;
     }
 
-    static Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
