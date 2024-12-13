@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Map;
 
 public class ECSMetadataServiceCredentialsFetcher {
@@ -115,6 +116,9 @@ public class ECSMetadataServiceCredentialsFetcher {
         if (!"Success".equals(result.get("Code"))) {
             throw new CredentialException(ECS_METADAT_FETCH_ERROR_MSG);
         }
+        if (!result.containsKey("AccessKeyId") || !result.containsKey("AccessKeySecret") || !result.containsKey("SecurityToken")) {
+            throw new CredentialException(String.format("Error retrieving credentials from IMDS result: %s.", jsonContent));
+        }
         long expiration = ParameterHelper.getUTCDate(result.get("Expiration")).getTime();
         CredentialModel credential = CredentialModel.builder()
                 .accessKeyId(result.get("AccessKeyId"))
@@ -125,9 +129,22 @@ public class ECSMetadataServiceCredentialsFetcher {
                 .expiration(expiration)
                 .build();
         return RefreshResult.builder(credential)
-                .staleTime(expiration - 3 * 60 * 1000)
+                .staleTime(getStaleTime(expiration))
+                .prefetchTime(getPrefetchTime(expiration))
                 .build();
 
+    }
+
+    private long getStaleTime(long expiration) {
+        return expiration <= 0 ?
+                new Date().getTime() + 60 * 60 * 1000
+                : expiration - 15 * 60 * 1000;
+    }
+
+    private long getPrefetchTime(long expiration) {
+        return expiration <= 0 ?
+                new Date().getTime() + 5 * 60 * 1000
+                : new Date().getTime() + 60 * 60 * 1000;
     }
 
     public URL getCredentialUrl() {

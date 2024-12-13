@@ -23,4 +23,13 @@ public class ParameterHelperTest {
         Date d2 = ParameterHelper.getUTCDate("2018-12-18T16:39:38Z");
         Assert.assertEquals("2018-12-18T16:39:38Z", ParameterHelper.getISO8601Time(d2));
     }
+
+    @Test
+    public void signString() {
+        String stringToSign = "abc~!@#";
+        String sk = "sk#$!~~~";
+        ParameterHelper parameterHelper = new ParameterHelper();
+        String signedString = parameterHelper.signString(stringToSign, sk);
+        Assert.assertEquals("7eV3A584uvdgKVk8Ck8r9ukg1gE=", signedString);
+    }
 }

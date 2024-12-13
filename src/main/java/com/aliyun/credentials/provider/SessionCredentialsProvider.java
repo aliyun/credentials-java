@@ -5,6 +5,8 @@ import com.aliyun.credentials.models.CredentialModel;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
+import static com.aliyun.credentials.provider.RefreshCachedSupplier.StaleValueBehavior.STRICT;
+
 public abstract class SessionCredentialsProvider implements AlibabaCloudCredentialsProvider {
     private final boolean asyncCredentialUpdateEnabled;
     private RefreshCachedSupplier<CredentialModel> credentialsCache;
@@ -21,13 +23,15 @@ public abstract class SessionCredentialsProvider implements AlibabaCloudCredenti
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.credentialsCache = RefreshCachedSupplier.builder(refreshCallable)
                 .asyncUpdateEnabled(this.asyncCredentialUpdateEnabled)
+                .staleValueBehavior(builder.staleValueBehavior)
+                .jitterEnabled(builder.jitterEnabled)
                 .build();
     }
 
     public long getStaleTime(long expiration) {
         return expiration <= 0 ?
                 new Date().getTime() + 60 * 60 * 1000
-                : expiration - 3 * 60 * 1000;
+                : expiration - RefreshCachedSupplier.STALE_TIME;
     }
 
     @Override
@@ -54,7 +58,9 @@ public abstract class SessionCredentialsProvider implements AlibabaCloudCredenti
 
     protected abstract static class BuilderImpl<ProviderT extends SessionCredentialsProvider, BuilderT extends Builder>
             implements Builder<ProviderT, BuilderT> {
-        private boolean asyncCredentialUpdateEnabled = false;
+        boolean asyncCredentialUpdateEnabled = false;
+        Boolean jitterEnabled = true;
+        RefreshCachedSupplier.StaleValueBehavior staleValueBehavior = STRICT;
 
         protected BuilderImpl() {
         }
@@ -62,6 +68,16 @@ public abstract class SessionCredentialsProvider implements AlibabaCloudCredenti
         @Override
         public BuilderT asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled) {
             this.asyncCredentialUpdateEnabled = asyncCredentialUpdateEnabled;
+            return (BuilderT) this;
+        }
+
+        BuilderT staleValueBehavior(RefreshCachedSupplier.StaleValueBehavior staleValueBehavior) {
+            this.staleValueBehavior = staleValueBehavior;
+            return (BuilderT) this;
+        }
+
+        BuilderT jitterEnabled(Boolean jitterEnabled) {
+            this.jitterEnabled = jitterEnabled;
             return (BuilderT) this;
         }
     }
