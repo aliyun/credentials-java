@@ -1,3 +1,7 @@
+2025-01-20 Version: 1.0.0
+1.refactor: all credentials providers extends ICredentialsProvider.
+2.drop jdk7 supports.
+
 2024-09-27 Version: 0.3.11
 1.refactor: remove ini4j && improve ini config file parsing.
 
