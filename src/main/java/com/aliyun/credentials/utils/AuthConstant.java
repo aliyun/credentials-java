@@ -1,13 +1,16 @@
 package com.aliyun.credentials.utils;
 
+
+import com.aliyun.credentials.configure.Config;
+
 public class AuthConstant {
-    public static final String SYSTEM_ACCESSKEYID = "alibabacloud.accessKeyId";
-    public static final String SYSTEM_ACCESSKEYSECRET = "alibabacloud.accessKeyIdSecret";
-    public static final String SYSTEM_ACCESSKEY_SECRET = "alibabacloud.accessKeySecret";
-    public static final String SYSTEM_SESSION_TOKEN = "alibabacloud.sessionToken";
+    public static final String SYSTEM_ACCESSKEYID = Config.PROPERTIES_PREFIX + "accessKeyId";
+    public static final String SYSTEM_ACCESSKEYSECRET = Config.PROPERTIES_PREFIX + "accessKeyIdSecret";
+    public static final String SYSTEM_ACCESSKEY_SECRET = Config.PROPERTIES_PREFIX + "accessKeySecret";
+    public static final String SYSTEM_SESSION_TOKEN = Config.PROPERTIES_PREFIX + "sessionToken";
 
     public static final String DEFAULT_CREDENTIALS_FILE_PATH = System.getProperty("user.home") +
-            "/.alibabacloud/credentials.ini";
+            "/" + Config.CREDENTIAL_FILE_PATH + "/credentials.ini";
     public static final String INI_ACCESS_KEY_ID = "access_key_id";
     public static final String INI_ACCESS_KEY_IDSECRET = "access_key_secret";
     public static final String INI_TYPE = "type";
@@ -24,7 +27,6 @@ public class AuthConstant {
     public static final String INI_POLICY = "policy";
     public static final String INI_OIDC_PROVIDER_ARN = "oidc_provider_arn";
     public static final String INI_OIDC_TOKEN_FILE_PATH = "oidc_token_file_path";
-    public static final long TSC_VALID_TIME_SECONDS = 3600L;
     public static final String DEFAULT_REGION = "region_id";
     public static final String INI_ENABLE = "enable";
 
@@ -35,8 +37,6 @@ public class AuthConstant {
     public static final String RSA_KEY_PAIR = "rsa_key_pair";
     public static final String BEARER = "bearer";
     public static final String OIDC_ROLE_ARN = "oidc_role_arn";
-    @Deprecated
-    public static final String URL_STS = "credentials_uri";
     public static final String CREDENTIALS_URI = "credentials_uri";
 
 }

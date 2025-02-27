@@ -17,13 +17,16 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Map;
 
+import static com.aliyun.credentials.configure.Config.IMDS_HEADER_PREFIX;
+import static com.aliyun.credentials.configure.Config.METADATA_HOST;
+
 public class ECSMetadataServiceCredentialsFetcher {
     private static final String URL_IN_ECS_METADATA = "/latest/meta-data/ram/security-credentials/";
     private static final String URL_IN_METADATA_TOKEN = "/latest/api/token";
     private static final String ECS_METADATA_FETCH_ERROR_MSG = "Failed to get RAM session credentials from ECS metadata service.";
     private URL credentialUrl;
     private final String roleName;
-    private final String metadataServiceHost = "100.100.100.200";
+    private final String metadataServiceHost = METADATA_HOST;
     private int connectionTimeout = 1000;
     private int readTimeout = 1000;
     private final boolean disableIMDSv1;
@@ -33,15 +36,6 @@ public class ECSMetadataServiceCredentialsFetcher {
         this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
         this.readTimeout = readTimeout == null ? 1000 : readTimeout;
         this.disableIMDSv1 = false;
-        this.roleName = roleName;
-        setCredentialUrl();
-    }
-
-    @Deprecated
-    public ECSMetadataServiceCredentialsFetcher(String roleName, Boolean disableIMDSv1, Integer metadataTokenDuration, Integer connectionTimeout, Integer readTimeout) {
-        this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
-        this.readTimeout = readTimeout == null ? 1000 : readTimeout;
-        this.disableIMDSv1 = disableIMDSv1;
         this.roleName = roleName;
         setCredentialUrl();
     }
@@ -85,7 +79,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         HttpResponse response;
         String metadataToken = this.getMetadataToken(client);
         if (metadataToken != null) {
-            request.putHeaderParameter("X-aliyun-ecs-metadata-token", metadataToken);
+            request.putHeaderParameter(IMDS_HEADER_PREFIX + "ecs-metadata-token", metadataToken);
         }
 
         try {
@@ -177,7 +171,7 @@ public class ECSMetadataServiceCredentialsFetcher {
             request.setSysMethod(MethodType.PUT);
             request.setSysConnectTimeout(connectionTimeout);
             request.setSysReadTimeout(readTimeout);
-            request.putHeaderParameter("X-aliyun-ecs-metadata-token-ttl-seconds", String.valueOf(this.metadataTokenDuration));
+            request.putHeaderParameter(IMDS_HEADER_PREFIX + "ecs-metadata-token-ttl-seconds", String.valueOf(this.metadataTokenDuration));
             HttpResponse response;
             try {
                 response = client.syncInvoke(request);

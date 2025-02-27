@@ -1,12 +1,14 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.configure.Config;
 import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
 
-public class SystemPropertiesCredentialsProvider implements AlibabaCloudCredentialsProvider {
+public class SystemPropertiesCredentialsProvider implements ICredentialsProvider {
     @Override
     public CredentialModel getCredentials() {
         String accessKeyId = System.getProperty(AuthConstant.SYSTEM_ACCESSKEYID);
@@ -16,10 +18,10 @@ public class SystemPropertiesCredentialsProvider implements AlibabaCloudCredenti
         }
         String securityToken = System.getProperty(AuthConstant.SYSTEM_SESSION_TOKEN);
         if (StringUtils.isEmpty(accessKeyId)) {
-            throw new CredentialException("System property alibabacloud.accessKeyId cannot be empty.");
+            throw new CredentialException("System property " + Config.PROPERTIES_PREFIX + "accessKeyId cannot be empty.");
         }
         if (StringUtils.isEmpty(accessKeySecret)) {
-            throw new CredentialException("System property alibabacloud.accessKeySecret cannot be empty.");
+            throw new CredentialException("System property " + Config.PROPERTIES_PREFIX + "accessKeySecret cannot be empty.");
         }
         if (!StringUtils.isEmpty(securityToken)) {
             return CredentialModel.builder()

@@ -1,13 +1,12 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
-import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
+import com.aliyun.credentials.configure.Config;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -16,51 +15,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class RsaKeyPairCredentialProviderTest {
-    @Test
-    public void constructorTest() {
-        try {
-            new RsaKeyPairCredentialProvider(null, null);
-            Assert.fail();
-        } catch (Exception e) {
-            Assert.assertEquals("PrivateKeyFile must not be null.", e.getMessage());
-        }
-        Configuration config = new Configuration();
-        String file = ProfileCredentialsProviderTest.class.getClassLoader().
-                getResource("private_key.txt").getPath();
-        config.setPublicKeyId("test");
-        config.setPrivateKeyFile(file);
-        config.setConnectTimeout(2000);
-        config.setReadTimeout(2000);
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider(config);
-        Assert.assertEquals("rsa_key_pair", provider.getProviderName());
-        Assert.assertEquals(2000, provider.getConnectTimeout());
-        Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals("test", provider.getPrivateKey());
-        Assert.assertEquals("test", provider.getPublicKeyId());
-        config.setSTSEndpoint("sts.cn-hangzhou.aliyuncs.com");
-        provider = new RsaKeyPairCredentialProvider(config);
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
-
-        Config config1 = new Config();
-        config1.publicKeyId = "test";
-        config1.privateKeyFile = file;
-        config1.connectTimeout = 2000;
-        config1.timeout = 2000;
-        provider = new RsaKeyPairCredentialProvider(config1);
-        Assert.assertEquals(2000, provider.getConnectTimeout());
-        Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals("test", provider.getPrivateKey());
-        Assert.assertEquals("test", provider.getPublicKeyId());
-        config1.STSEndpoint = "sts.cn-hangzhou.aliyuncs.com";
-        provider = new RsaKeyPairCredentialProvider(config);
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
-    }
 
     @Test
     public void getCredentialsTest() {
         String file = ProfileCredentialsProviderTest.class.getClassLoader().
                 getResource("private_key.txt").getPath();
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", file);
+        RsaKeyPairCredentialProvider provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .build();
         try {
             provider.getCredentials();
             Assert.fail();
@@ -73,7 +36,10 @@ public class RsaKeyPairCredentialProviderTest {
     public void createCredentialTest() {
         String file = ProfileCredentialsProviderTest.class.getClassLoader().
                 getResource("private_key.txt").getPath();
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", file);
+        RsaKeyPairCredentialProvider provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .build();
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
         response.setResponseCode(200);
@@ -87,15 +53,15 @@ public class RsaKeyPairCredentialProviderTest {
     public void getSet() {
         String file = ProfileCredentialsProviderTest.class.getClassLoader().
                 getResource("private_key.txt").getPath();
-        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", file);
+        RsaKeyPairCredentialProvider provider = RsaKeyPairCredentialProvider.builder()
+                .publicKeyId("test")
+                .privateKeyFile(file)
+                .build();
         provider.setConnectTimeout(888);
         Assert.assertEquals(888, provider.getConnectTimeout());
 
         provider.setReadTimeout(999);
         Assert.assertEquals(999, provider.getReadTimeout());
-
-        provider.setRegionId("test");
-        Assert.assertEquals("test", provider.getRegionId());
 
         provider.setDurationSeconds(2000);
         Assert.assertEquals(2000, provider.getDurationSeconds());
@@ -145,21 +111,21 @@ public class RsaKeyPairCredentialProviderTest {
                 .publicKeyId("test")
                 .privateKeyFile(file)
                 .build();
-        Assert.assertEquals("sts.ap-northeast-1.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals(Config.STS_DEFAULT_ENDPOINT, provider.getSTSEndpoint());
 
         AuthUtils.setEnvironmentSTSRegion("cn-beijing");
         provider = RsaKeyPairCredentialProvider.builder()
                 .publicKeyId("test")
                 .privateKey("test")
                 .build();
-        Assert.assertEquals("sts.cn-beijing.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("sts.cn-beijing." + Config.ENDPOINT_SUFFIX, provider.getSTSEndpoint());
 
         provider = RsaKeyPairCredentialProvider.builder()
                 .publicKeyId("test")
                 .privateKeyFile(file)
                 .stsRegionId("cn-hangzhou")
                 .build();
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("sts.cn-hangzhou." + Config.ENDPOINT_SUFFIX, provider.getSTSEndpoint());
 
         AuthUtils.enableVpcEndpoint(true);
         provider = RsaKeyPairCredentialProvider.builder()
@@ -167,7 +133,7 @@ public class RsaKeyPairCredentialProviderTest {
                 .privateKeyFile(file)
                 .stsRegionId("cn-hangzhou")
                 .build();
-        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("sts-vpc.cn-hangzhou." + Config.ENDPOINT_SUFFIX, provider.getSTSEndpoint());
 
         provider = RsaKeyPairCredentialProvider.builder()
                 .publicKeyId("test")
@@ -175,23 +141,22 @@ public class RsaKeyPairCredentialProviderTest {
                 .stsRegionId("cn-hangzhou")
                 .enableVpc(true)
                 .build();
-        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("sts-vpc.cn-hangzhou." + Config.ENDPOINT_SUFFIX, provider.getSTSEndpoint());
 
         provider = RsaKeyPairCredentialProvider.builder()
                 .publicKeyId("test")
                 .privateKeyFile(file)
-                .STSEndpoint("sts.cn-shanghai.aliyuncs.com")
+                .stsEndpoint("sts.cn-shanghai." + Config.ENDPOINT_SUFFIX)
                 .stsRegionId("cn-hangzhou")
                 .enableVpc(true)
                 .build();
-        Assert.assertEquals("sts.cn-shanghai.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("sts.cn-shanghai." + Config.ENDPOINT_SUFFIX, provider.getSTSEndpoint());
 
         provider = RsaKeyPairCredentialProvider.builder()
                 .publicKeyId("test")
                 .privateKeyFile(file)
                 .durationSeconds(1000)
-                .STSEndpoint("sts.aliyuncs.com")
-                .regionId("cn-hangzhou")
+                .stsEndpoint("sts." + Config.ENDPOINT_SUFFIX)
                 .connectionTimeout(2000)
                 .readTimeout(2000)
                 .build();
@@ -199,8 +164,7 @@ public class RsaKeyPairCredentialProviderTest {
         Assert.assertEquals(2000, provider.getReadTimeout());
         Assert.assertEquals(1000, provider.getDurationSeconds());
         Assert.assertEquals("test", provider.getPublicKeyId());
-        Assert.assertEquals("sts.aliyuncs.com", provider.getSTSEndpoint());
-        Assert.assertEquals("cn-hangzhou", provider.getRegionId());
+        Assert.assertEquals("sts." + Config.ENDPOINT_SUFFIX, provider.getSTSEndpoint());
 
         AuthUtils.setEnvironmentSTSRegion(null);
         AuthUtils.enableVpcEndpoint(false);

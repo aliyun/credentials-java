@@ -1,9 +1,9 @@
 <!--
 Thank you for reporting an issue.
 
-This issue tracker is for bugs and issues found within Alibaba Cloud SDK for JAVA.
+This issue tracker is for bugs and issues found within SDK for JAVA.
 If you require more general support please file an issue on our help
-repo. https://help.aliyun.com/
+repo.
 
 
 Please fill in as much of the template below as you're able.

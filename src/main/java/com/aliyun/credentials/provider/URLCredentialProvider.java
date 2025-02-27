@@ -1,12 +1,10 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
-import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.*;
 import com.google.gson.Gson;
@@ -21,49 +19,8 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
     /**
      * Unit of millisecond
      */
-    private int connectTimeout = 5000;
-    private int readTimeout = 10000;
-
-    @Deprecated
-    public URLCredentialProvider() {
-        this(System.getenv("ALIBABA_CLOUD_CREDENTIALS_URI"));
-    }
-
-    @Deprecated
-    public URLCredentialProvider(String credentialsURI) {
-        super(new BuilderImpl());
-        if (StringUtils.isEmpty(credentialsURI)) {
-            throw new CredentialException("Credential URI cannot be null.");
-        }
-        try {
-            this.credentialsURI = new URL(credentialsURI);
-        } catch (MalformedURLException e) {
-            throw new CredentialException("Credential URI is not valid.");
-        }
-    }
-
-    @Deprecated
-    public URLCredentialProvider(URL credentialsURI) {
-        super(new BuilderImpl());
-        if (credentialsURI == null) {
-            throw new CredentialException("Credential URI cannot be null.");
-        }
-        this.credentialsURI = credentialsURI;
-    }
-
-    @Deprecated
-    public URLCredentialProvider(Configuration config) {
-        this(config.getCredentialsURI());
-        this.connectTimeout = config.getConnectTimeout();
-        this.readTimeout = config.getReadTimeout();
-    }
-
-    @Deprecated
-    public URLCredentialProvider(Config config) {
-        this(config.credentialsURI);
-        this.connectTimeout = config.connectTimeout;
-        this.readTimeout = config.timeout;
-    }
+    private int connectTimeout;
+    private int readTimeout;
 
     private URLCredentialProvider(BuilderImpl builder) {
         super(builder);

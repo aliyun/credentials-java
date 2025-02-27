@@ -43,13 +43,6 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         Assert.assertFalse(fetcher.getDisableIMDSv1());
         Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
 
-        fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 180, 900, 1200);
-        Assert.assertEquals("id", fetcher.getRoleName());
-        Assert.assertEquals(1200, fetcher.getReadTimeout());
-        Assert.assertEquals(900, fetcher.getConnectionTimeout());
-        Assert.assertTrue(fetcher.getDisableIMDSv1());
-        Assert.assertEquals(21600, fetcher.getMetadataTokenDuration());
-
         fetcher = new ECSMetadataServiceCredentialsFetcher("id", true, 900, 1200);
         Assert.assertEquals("id", fetcher.getRoleName());
         Assert.assertEquals(1200, fetcher.getReadTimeout());
@@ -103,25 +96,6 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             Assert.fail();
         } catch (CredentialException e) {
             Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service.",
-                    e.getMessage());
-        }
-
-        fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test", false, 180, 900, 1200));
-        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenThrow(new RuntimeException("test"));
-        try {
-            fetcher.fetch(client);
-            Assert.fail();
-        } catch (CredentialException e) {
-            Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
-                    e.getMessage());
-        }
-
-        fetcher = spy(new ECSMetadataServiceCredentialsFetcher("test", true, 180, 900, 1200));
-        try {
-            fetcher.fetch(client);
-            Assert.fail();
-        } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
                     e.getMessage());
         }
 

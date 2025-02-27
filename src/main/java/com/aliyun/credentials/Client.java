@@ -1,5 +1,6 @@
 package com.aliyun.credentials;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
@@ -10,7 +11,7 @@ import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.utils.Validate;
 
 public class Client {
-    private final AlibabaCloudCredentialsProvider credentialsProvider;
+    private final ICredentialsProvider credentialsProvider;
 
     public Client() {
         this.credentialsProvider = new DefaultCredentialsProvider();
@@ -24,11 +25,11 @@ public class Client {
         }
     }
 
-    public Client(AlibabaCloudCredentialsProvider provider) {
+    public Client(ICredentialsProvider provider) {
         this.credentialsProvider = provider;
     }
 
-    private AlibabaCloudCredentialsProvider getProvider(Config config) {
+    private ICredentialsProvider getProvider(Config config) {
         switch (config.type) {
             case AuthConstant.ACCESS_KEY:
                 return StaticCredentialsProvider.builder()
@@ -70,7 +71,7 @@ public class Client {
                         .readTimeout(config.timeout)
                         .build();
             case AuthConstant.RAM_ROLE_ARN:
-                AlibabaCloudCredentialsProvider innerProvider;
+                ICredentialsProvider innerProvider;
                 if (StringUtils.isEmpty(config.securityToken)) {
                     innerProvider = StaticCredentialsProvider.builder()
                             .credential(CredentialModel.builder()
@@ -102,7 +103,7 @@ public class Client {
                         .roleArn(config.roleArn)
                         .roleSessionName(config.roleSessionName)
                         .policy(config.policy)
-                        .STSEndpoint(config.STSEndpoint)
+                        .stsEndpoint(config.stsEndpoint)
                         .externalId(config.externalId)
                         .connectionTimeout(config.connectTimeout)
                         .readTimeout(config.timeout)
@@ -112,7 +113,7 @@ public class Client {
                         .publicKeyId(config.publicKeyId)
                         .privateKeyFile(config.privateKeyFile)
                         .durationSeconds(config.roleSessionExpiration)
-                        .STSEndpoint(config.STSEndpoint)
+                        .stsEndpoint(config.stsEndpoint)
                         .connectionTimeout(config.connectTimeout)
                         .readTimeout(config.timeout)
                         .build();
@@ -124,7 +125,7 @@ public class Client {
                         .oidcProviderArn(config.oidcProviderArn)
                         .oidcTokenFilePath(config.oidcTokenFilePath)
                         .policy(config.policy)
-                        .STSEndpoint(config.STSEndpoint)
+                        .stsEndpoint(config.stsEndpoint)
                         .connectionTimeout(config.connectTimeout)
                         .readTimeout(config.timeout)
                         .build();
@@ -138,59 +139,13 @@ public class Client {
                 throw new CredentialException("invalid type option, support: access_key, sts, ecs_ram_role, ram_role_arn, rsa_key_pair");
         }
     }
-
-    /**
-     * @return Access key ID
-     * @deprecated Use getCredential().getAccessKeyId() instead of
-     */
-    @Deprecated
-    public String getAccessKeyId() {
-        return this.credentialsProvider.getCredentials().getAccessKeyId();
-    }
-
-    /**
-     * @return Access key secret
-     * @deprecated Use getCredential().getAccessKeySecret() instead of
-     */
-    @Deprecated
-    public String getAccessKeySecret() {
-        return this.credentialsProvider.getCredentials().getAccessKeySecret();
-    }
-
-    /**
-     * @return Security token
-     * @deprecated Use getCredential().getSecurityToken() instead of
-     */
-    @Deprecated
-    public String getSecurityToken() {
-        return this.credentialsProvider.getCredentials().getSecurityToken();
-    }
-
-    /**
-     * @return Credentials provider type
-     * @deprecated Use getCredential().getType() instead of
-     */
-    @Deprecated
-    public String getType() {
-        return this.credentialsProvider.getCredentials().getType();
-    }
-
-    /**
-     * @return Bearer token
-     * @deprecated Use getCredential().getBearerToken() instead of
-     */
-    @Deprecated
-    public String getBearerToken() {
-        return this.credentialsProvider.getCredentials().getBearerToken();
-    }
-
     /**
      * Get credential
      *
      * @return the whole credential
      */
     public CredentialModel getCredential() {
-        return this.credentialsProvider.getCredentials();
+        return (CredentialModel)this.credentialsProvider.getCredentials();
     }
 }
 

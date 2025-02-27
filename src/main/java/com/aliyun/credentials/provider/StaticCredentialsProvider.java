@@ -1,8 +1,9 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.models.CredentialModel;
 
-public class StaticCredentialsProvider implements AlibabaCloudCredentialsProvider {
+public class StaticCredentialsProvider implements ICredentialsProvider {
     private CredentialModel credential;
 
     private StaticCredentialsProvider(Builder builder) {

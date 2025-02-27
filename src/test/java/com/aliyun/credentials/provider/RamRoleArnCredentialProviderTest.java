@@ -1,13 +1,12 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
-import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
+import com.aliyun.credentials.configure.Config;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -22,77 +21,20 @@ import static org.mockito.Mockito.when;
 public class RamRoleArnCredentialProviderTest {
 
     @Test
-    public void constructorTest() {
-        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider("id", "secret",
-                "name", "arn", "region", "policy");
-        Assert.assertEquals("ram_role_arn", provider.getProviderName());
-        Assert.assertEquals("name", provider.getRoleSessionName());
-        Assert.assertEquals("region", provider.getRegionId());
-        Assert.assertEquals("policy", provider.getPolicy());
-        Assert.assertEquals("id", provider.getAccessKeyId());
-        Assert.assertEquals("secret", provider.getAccessKeySecret());
-        Assert.assertEquals("arn", provider.getRoleArn());
-
-        Configuration config = new Configuration();
-        config.setAccessKeyId("test");
-        config.setAccessKeySecret("test");
-        config.setRoleArn("test");
-        config.setOIDCProviderArn("test");
-        config.setRoleSessionName("test");
-        config.setConnectTimeout(2000);
-        config.setReadTimeout(2000);
-        provider = new RamRoleArnCredentialProvider(config);
-        Assert.assertEquals(2000, provider.getConnectTimeout());
-        Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals("test", provider.getAccessKeyId());
-        Assert.assertEquals("test", provider.getAccessKeySecret());
-        Assert.assertEquals("test", provider.getRoleArn());
-        Assert.assertEquals("test", provider.getRoleSessionName());
-        Assert.assertNull(provider.getPolicy());
-        config.setSTSEndpoint("sts.cn-hangzhou.aliyuncs.com");
-        provider = new RamRoleArnCredentialProvider(config);
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
-
-        Config config1 = new Config();
-        config1.accessKeyId = "test";
-        config1.accessKeySecret = "test";
-        config1.roleArn = "test";
-        config1.oidcProviderArn = "test";
-        config1.roleSessionName = "test";
-        config1.policy = "test";
-        config1.roleSessionExpiration = 1000;
-        config1.connectTimeout = 2000;
-        config1.timeout = 2000;
-        provider = new RamRoleArnCredentialProvider(config1);
-        Assert.assertEquals(2000, provider.getConnectTimeout());
-        Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals(1000, provider.getDurationSeconds());
-        Assert.assertEquals("test", provider.getAccessKeyId());
-        Assert.assertEquals("test", provider.getAccessKeySecret());
-        Assert.assertEquals("test", provider.getRoleArn());
-        Assert.assertEquals("test", provider.getRoleSessionName());
-        Assert.assertEquals("test", provider.getPolicy());
-        config1.STSEndpoint = "sts.cn-hangzhou.aliyuncs.com";
-        provider = new RamRoleArnCredentialProvider(config1);
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
-    }
-
-    @Test
     public void getCredentials() {
-        Configuration config = new Configuration();
-        config.setAccessKeyId("test");
-        config.setAccessKeySecret("test");
-        config.setRoleArn("test");
-        config.setRoleSessionName("test");
-        config.setConnectTimeout(2000);
-        config.setReadTimeout(2000);
-        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
+        RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .roleArn("test")
+                .roleSessionName("test")
+                .connectionTimeout(2000)
+                .readTimeout(2000)
+                .build();
         provider.setPolicy("test");
         provider.setExternalId("test");
         Assert.assertEquals(2000, provider.getConnectTimeout());
         Assert.assertEquals(2000, provider.getReadTimeout());
-        Assert.assertEquals("test", provider.getAccessKeyId());
-        Assert.assertEquals("test", provider.getAccessKeySecret());
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertEquals("test", provider.getRoleSessionName());
         Assert.assertEquals("test", provider.getExternalId());
@@ -106,8 +48,12 @@ public class RamRoleArnCredentialProviderTest {
 
     @Test
     public void createCredentialTest() throws NoSuchAlgorithmException, IOException, KeyManagementException {
-        Configuration config = new Configuration();
-        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
+        RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .roleArn("test")
+                .build();;
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
         response.setResponseCode(200);
@@ -119,7 +65,12 @@ public class RamRoleArnCredentialProviderTest {
 
     @Test
     public void getSetTest() {
-        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(null, null, null);
+        RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
+                .accessKeyId("test")
+                .accessKeySecret("test")
+                .securityToken("test")
+                .roleArn("test")
+                .build();;
         provider.setConnectTimeout(888);
         Assert.assertEquals(888, provider.getConnectTimeout());
 
@@ -129,23 +80,14 @@ public class RamRoleArnCredentialProviderTest {
         provider.setPolicy("test");
         Assert.assertEquals("test", provider.getPolicy());
 
-        provider.setRegionId("test");
-        Assert.assertEquals("test", provider.getRegionId());
-
         provider.setRoleSessionName("test");
         Assert.assertEquals("test", provider.getRoleSessionName());
 
         provider.setDurationSeconds(2000);
         Assert.assertEquals(2000, provider.getDurationSeconds());
 
-        provider.setAccessKeyId("test");
-        Assert.assertEquals("test", provider.getAccessKeyId());
-
-        provider.setAccessKeySecret("test");
-        Assert.assertEquals("test", provider.getAccessKeySecret());
-
-        provider.setSTSEndpoint("www.aliyun.com");
-        Assert.assertEquals("www.aliyun.com", provider.getSTSEndpoint());
+        provider.setSTSEndpoint("www.example.com");
+        Assert.assertEquals("www.example.com", provider.getSTSEndpoint());
     }
 
     @Test
@@ -173,7 +115,7 @@ public class RamRoleArnCredentialProviderTest {
                 .securityToken("test")
                 .roleArn("test")
                 .build();
-        Assert.assertEquals("sts.aliyuncs.com", originalProvider.getSTSEndpoint());
+        Assert.assertEquals("sts." + Config.ENDPOINT_SUFFIX, originalProvider.getSTSEndpoint());
 
         AuthUtils.setEnvironmentSTSRegion("cn-beijing");
         originalProvider = RamRoleArnCredentialProvider.builder()
@@ -182,7 +124,7 @@ public class RamRoleArnCredentialProviderTest {
                 .securityToken("test")
                 .roleArn("test")
                 .build();
-        Assert.assertEquals("sts.cn-beijing.aliyuncs.com", originalProvider.getSTSEndpoint());
+        Assert.assertEquals("sts.cn-beijing." + Config.ENDPOINT_SUFFIX, originalProvider.getSTSEndpoint());
 
         originalProvider = RamRoleArnCredentialProvider.builder()
                 .accessKeyId("test")
@@ -191,7 +133,7 @@ public class RamRoleArnCredentialProviderTest {
                 .stsRegionId("cn-hangzhou")
                 .roleArn("test")
                 .build();
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
+        Assert.assertEquals("sts.cn-hangzhou." + Config.ENDPOINT_SUFFIX, originalProvider.getSTSEndpoint());
 
         AuthUtils.enableVpcEndpoint(true);
         originalProvider = RamRoleArnCredentialProvider.builder()
@@ -201,7 +143,7 @@ public class RamRoleArnCredentialProviderTest {
                 .stsRegionId("cn-hangzhou")
                 .roleArn("test")
                 .build();
-        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
+        Assert.assertEquals("sts-vpc.cn-hangzhou." + Config.ENDPOINT_SUFFIX, originalProvider.getSTSEndpoint());
 
         originalProvider = RamRoleArnCredentialProvider.builder()
                 .accessKeyId("test")
@@ -211,18 +153,18 @@ public class RamRoleArnCredentialProviderTest {
                 .enableVpc(true)
                 .roleArn("test")
                 .build();
-        Assert.assertEquals("sts-vpc.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
+        Assert.assertEquals("sts-vpc.cn-hangzhou." + Config.ENDPOINT_SUFFIX, originalProvider.getSTSEndpoint());
 
         originalProvider = RamRoleArnCredentialProvider.builder()
                 .accessKeyId("test")
                 .accessKeySecret("test")
                 .securityToken("test")
-                .STSEndpoint("sts.cn-shanghai.aliyuncs.com")
+                .stsEndpoint("sts.cn-shanghai." + Config.ENDPOINT_SUFFIX)
                 .stsRegionId("cn-hangzhou")
                 .enableVpc(true)
                 .roleArn("test")
                 .build();
-        Assert.assertEquals("sts.cn-shanghai.aliyuncs.com", originalProvider.getSTSEndpoint());
+        Assert.assertEquals("sts.cn-shanghai." + Config.ENDPOINT_SUFFIX, originalProvider.getSTSEndpoint());
 
         originalProvider = RamRoleArnCredentialProvider.builder()
                 .accessKeyId("test")
@@ -231,8 +173,7 @@ public class RamRoleArnCredentialProviderTest {
                 .roleArn("test")
                 .roleSessionName("test")
                 .policy("test")
-                .STSEndpoint("sts.cn-hangzhou.aliyuncs.com")
-                .regionId("cn-hangzhou")
+                .stsEndpoint("sts.cn-hangzhou." + Config.ENDPOINT_SUFFIX)
                 .externalId("test")
                 .connectionTimeout(2000)
                 .readTimeout(2000)
@@ -240,13 +181,10 @@ public class RamRoleArnCredentialProviderTest {
         Assert.assertEquals(2000, originalProvider.getConnectTimeout());
         Assert.assertEquals(2000, originalProvider.getReadTimeout());
         Assert.assertEquals(1000, originalProvider.getDurationSeconds());
-        Assert.assertEquals("test", originalProvider.getAccessKeyId());
-        Assert.assertEquals("test", originalProvider.getAccessKeySecret());
         Assert.assertEquals("test", originalProvider.getRoleArn());
         Assert.assertEquals("test", originalProvider.getRoleSessionName());
         Assert.assertEquals("test", originalProvider.getPolicy());
-        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", originalProvider.getSTSEndpoint());
-        Assert.assertEquals("cn-hangzhou", originalProvider.getRegionId());
+        Assert.assertEquals("sts.cn-hangzhou." + Config.ENDPOINT_SUFFIX, originalProvider.getSTSEndpoint());
         Assert.assertEquals("test", originalProvider.getExternalId());
         try {
             originalProvider.getCredentials();
@@ -265,7 +203,7 @@ public class RamRoleArnCredentialProviderTest {
                 .build();
         Assert.assertEquals("test", provider.getRoleArn());
         Assert.assertTrue(provider.getRoleSessionName().contains("credentials-java-"));
-        Assert.assertEquals("sts.aliyuncs.com", provider.getSTSEndpoint());
+        Assert.assertEquals("sts." + Config.ENDPOINT_SUFFIX, provider.getSTSEndpoint());
         try {
             provider.getCredentials();
             Assert.fail();

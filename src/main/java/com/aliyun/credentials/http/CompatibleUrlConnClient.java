@@ -10,6 +10,8 @@ import java.security.KeyStore;
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.aliyun.credentials.configure.Config.USER_AGENT_PREFIX;
+
 public class CompatibleUrlConnClient implements Closeable {
 
     protected static final String ACCEPT_ENCODING = "Accept-Encoding";
@@ -27,7 +29,7 @@ public class CompatibleUrlConnClient implements Closeable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        DEFAULT_USER_AGENT = String.format("AlibabaCloud (%s; %s) Java/%s Credentials/%s TeaDSL/1", sysProps.getProperty("os.name"), sysProps
+        DEFAULT_USER_AGENT = String.format(USER_AGENT_PREFIX + " (%s; %s) Java/%s Credentials/%s TeaDSL/1", sysProps.getProperty("os.name"), sysProps
                 .getProperty("os.arch"), sysProps.getProperty("java.runtime.version"), version);
     }
 

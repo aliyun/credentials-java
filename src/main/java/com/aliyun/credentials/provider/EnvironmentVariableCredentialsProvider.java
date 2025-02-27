@@ -1,5 +1,6 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
@@ -7,7 +8,7 @@ import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
 
-public class EnvironmentVariableCredentialsProvider implements AlibabaCloudCredentialsProvider {
+public class EnvironmentVariableCredentialsProvider implements ICredentialsProvider {
     @Override
     public CredentialModel getCredentials() {
         String accessKeyId = AuthUtils.getEnvironmentAccessKeyId();

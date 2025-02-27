@@ -1,5 +1,6 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
@@ -10,10 +11,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvider {
-    private final List<AlibabaCloudCredentialsProvider> defaultProviders = new ArrayList<AlibabaCloudCredentialsProvider>();
-    private static final List<AlibabaCloudCredentialsProvider> USER_CONFIGURATION_PROVIDERS = new Vector<AlibabaCloudCredentialsProvider>();
-    private volatile AlibabaCloudCredentialsProvider lastUsedCredentialsProvider;
+public class DefaultCredentialsProvider implements ICredentialsProvider {
+    private final List<ICredentialsProvider> defaultProviders = new ArrayList<>();
+    private static final List<ICredentialsProvider> USER_CONFIGURATION_PROVIDERS = new Vector<>();
+    private volatile ICredentialsProvider lastUsedCredentialsProvider;
     private final Boolean reuseLastProviderEnabled;
 
     public DefaultCredentialsProvider() {
@@ -53,14 +54,14 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
     @Override
     public CredentialModel getCredentials() {
         if (this.reuseLastProviderEnabled && this.lastUsedCredentialsProvider != null) {
-            return this.lastUsedCredentialsProvider.getCredentials();
+            return (CredentialModel) this.lastUsedCredentialsProvider.getCredentials();
         }
         CredentialModel credential;
         List<String> errorMessages = new ArrayList<>();
         if (USER_CONFIGURATION_PROVIDERS.size() > 0) {
-            for (AlibabaCloudCredentialsProvider provider : USER_CONFIGURATION_PROVIDERS) {
+            for (ICredentialsProvider provider : USER_CONFIGURATION_PROVIDERS) {
                 try {
-                    credential = provider.getCredentials();
+                    credential = (CredentialModel) provider.getCredentials();
                     if (credential != null) {
                         this.lastUsedCredentialsProvider = provider;
                         return CredentialModel.builder()
@@ -77,9 +78,9 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
                 }
             }
         }
-        for (AlibabaCloudCredentialsProvider provider : defaultProviders) {
+        for (ICredentialsProvider provider : defaultProviders) {
             try {
-                credential = provider.getCredentials();
+                credential = (CredentialModel) provider.getCredentials();
                 if (credential != null) {
                     this.lastUsedCredentialsProvider = provider;
                     return CredentialModel.builder()
@@ -99,17 +100,17 @@ public class DefaultCredentialsProvider implements AlibabaCloudCredentialsProvid
     }
 
     @Deprecated
-    public static boolean addCredentialsProvider(AlibabaCloudCredentialsProvider provider) {
+    public static boolean addCredentialsProvider(ICredentialsProvider provider) {
         return DefaultCredentialsProvider.USER_CONFIGURATION_PROVIDERS.add(provider);
     }
 
     @Deprecated
-    public static boolean removeCredentialsProvider(AlibabaCloudCredentialsProvider provider) {
+    public static boolean removeCredentialsProvider(ICredentialsProvider provider) {
         return DefaultCredentialsProvider.USER_CONFIGURATION_PROVIDERS.remove(provider);
     }
 
     @Deprecated
-    public static boolean containsCredentialsProvider(AlibabaCloudCredentialsProvider provider) {
+    public static boolean containsCredentialsProvider(ICredentialsProvider provider) {
         return DefaultCredentialsProvider.USER_CONFIGURATION_PROVIDERS.contains(provider);
     }
 

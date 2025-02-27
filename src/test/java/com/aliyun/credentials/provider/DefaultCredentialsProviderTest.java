@@ -1,5 +1,6 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
@@ -11,7 +12,7 @@ import java.lang.reflect.Field;
 
 public class DefaultCredentialsProviderTest {
 
-    static class CredentialsProviderForTest implements AlibabaCloudCredentialsProvider {
+    static class CredentialsProviderForTest implements ICredentialsProvider {
 
         @Override
         public CredentialModel getCredentials() {
@@ -63,7 +64,7 @@ public class DefaultCredentialsProviderTest {
         Assert.assertEquals("test", credential.getAccessKeyId());
         Assert.assertEquals("test", credential.getAccessKeySecret());
 
-        DefaultCredentialsProvider.addCredentialsProvider(new AlibabaCloudCredentialsProvider() {
+        DefaultCredentialsProvider.addCredentialsProvider(new ICredentialsProvider() {
             @Override
             public CredentialModel getCredentials() {
                 throw new CredentialException("test");

@@ -1,13 +1,10 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
-import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.ProviderName;
-import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.logging.ClientLogger;
 
 import java.util.concurrent.Executors;
@@ -23,54 +20,6 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
     private ECSMetadataServiceCredentialsFetcher fetcher;
     private volatile ScheduledExecutorService executor;
     private volatile boolean shouldRefresh = false;
-
-    @Deprecated
-    public EcsRamRoleCredentialProvider(String roleName) {
-        super(new BuilderImpl());
-        if (StringUtils.isEmpty(roleName)) {
-            try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
-                roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
-            }
-        }
-        this.fetcher = new ECSMetadataServiceCredentialsFetcher(roleName);
-        checkCredentialsUpdateAsynchronously();
-    }
-
-    @Deprecated
-    public EcsRamRoleCredentialProvider(Configuration config) {
-        super(new BuilderImpl());
-        if (StringUtils.isEmpty(config.getRoleName())) {
-            try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
-                String roleName = new ECSMetadataServiceCredentialsFetcher("").fetchRoleName(client);
-                config.setRoleName(roleName);
-            }
-        }
-        this.fetcher = new ECSMetadataServiceCredentialsFetcher(config.getRoleName(), config.getConnectTimeout(), config.getReadTimeout());
-        checkCredentialsUpdateAsynchronously();
-    }
-
-    @Deprecated
-    public EcsRamRoleCredentialProvider(Config config) {
-        super(new BuilderImpl());
-        String roleName = config.roleName;
-        if (StringUtils.isEmpty(roleName)) {
-            try (CompatibleUrlConnClient client = new CompatibleUrlConnClient()) {
-                roleName = new ECSMetadataServiceCredentialsFetcher(
-                        "",
-                        config.disableIMDSv1,
-                        config.connectTimeout,
-                        config.timeout
-                ).fetchRoleName(client);
-            }
-
-        }
-        this.fetcher = new ECSMetadataServiceCredentialsFetcher(
-                roleName,
-                config.disableIMDSv1,
-                config.connectTimeout,
-                config.timeout);
-        checkCredentialsUpdateAsynchronously();
-    }
 
     private EcsRamRoleCredentialProvider(BuilderImpl builder) {
         super(builder);
@@ -157,12 +106,6 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
 
         Builder disableIMDSv1(Boolean disableIMDSv1);
 
-        @Deprecated
-        Builder enableIMDSv2(boolean enableIMDSv2);
-
-        @Deprecated
-        Builder metadataTokenDuration(int metadataTokenDuration);
-
         Builder connectionTimeout(Integer connectionTimeout);
 
         Builder readTimeout(Integer readTimeout);
@@ -176,8 +119,6 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             implements Builder {
         private String roleName;
         private Boolean disableIMDSv1;
-        private boolean enableIMDSv2;
-        private int metadataTokenDuration;
         private Integer connectionTimeout;
         private Integer readTimeout;
 
@@ -194,18 +135,6 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
 
         public Builder disableIMDSv1(Boolean disableIMDSv1) {
             this.disableIMDSv1 = disableIMDSv1;
-            return this;
-        }
-
-        public Builder enableIMDSv2(boolean enableIMDSv2) {
-            this.enableIMDSv2 = enableIMDSv2;
-            return this;
-        }
-
-        public Builder metadataTokenDuration(int metadataTokenDuration) {
-            if (metadataTokenDuration > 0) {
-                this.metadataTokenDuration = metadataTokenDuration;
-            }
             return this;
         }
 

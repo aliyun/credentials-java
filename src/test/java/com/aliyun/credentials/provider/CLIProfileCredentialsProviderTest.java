@@ -1,5 +1,7 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentials;
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
@@ -80,7 +82,7 @@ public class CLIProfileCredentialsProviderTest {
     public void reloadCredentialsProviderTest() {
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
-                getResource(".aliyun/config.json").getPath();
+                getResource("config.json").getPath();
         CLIProfileCredentialsProvider.Config config = provider.parseProfile(configPath);
         try {
             provider.reloadCredentialsProvider(config, "inexist");
@@ -89,9 +91,9 @@ public class CLIProfileCredentialsProviderTest {
             Assert.assertEquals("Unable to get profile with 'inexist' form CLI credentials file.", e.getMessage());
         }
 
-        AlibabaCloudCredentialsProvider credentialsProvider = provider.reloadCredentialsProvider(config, "AK");
+        ICredentialsProvider credentialsProvider = provider.reloadCredentialsProvider(config, "AK");
         Assert.assertTrue(credentialsProvider instanceof StaticCredentialsProvider);
-        CredentialModel credential = credentialsProvider.getCredentials();
+        ICredentials credential = credentialsProvider.getCredentials();
         Assert.assertEquals("cli_profile", provider.getProviderName());
         Assert.assertEquals("static_ak", credentialsProvider.getProviderName());
         Assert.assertEquals("akid", credential.getAccessKeyId());
@@ -122,8 +124,6 @@ public class CLIProfileCredentialsProviderTest {
 
         credentialsProvider = provider.reloadCredentialsProvider(config, "ChainableRamRoleArn");
         Assert.assertTrue(credentialsProvider instanceof RamRoleArnCredentialProvider);
-        Assert.assertEquals("akid", ((RamRoleArnCredentialProvider) credentialsProvider).getAccessKeyId());
-        Assert.assertEquals("secret", ((RamRoleArnCredentialProvider) credentialsProvider).getAccessKeySecret());
 
         try {
             provider.reloadCredentialsProvider(config, "ChainableRamRoleArn2");
@@ -144,8 +144,8 @@ public class CLIProfileCredentialsProviderTest {
     public void getCredentialsTest() {
         String homePath = System.getProperty("user.home");
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
-                getResource(".aliyun/config.json").getPath();
-        System.setProperty("user.home", configPath.replace("/.aliyun/config.json", ""));
+                getResource("config.json").getPath();
+        System.setProperty("user.home", configPath.replace("config.json", ""));
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
         CredentialModel credential = provider.getCredentials();
         Assert.assertEquals("akid", credential.getAccessKeyId());

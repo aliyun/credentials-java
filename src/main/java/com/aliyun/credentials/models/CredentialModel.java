@@ -1,11 +1,10 @@
 // This file is auto-generated, don't edit it. Thanks.
 package com.aliyun.credentials.models;
 
-import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.api.ICredentials;
 import com.aliyun.tea.*;
 
-public class CredentialModel extends TeaModel implements AlibabaCloudCredentials, ICredentials {
+public class CredentialModel extends TeaModel implements ICredentials {
     public String accessKeyId;
     public String accessKeySecret;
     public String securityToken;
@@ -63,7 +62,6 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
         return this;
     }
 
-    @Override
     public String getType() {
         return this.type;
     }
@@ -77,7 +75,6 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
         return this;
     }
 
-    @Override
     public String getBearerToken() {
         return this.bearerToken;
     }

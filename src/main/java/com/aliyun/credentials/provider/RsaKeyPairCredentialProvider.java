@@ -1,12 +1,10 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.http.MethodType;
-import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.*;
 import com.aliyun.tea.utils.Validate;
@@ -14,58 +12,29 @@ import com.google.gson.Gson;
 
 import java.util.Map;
 
+import static com.aliyun.credentials.configure.Config.ENDPOINT_SUFFIX;
+import static com.aliyun.credentials.configure.Config.STS_DEFAULT_ENDPOINT;
+
 public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
 
     /**
      * Default duration for started sessions. Unit of Second
      */
-    public int durationSeconds = 3600;
+    public int durationSeconds;
 
     private String publicKeyId;
     private String privateKey;
-    private String privateKeyFile;
-    private String regionId = "cn-hangzhou";
 
     /**
      * Unit of millisecond
      */
-    private int connectTimeout = 5000;
-    private int readTimeout = 10000;
+    private int connectTimeout;
+    private int readTimeout;
 
     /**
      * Endpoint of RAM OpenAPI
      */
-    private String STSEndpoint = "sts.aliyuncs.com";
-
-    @Deprecated
-    public RsaKeyPairCredentialProvider(Configuration config) {
-        this(config.getPublicKeyId(), config.getPrivateKeyFile());
-        this.connectTimeout = config.getConnectTimeout();
-        this.readTimeout = config.getReadTimeout();
-        if (!StringUtils.isEmpty(config.getSTSEndpoint())) {
-            this.STSEndpoint = config.getSTSEndpoint();
-        }
-    }
-
-    @Deprecated
-    public RsaKeyPairCredentialProvider(Config config) {
-        this(config.publicKeyId, config.privateKeyFile);
-        this.connectTimeout = config.connectTimeout;
-        this.readTimeout = config.timeout;
-        if (!StringUtils.isEmpty(config.STSEndpoint)) {
-            this.STSEndpoint = config.STSEndpoint;
-        }
-    }
-
-    @Deprecated
-    public RsaKeyPairCredentialProvider(String publicKeyId, String privateKeyFile) {
-        super(new BuilderImpl());
-        this.publicKeyId = publicKeyId;
-        this.privateKeyFile = Validate.notNull(privateKeyFile, "PrivateKeyFile must not be null.");
-        if (!StringUtils.isEmpty(this.privateKeyFile)) {
-            this.privateKey = AuthUtils.getPrivateKey(this.privateKeyFile);
-        }
-    }
+    private String stsEndpoint;
 
     private RsaKeyPairCredentialProvider(BuilderImpl builder) {
         super(builder);
@@ -73,21 +42,20 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         if (this.durationSeconds < 900) {
             throw new IllegalArgumentException("Session duration should be in the range of 900s - max session duration.");
         }
-        this.regionId = builder.regionId;
         this.connectTimeout = builder.connectionTimeout == null ? 5000 : builder.connectionTimeout;
         this.readTimeout = builder.readTimeout == null ? 10000 : builder.readTimeout;
         this.publicKeyId = Validate.notNull(builder.publicKeyId, "PublicKeyId must not be null.");
         this.privateKey = Validate.notNull(builder.privateKey, "PrivateKey must not be null.");
-        if (!StringUtils.isEmpty(builder.STSEndpoint)) {
-            this.STSEndpoint = builder.STSEndpoint;
+        if (!StringUtils.isEmpty(builder.stsEndpoint)) {
+            this.stsEndpoint = builder.stsEndpoint;
         } else {
             String prefix = builder.enableVpc != null ? (builder.enableVpc ? "sts-vpc" : "sts") : AuthUtils.isEnableVpcEndpoint() ? "sts-vpc" : "sts";
             if (!StringUtils.isEmpty(builder.stsRegionId)) {
-                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, builder.stsRegionId);
+                this.stsEndpoint = String.format("%s.%s.%s", prefix, builder.stsRegionId, ENDPOINT_SUFFIX);
             } else if (!StringUtils.isEmpty(AuthUtils.getEnvironmentSTSRegion())) {
-                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, AuthUtils.getEnvironmentSTSRegion());
+                this.stsEndpoint = String.format("%s.%s.%s", prefix, AuthUtils.getEnvironmentSTSRegion(), ENDPOINT_SUFFIX);
             } else {
-                this.STSEndpoint = "sts.ap-northeast-1.aliyuncs.com";
+                this.stsEndpoint = STS_DEFAULT_ENDPOINT;
             }
         }
     }
@@ -125,7 +93,7 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setSysMethod(MethodType.GET);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
-        httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
+        httpRequest.setSysUrl(parameterHelper.composeUrl(this.stsEndpoint, httpRequest.getUrlParameters(),
                 "https"));
         HttpResponse httpResponse;
         try {
@@ -179,14 +147,6 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
         this.privateKey = privateKey;
     }
 
-    public String getRegionId() {
-        return regionId;
-    }
-
-    public void setRegionId(String regionId) {
-        this.regionId = regionId;
-    }
-
     public int getConnectTimeout() {
         return connectTimeout;
     }
@@ -204,11 +164,11 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
     }
 
     public String getSTSEndpoint() {
-        return STSEndpoint;
+        return stsEndpoint;
     }
 
-    public void setSTSEndpoint(String STSEndpoint) {
-        this.STSEndpoint = STSEndpoint;
+    public void setSTSEndpoint(String stsEndpoint) {
+        this.stsEndpoint = stsEndpoint;
     }
 
     @Override
@@ -224,13 +184,11 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
     public interface Builder extends SessionCredentialsProvider.Builder<RsaKeyPairCredentialProvider, Builder> {
         Builder durationSeconds(Integer durationSeconds);
 
-        Builder regionId(String regionId);
-
         Builder connectionTimeout(Integer connectionTimeout);
 
         Builder readTimeout(Integer readTimeout);
 
-        Builder STSEndpoint(String STSEndpoint);
+        Builder stsEndpoint(String stsEndpoint);
 
         Builder stsRegionId(String stsRegionId);
 
@@ -250,10 +208,9 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
             extends SessionCredentialsProvider.BuilderImpl<RsaKeyPairCredentialProvider, Builder>
             implements Builder {
         private Integer durationSeconds;
-        private String regionId;
         private Integer connectionTimeout;
         private Integer readTimeout;
-        private String STSEndpoint;
+        private String stsEndpoint;
         private String stsRegionId;
         private Boolean enableVpc;
         private String publicKeyId;
@@ -261,13 +218,6 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
 
         public Builder durationSeconds(Integer durationSeconds) {
             this.durationSeconds = durationSeconds;
-            return this;
-        }
-
-        public Builder regionId(String regionId) {
-            if (!StringUtils.isEmpty(regionId)) {
-                this.regionId = regionId;
-            }
             return this;
         }
 
@@ -281,8 +231,8 @@ public class RsaKeyPairCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder STSEndpoint(String STSEndpoint) {
-            this.STSEndpoint = STSEndpoint;
+        public Builder stsEndpoint(String stsEndpoint) {
+            this.stsEndpoint = stsEndpoint;
             return this;
         }
 

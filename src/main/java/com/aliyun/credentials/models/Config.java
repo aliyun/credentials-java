@@ -23,10 +23,6 @@ public class Config extends TeaModel {
     public String roleName;
     @NameInMap("disableIMDSv1")
     public Boolean disableIMDSv1;
-    @NameInMap("enableIMDSv2")
-    public Boolean enableIMDSv2;
-    @NameInMap("metadataTokenDuration")
-    public Integer metadataTokenDuration = 21600;
     @NameInMap("bearerToken")
     public String bearerToken;
     @NameInMap("securityToken")
@@ -49,8 +45,8 @@ public class Config extends TeaModel {
     public String oidcTokenFilePath;
     @NameInMap("credentialsURI")
     public String credentialsURI;
-    @NameInMap("STSEndpoint")
-    public String STSEndpoint;
+    @NameInMap("stsEndpoint")
+    public String stsEndpoint;
     /**
      * <p>external id for ram role arn</p>
      */
@@ -174,25 +170,6 @@ public class Config extends TeaModel {
         return this.disableIMDSv1;
     }
 
-
-    public Config setEnableIMDSv2(Boolean enableIMDSv2) {
-        this.enableIMDSv2 = enableIMDSv2;
-        return this;
-    }
-
-    public Boolean getEnableIMDSv2() {
-        return this.enableIMDSv2;
-    }
-
-    public Config setMetadataTokenDuration(Integer metadataTokenDuration) {
-        this.metadataTokenDuration = metadataTokenDuration;
-        return this;
-    }
-
-    public Integer getMetadataTokenDuration() {
-        return this.metadataTokenDuration;
-    }
-
     public Config setCredentialsUri(String credentialsURI) {
         this.credentialsURI = credentialsURI;
         return this;
@@ -211,13 +188,13 @@ public class Config extends TeaModel {
         return this.type;
     }
 
-    public Config setSTSEndpoint(String STSEndpoint) {
-        this.STSEndpoint = STSEndpoint;
+    public Config setStsEndpoint(String stsEndpoint) {
+        this.stsEndpoint = stsEndpoint;
         return this;
     }
 
-    public String getSTSEndpoint() {
-        return this.STSEndpoint;
+    public String getStsEndpoint() {
+        return this.stsEndpoint;
     }
 
     public Config setExternalId(String externalId) {

@@ -1,5 +1,6 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
@@ -15,10 +16,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.List;
 
-public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
+import static com.aliyun.credentials.configure.Config.CONFIG_PATH;
+import static com.aliyun.credentials.configure.Config.ENV_PREFIX;
+
+public class CLIProfileCredentialsProvider implements ICredentialsProvider {
     private final String CLI_CREDENTIALS_CONFIG_PATH = System.getProperty("user.home") +
-            "/.aliyun/config.json";
-    private volatile AlibabaCloudCredentialsProvider credentialsProvider;
+            "/" + CONFIG_PATH + "/config.json";
+    private volatile ICredentialsProvider credentialsProvider;
     private volatile String currentProfileName;
     private final Object credentialsProviderLock = new Object();
 
@@ -39,7 +43,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         if (null == config) {
             throw new CredentialException("Unable to get profile from empty CLI credentials file.");
         }
-        String refreshedProfileName = System.getenv("ALIBABA_CLOUD_PROFILE");
+        String refreshedProfileName = System.getenv(ENV_PREFIX + "PROFILE");
         if (shouldReloadCredentialsProvider(refreshedProfileName)) {
             synchronized (credentialsProviderLock) {
                 if (shouldReloadCredentialsProvider(refreshedProfileName)) {
@@ -50,7 +54,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 }
             }
         }
-        CredentialModel credential = this.credentialsProvider.getCredentials();
+        CredentialModel credential = (CredentialModel) this.credentialsProvider.getCredentials();
         return CredentialModel.builder()
                 .accessKeyId(credential.getAccessKeyId())
                 .accessKeySecret(credential.getAccessKeySecret())
@@ -61,7 +65,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 .build();
     }
 
-    AlibabaCloudCredentialsProvider reloadCredentialsProvider(Config config, String profileName) {
+    ICredentialsProvider reloadCredentialsProvider(Config config, String profileName) {
         String currentProfileName = !StringUtils.isEmpty(profileName) ? profileName : config.getCurrent();
         List<Profile> profiles = config.getProfiles();
         if (profiles != null && !profiles.isEmpty()) {
@@ -80,7 +84,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                                             .build())
                                     .build();
                         case "RamRoleArn":
-                            AlibabaCloudCredentialsProvider innerProvider = StaticCredentialsProvider.builder()
+                            ICredentialsProvider innerProvider = StaticCredentialsProvider.builder()
                                     .credential(CredentialModel.builder()
                                             .accessKeyId(Validate.notNull(
                                                     profile.getAccessKeyId(), "AccessKeyId must not be null."))
@@ -117,7 +121,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                                     .policy(profile.getPolicy())
                                     .build();
                         case "ChainableRamRoleArn":
-                            AlibabaCloudCredentialsProvider previousProvider = reloadCredentialsProvider(config, profile.getSourceProfile());
+                            ICredentialsProvider previousProvider = reloadCredentialsProvider(config, profile.getSourceProfile());
                             return RamRoleArnCredentialProvider.builder()
                                     .credentialsProvider(previousProvider)
                                     .durationSeconds(profile.getDurationSeconds())

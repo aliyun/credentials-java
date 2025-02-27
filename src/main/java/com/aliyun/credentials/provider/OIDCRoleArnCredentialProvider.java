@@ -1,9 +1,7 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.http.*;
-import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.*;
 import com.google.gson.Gson;
@@ -12,6 +10,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.aliyun.credentials.configure.Config.ENDPOINT_SUFFIX;
+import static com.aliyun.credentials.configure.Config.STS_DEFAULT_ENDPOINT;
 
 public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
@@ -31,92 +32,20 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     /**
      * An identifier for the assumed role session.
      */
-    private String roleSessionName = "javaSdkRoleSessionName";
+    private String roleSessionName;
 
-    private String regionId = "cn-hangzhou";
     private String policy;
 
     /**
      * Unit of millisecond
      */
-    private int connectTimeout = 10000;
-    private int readTimeout = 5000;
+    private int connectTimeout;
+    private int readTimeout;
 
     /**
      * Endpoint of RAM OpenAPI
      */
-    private String STSEndpoint = "sts.aliyuncs.com";
-
-    @Deprecated
-    public OIDCRoleArnCredentialProvider(Configuration config) {
-        this(config.getRoleArn(),
-                config.getOIDCProviderArn(), config.getOIDCTokenFilePath());
-        this.roleSessionName = config.getRoleSessionName();
-        this.connectTimeout = config.getConnectTimeout();
-        this.readTimeout = config.getReadTimeout();
-        if (!StringUtils.isEmpty(config.getSTSEndpoint())) {
-            this.STSEndpoint = config.getSTSEndpoint();
-        }
-    }
-
-    @Deprecated
-    public OIDCRoleArnCredentialProvider(Config config) {
-        this(config.roleArn, config.oidcProviderArn, config.oidcTokenFilePath);
-        this.roleSessionName = config.roleSessionName;
-        this.connectTimeout = config.connectTimeout;
-        this.readTimeout = config.timeout;
-        this.policy = config.policy;
-        this.durationSeconds = config.roleSessionExpiration;
-        if (!StringUtils.isEmpty(config.STSEndpoint)) {
-            this.STSEndpoint = config.STSEndpoint;
-        }
-    }
-
-    @Deprecated
-    public OIDCRoleArnCredentialProvider(String roleArn, String oidcProviderArn, String oidcTokenFilePath) {
-        super(new BuilderImpl());
-        if (!StringUtils.isEmpty(roleArn)) {
-            this.roleArn = roleArn;
-        } else if (!StringUtils.isEmpty(AuthUtils.getEnvironmentRoleArn())) {
-            this.roleArn = AuthUtils.getEnvironmentRoleArn();
-        } else {
-            throw new CredentialException("roleArn does not exist and env ALIBABA_CLOUD_ROLE_ARN is null.");
-        }
-        if (!StringUtils.isEmpty(oidcProviderArn)) {
-            this.oidcProviderArn = oidcProviderArn;
-        } else if (!StringUtils.isEmpty(AuthUtils.getEnvironmentOIDCProviderArn())) {
-            this.oidcProviderArn = AuthUtils.getEnvironmentOIDCProviderArn();
-        } else {
-            throw new CredentialException("OIDCProviderArn does not exist and env ALIBABA_CLOUD_OIDC_PROVIDER_ARN is null.");
-        }
-        if (!StringUtils.isEmpty(oidcTokenFilePath)) {
-            this.oidcTokenFilePath = oidcTokenFilePath;
-        } else if (!StringUtils.isEmpty(AuthUtils.getEnvironmentOIDCTokenFilePath())) {
-            this.oidcTokenFilePath = AuthUtils.getEnvironmentOIDCTokenFilePath();
-        } else {
-            throw new CredentialException("OIDCTokenFilePath does not exist and env ALIBABA_CLOUD_OIDC_TOKEN_FILE is null.");
-        }
-        if (!StringUtils.isEmpty(AuthUtils.getEnvironmentRoleSessionName())) {
-            this.roleSessionName = AuthUtils.getEnvironmentRoleSessionName();
-        }
-    }
-
-    @Deprecated
-    public OIDCRoleArnCredentialProvider(String accessKeyId, String accessKeySecret, String roleSessionName,
-                                         String roleArn, String oidcProviderArn, String oidcTokenFilePath,
-                                         String regionId, String policy) {
-        this(roleSessionName, roleArn, oidcProviderArn, oidcTokenFilePath, regionId, policy);
-    }
-
-    @Deprecated
-    public OIDCRoleArnCredentialProvider(String roleSessionName, String roleArn,
-                                         String oidcProviderArn, String oidcTokenFilePath,
-                                         String regionId, String policy) {
-        this(roleArn, oidcProviderArn, oidcTokenFilePath);
-        this.roleSessionName = roleSessionName;
-        this.regionId = regionId;
-        this.policy = policy;
-    }
+    private String stsEndpoint;
 
     private OIDCRoleArnCredentialProvider(BuilderImpl builder) {
         super(builder);
@@ -142,21 +71,20 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
             throw new IllegalArgumentException("OIDCTokenFilePath or environment variable ALIBABA_CLOUD_OIDC_TOKEN_FILE cannot be empty.");
         }
 
-        this.regionId = builder.regionId;
         this.policy = builder.policy;
         this.connectTimeout = builder.connectionTimeout == null ? 5000 : builder.connectionTimeout;
         this.readTimeout = builder.readTimeout == null ? 10000 : builder.readTimeout;
 
-        if (!StringUtils.isEmpty(builder.STSEndpoint)) {
-            this.STSEndpoint = builder.STSEndpoint;
+        if (!StringUtils.isEmpty(builder.stsEndpoint)) {
+            this.stsEndpoint = builder.stsEndpoint;
         } else {
             String prefix = builder.enableVpc != null ? (builder.enableVpc ? "sts-vpc" : "sts") : AuthUtils.isEnableVpcEndpoint() ? "sts-vpc" : "sts";
             if (!StringUtils.isEmpty(builder.stsRegionId)) {
-                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, builder.stsRegionId);
+                this.stsEndpoint = String.format("%s.%s.%s", prefix, builder.stsRegionId, ENDPOINT_SUFFIX);
             } else if (!StringUtils.isEmpty(AuthUtils.getEnvironmentSTSRegion())) {
-                this.STSEndpoint = String.format("%s.%s.aliyuncs.com", prefix, AuthUtils.getEnvironmentSTSRegion());
+                this.stsEndpoint = String.format("%s.%s.%s", prefix, AuthUtils.getEnvironmentSTSRegion(), ENDPOINT_SUFFIX);
             } else {
-                this.STSEndpoint = "sts.aliyuncs.com";
+                this.stsEndpoint = STS_DEFAULT_ENDPOINT;
             }
         }
     }
@@ -218,7 +146,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         httpRequest.setSysMethod(MethodType.POST);
         httpRequest.setSysConnectTimeout(this.connectTimeout);
         httpRequest.setSysReadTimeout(this.readTimeout);
-        httpRequest.setSysUrl(parameterHelper.composeUrl(this.STSEndpoint, httpRequest.getUrlParameters(),
+        httpRequest.setSysUrl(parameterHelper.composeUrl(this.stsEndpoint, httpRequest.getUrlParameters(),
                 "https"));
         HttpResponse httpResponse;
         try {
@@ -286,14 +214,6 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         this.roleSessionName = roleSessionName;
     }
 
-    public String getRegionId() {
-        return regionId;
-    }
-
-    public void setRegionId(String regionId) {
-        this.regionId = regionId;
-    }
-
     public String getPolicy() {
         return policy;
     }
@@ -319,11 +239,11 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
     }
 
     public String getSTSEndpoint() {
-        return STSEndpoint;
+        return stsEndpoint;
     }
 
-    public void setSTSEndpoint(String STSEndpoint) {
-        this.STSEndpoint = STSEndpoint;
+    public void setSTSEndpoint(String stsEndpoint) {
+        this.stsEndpoint = stsEndpoint;
     }
 
     @Override
@@ -347,15 +267,13 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         Builder oidcTokenFilePath(String oidcTokenFilePath);
 
-        Builder regionId(String regionId);
-
         Builder policy(String policy);
 
         Builder connectionTimeout(Integer connectionTimeout);
 
         Builder readTimeout(Integer readTimeout);
 
-        Builder STSEndpoint(String STSEndpoint);
+        Builder stsEndpoint(String STSEndpoint);
 
         Builder stsRegionId(String stsRegionId);
 
@@ -373,11 +291,10 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         private String roleArn;
         private String oidcProviderArn;
         private String oidcTokenFilePath;
-        private String regionId;
         private String policy;
         private Integer connectionTimeout;
         private Integer readTimeout;
-        private String STSEndpoint;
+        private String stsEndpoint;
         private String stsRegionId;
         private Boolean enableVpc;
 
@@ -406,11 +323,6 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder regionId(String regionId) {
-            this.regionId = regionId;
-            return this;
-        }
-
         public Builder policy(String policy) {
             this.policy = policy;
             return this;
@@ -426,8 +338,8 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder STSEndpoint(String STSEndpoint) {
-            this.STSEndpoint = STSEndpoint;
+        public Builder stsEndpoint(String stsEndpoint) {
+            this.stsEndpoint = stsEndpoint;
             return this;
         }
 

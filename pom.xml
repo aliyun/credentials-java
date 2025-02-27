@@ -6,20 +6,11 @@
 
     <groupId>com.aliyun</groupId>
     <artifactId>credentials-java</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>credentials-java</name>
-    <url>https://www.aliyun.com</url>
-    <description>Alibaba Cloud Credentials for Java
-
-        Copyright (C) Alibaba Cloud Computing
-        All rights reserved.
-
-        版权所有 （C）阿里云计算有限公司
-
-        https://www.aliyun.com
-    </description>
+    <description>Credentials for Java</description>
 
     <distributionManagement>
         <snapshotRepository>

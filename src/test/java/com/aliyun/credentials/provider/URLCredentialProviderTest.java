@@ -1,13 +1,11 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.Configuration;
 import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
 import com.aliyun.credentials.models.Config;
 import com.aliyun.credentials.utils.AuthConstant;
-import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentMatchers;
@@ -23,41 +21,6 @@ public class URLCredentialProviderTest {
     @Test
     public void constructorTest() throws MalformedURLException {
         URLCredentialProvider provider;
-        try {
-            new URLCredentialProvider();
-            Assert.fail();
-        } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI cannot be null.",
-                    e.toString());
-        }
-        try {
-            new URLCredentialProvider("");
-            Assert.fail();
-        } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI cannot be null.",
-                    e.toString());
-        }
-        try {
-            new URLCredentialProvider((URL) null);
-            Assert.fail();
-        } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI cannot be null.",
-                    e.toString());
-        }
-        try {
-            new URLCredentialProvider("url");
-            Assert.fail();
-        } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI is not valid.",
-                    e.toString());
-        }
-
-        provider = new URLCredentialProvider(new URL("http://test"));
-        Assert.assertEquals("credentials_uri", provider.getProviderName());
-        Assert.assertEquals("http://test", provider.getURL());
-
-        provider = new URLCredentialProvider("http://test");
-        Assert.assertEquals("http://test", provider.getURL());
 
         provider = URLCredentialProvider.builder()
                 .credentialsURI("http://test")
@@ -69,18 +32,6 @@ public class URLCredentialProviderTest {
                 .build();
         Assert.assertEquals("http://test", provider.getURL());
         provider.close();
-
-        Config config = new Config();
-        config.setCredentialsUri("url");
-        config.setConnectTimeout(2000);
-        config.setTimeout(2000);
-        try {
-            new URLCredentialProvider(config);
-            Assert.fail();
-        } catch (Exception e) {
-            Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI is not valid.",
-                    e.toString());
-        }
 
         try {
             URLCredentialProvider.builder().build();
@@ -104,22 +55,21 @@ public class URLCredentialProviderTest {
 
     @Test
     public void getCredentials() {
-        Configuration config = new Configuration();
-        config.setAccessKeyId("test");
-        config.setAccessKeySecret("test");
-        config.setCredentialsURI("url");
-        config.setConnectTimeout(2000);
-        config.setReadTimeout(2000);
         URLCredentialProvider provider;
         try {
-            new URLCredentialProvider("url");
+            URLCredentialProvider.builder()
+                    .credentialsURI("url")
+                    .build();
             Assert.fail();
         } catch (Exception e) {
             Assert.assertEquals("com.aliyun.credentials.exception.CredentialException: Credential URI is not valid.",
                     e.toString());
         }
-        config.setCredentialsURI("http://10.10.10.10");
-        provider = new URLCredentialProvider(config);
+        provider = URLCredentialProvider.builder()
+                .credentialsURI("http://10.10.10.10")
+                .connectionTimeout(2000)
+                .readTimeout(2000)
+                .build();
         Assert.assertEquals(2000, provider.getConnectTimeout());
         Assert.assertEquals(2000, provider.getReadTimeout());
         Assert.assertEquals("http://10.10.10.10", provider.getURL());
@@ -154,7 +104,9 @@ public class URLCredentialProviderTest {
 
     @Test
     public void getSetTest() {
-        URLCredentialProvider provider = new URLCredentialProvider("http://10.10.10.10");
+        URLCredentialProvider provider = URLCredentialProvider.builder()
+                .credentialsURI("http://10.10.10.10")
+                .build();
         Assert.assertEquals("http://10.10.10.10", provider.getURL());
         provider.setConnectTimeout(888);
         Assert.assertEquals(888, provider.getConnectTimeout());

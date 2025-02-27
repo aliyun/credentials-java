@@ -1,5 +1,6 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.*;
@@ -8,7 +9,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
+public class ProfileCredentialsProvider implements ICredentialsProvider {
     private static volatile Map<String, Map<String, String>> ini;
 
     private static Map<String, Map<String, String>> getIni(String filePath) throws IOException {
@@ -109,7 +110,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
                         .accessKeySecret(accessKeySecret)
                         .roleArn(roleArn)
                         .roleSessionName(roleSessionName)
-                        .regionId(regionId)
+                        .stsRegionId(regionId)
                         .policy(policy)
                         .build());
         CredentialModel credential = provider.getCredentials();
@@ -142,7 +143,7 @@ public class ProfileCredentialsProvider implements AlibabaCloudCredentialsProvid
                         .roleSessionName(roleSessionName)
                         .oidcProviderArn(OIDCProviderArn)
                         .oidcTokenFilePath(OIDCTokenFilePath)
-                        .regionId(regionId)
+                        .stsRegionId(regionId)
                         .policy(policy)
                         .build());
         CredentialModel credential = provider.getCredentials();

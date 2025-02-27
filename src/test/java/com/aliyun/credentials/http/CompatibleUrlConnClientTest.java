@@ -3,6 +3,7 @@ package com.aliyun.credentials.http;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static com.aliyun.credentials.configure.Config.USER_AGENT_PREFIX;
 import static org.mockito.Mockito.*;
 
 import java.net.HttpURLConnection;
@@ -67,7 +68,7 @@ public class CompatibleUrlConnClientTest {
         HttpURLConnection connection = client.buildHttpConnection(request);
         Assert.assertEquals("value1", connection.getRequestProperty("header1"));
         Assert.assertEquals("json", connection.getRequestProperty("Content-Type"));
-        Pattern pattern = Pattern.compile("AlibabaCloud (.+; .+) Java/.+ Credentials/.+ TeaDSL/1");
+        Pattern pattern = Pattern.compile(USER_AGENT_PREFIX + " (.+; .+) Java/.+ Credentials/.+ TeaDSL/1");
         Matcher matcher = pattern.matcher(connection.getRequestProperty("User-Agent"));
         Assert.assertTrue(matcher.find());
     }

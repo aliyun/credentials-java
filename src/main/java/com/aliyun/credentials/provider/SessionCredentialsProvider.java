@@ -1,5 +1,6 @@
 package com.aliyun.credentials.provider;
 
+import com.aliyun.credentials.api.ICredentialsProvider;
 import com.aliyun.credentials.models.CredentialModel;
 
 import java.util.Date;
@@ -7,7 +8,7 @@ import java.util.concurrent.Callable;
 
 import static com.aliyun.credentials.provider.RefreshCachedSupplier.StaleValueBehavior.STRICT;
 
-public abstract class SessionCredentialsProvider implements AlibabaCloudCredentialsProvider {
+public abstract class SessionCredentialsProvider implements ICredentialsProvider {
     private final boolean asyncCredentialUpdateEnabled;
     private RefreshCachedSupplier<CredentialModel> credentialsCache;
     private final Callable<RefreshResult<CredentialModel>> refreshCallable = new Callable<RefreshResult<CredentialModel>>() {

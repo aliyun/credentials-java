@@ -21,10 +21,11 @@ public class ClientTest {
         config.accessKeyId = "123456";
         config.accessKeySecret = "654321";
         Client credential = new Client(config);
-        Assert.assertEquals("123456", credential.getAccessKeyId());
-        Assert.assertEquals("654321", credential.getAccessKeySecret());
-        Assert.assertEquals(AuthConstant.ACCESS_KEY, credential.getType());
-        Assert.assertNull(credential.getSecurityToken());
+        CredentialModel model = credential.getCredential();
+        Assert.assertEquals("123456", model.getAccessKeyId());
+        Assert.assertEquals("654321", model.getAccessKeySecret());
+        Assert.assertEquals(AuthConstant.ACCESS_KEY, model.getType());
+        Assert.assertNull(model.getSecurityToken());
     }
 
     @Test
@@ -120,10 +121,11 @@ public class ClientTest {
         config.accessKeySecret = "test";
         config.securityToken = "test";
         Client credential = new Client(config);
-        Assert.assertEquals(AuthConstant.STS, credential.getType());
+        CredentialModel model = credential.getCredential();
+        Assert.assertEquals(AuthConstant.STS, model.getType());
         config.type = AuthConstant.RSA_KEY_PAIR;
         config.publicKeyId = "test";
         config.privateKeyFile = "/test";
-        Assert.assertNull(credential.getBearerToken());
+        Assert.assertNull(model.getBearerToken());
     }
 }

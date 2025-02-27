@@ -1,7 +1,8 @@
 package com.aliyun.credentials.provider;
 
-import com.aliyun.credentials.AlibabaCloudCredentials;
+import com.aliyun.credentials.api.ICredentials;
 import com.aliyun.credentials.exception.CredentialException;
+import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
 import org.junit.Assert;
@@ -28,7 +29,7 @@ public class EnvironmentVariableCredentialsProviderTest {
         }
 
         AuthUtils.setEnvironmentAccessKeySecret("accessKeyIdTest");
-        AlibabaCloudCredentials credential = provider.getCredentials();
+        CredentialModel credential = provider.getCredentials();
         String accessKeyId = credential.getAccessKeyId();
         String accessKeySecret = credential.getAccessKeySecret();
         Assert.assertEquals("accessKeyIdTest", accessKeyId);
