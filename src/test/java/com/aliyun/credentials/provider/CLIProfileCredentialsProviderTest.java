@@ -98,6 +98,15 @@ public class CLIProfileCredentialsProviderTest {
         Assert.assertEquals("secret", credential.getAccessKeySecret());
         Assert.assertNull(credential.getSecurityToken());
 
+        credentialsProvider = provider.reloadCredentialsProvider(config, "StsToken");
+        Assert.assertTrue(credentialsProvider instanceof StaticCredentialsProvider);
+        credential = credentialsProvider.getCredentials();
+        Assert.assertEquals("cli_profile", provider.getProviderName());
+        Assert.assertEquals("static_sts", credentialsProvider.getProviderName());
+        Assert.assertEquals("accessKeyId", credential.getAccessKeyId());
+        Assert.assertEquals("accessKeySecret", credential.getAccessKeySecret());
+        Assert.assertEquals("stsToken", credential.getSecurityToken());
+
         credentialsProvider = provider.reloadCredentialsProvider(config, "RamRoleArn");
         Assert.assertTrue(credentialsProvider instanceof RamRoleArnCredentialProvider);
         try {

@@ -79,6 +79,20 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                                             .providerName(ProviderName.STATIC_AK)
                                             .build())
                                     .build();
+                        case "StsToken":
+                            return StaticCredentialsProvider.builder()
+                                    .credential(CredentialModel.builder()
+                                            .accessKeyId(Validate.notNull(
+                                                    profile.getAccessKeyId(), "AccessKeyId must not be null."))
+                                            .accessKeySecret(Validate.notNull(
+                                                    profile.getAccessKeySecret(), "AccessKeySecret must not be null."))
+                                            .securityToken(Validate.notNull(
+                                                    profile.getSecurityToken(), "SecurityToken must not be null."
+                                            ))
+                                            .type(AuthConstant.STS)
+                                            .providerName(ProviderName.STATIC_STS)
+                                            .build())
+                                    .build();
                         case "RamRoleArn":
                             AlibabaCloudCredentialsProvider innerProvider = StaticCredentialsProvider.builder()
                                     .credential(CredentialModel.builder()
@@ -210,6 +224,8 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         private String accessKeyId;
         @SerializedName("access_key_secret")
         private String accessKeySecret;
+        @SerializedName("sts_token")
+        private String securityToken;
         @SerializedName("ram_role_arn")
         private String roleArn;
         @SerializedName("ram_session_name")
@@ -247,6 +263,10 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
 
         public String getAccessKeySecret() {
             return accessKeySecret;
+        }
+
+        public String getSecurityToken() {
+            return securityToken;
         }
 
         public String getRoleArn() {
