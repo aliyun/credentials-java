@@ -1,3 +1,6 @@
+2025-04-18 Version: 1.0.2
+1.feat: support StsToken mode in cli profile.
+
 2025-02-12 Version: 1.0.1
 1.feat: upgrade the credential refresh mechanism and add fallbacks for error scenarios.
 
