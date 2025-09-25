@@ -3,6 +3,7 @@ package com.aliyun.credentials.models;
 
 import com.aliyun.credentials.AlibabaCloudCredentials;
 import com.aliyun.credentials.api.ICredentials;
+import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.*;
 
 public class CredentialModel extends TeaModel implements AlibabaCloudCredentials, ICredentials {
@@ -87,9 +88,47 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
         return providerName;
     }
 
+    /**
+     * 对敏感信息进行模糊处理，保留首尾字符
+     *
+     * @param value 需要模糊处理的字符串
+     * @return 模糊处理后的字符串
+     */
+    private String maskSensitiveValue(String value) {
+        if (value == null || value.length() <= 6) {
+            return "****";
+        }
+
+        int length = value.length();
+        int prefixLength = Math.min(3, length / 4);
+        int suffixLength = Math.min(3, length / 4);
+
+        String prefix = value.substring(0, prefixLength);
+        String suffix = value.substring(length - suffixLength);
+
+        StringBuilder masked = new StringBuilder();
+        masked.append(prefix);
+        for (int i = 0; i < length - prefixLength - suffixLength; i++) {
+            masked.append("*");
+        }
+        masked.append(suffix);
+
+        return masked.toString();
+    }
+
     @Override
     public String toString() {
-        return String.format("Credential(accessKeyId=%s, accessKeySecret=%s, securityToken=%s, providerName=%s, expiration=%s)", accessKeyId, accessKeySecret, securityToken, providerName, expiration);
+        if (!StringUtils.isEmpty(bearerToken)) {
+            return String.format("Credential(bearerToken=%s, providerName=%s)",
+                    maskSensitiveValue(bearerToken),
+                    providerName);
+        }
+        return String.format("Credential(accessKeyId=%s, accessKeySecret=%s, securityToken=%s, providerName=%s, expiration=%s)",
+                maskSensitiveValue(accessKeyId),
+                maskSensitiveValue(accessKeySecret),
+                maskSensitiveValue(securityToken),
+                providerName,
+                expiration);
     }
 
     public static final class Builder {
@@ -142,4 +181,3 @@ public class CredentialModel extends TeaModel implements AlibabaCloudCredentials
     }
 
 }
-
