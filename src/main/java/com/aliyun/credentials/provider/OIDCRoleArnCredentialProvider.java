@@ -347,6 +347,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         Builder oidcTokenFilePath(String oidcTokenFilePath);
 
+        @Deprecated
         Builder regionId(String regionId);
 
         Builder policy(String policy);
@@ -406,6 +407,7 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
+        @Deprecated
         public Builder regionId(String regionId) {
             this.regionId = regionId;
             return this;

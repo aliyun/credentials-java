@@ -341,6 +341,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
 
         Builder roleArn(String roleArn);
 
+        @Deprecated
         Builder regionId(String regionId);
 
         Builder policy(String policy);
@@ -403,6 +404,7 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
+        @Deprecated
         public Builder regionId(String regionId) {
             this.regionId = regionId;
             return this;
