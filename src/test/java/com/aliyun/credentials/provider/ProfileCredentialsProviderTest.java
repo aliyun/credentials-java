@@ -4,7 +4,6 @@ import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
 import com.aliyun.credentials.utils.AuthUtils;
-import org.ini4j.Wini;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
