@@ -1,3 +1,7 @@
+2025-09-25 Version: 1.0.3
+1.deprecate regionId in assume role & oidc.
+2.fix: resolve sensitive value in model.
+
 2025-04-18 Version: 1.0.2
 1.feat: support StsToken mode in cli profile.
 
