@@ -150,6 +150,57 @@ public class CLIProfileCredentialsProviderTest {
     }
 
     @Test
+    public void testCloudSSOMode() {
+        CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
+        String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
+                getResource(".aliyun/config.json").getPath();
+        CLIProfileCredentialsProvider.Config config = provider.parseProfile(configPath);
+
+        AlibabaCloudCredentialsProvider credentialsProvider = provider.reloadCredentialsProvider(config, "CloudSSO");
+        Assert.assertTrue(credentialsProvider instanceof CloudSSOCredentialsProvider);
+        Assert.assertEquals("cloud_sso", credentialsProvider.getProviderName());
+    }
+
+    @Test
+    public void testOAuthModeCN() {
+        CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
+        String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
+                getResource(".aliyun/config.json").getPath();
+        CLIProfileCredentialsProvider.Config config = provider.parseProfile(configPath);
+
+        AlibabaCloudCredentialsProvider credentialsProvider = provider.reloadCredentialsProvider(config, "OAuthCN");
+        Assert.assertTrue(credentialsProvider instanceof OAuthCredentialsProvider);
+        Assert.assertEquals("oauth", credentialsProvider.getProviderName());
+    }
+
+    @Test
+    public void testOAuthModeINTL() {
+        CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
+        String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
+                getResource(".aliyun/config.json").getPath();
+        CLIProfileCredentialsProvider.Config config = provider.parseProfile(configPath);
+
+        AlibabaCloudCredentialsProvider credentialsProvider = provider.reloadCredentialsProvider(config, "OAuthINTL");
+        Assert.assertTrue(credentialsProvider instanceof OAuthCredentialsProvider);
+        Assert.assertEquals("oauth", credentialsProvider.getProviderName());
+    }
+
+    @Test
+    public void testOAuthModeInvalidSiteType() {
+        CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
+        String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
+                getResource(".aliyun/config.json").getPath();
+        CLIProfileCredentialsProvider.Config config = provider.parseProfile(configPath);
+
+        try {
+            provider.reloadCredentialsProvider(config, "OAuthInvalid");
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Invalid OAuth site type, support CN or INTL.", e.getMessage());
+        }
+    }
+
+    @Test
     public void getCredentialsTest() {
         String homePath = System.getProperty("user.home");
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().

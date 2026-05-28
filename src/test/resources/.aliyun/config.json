@@ -52,6 +52,39 @@
     {
       "name": "Unsupported",
       "mode": "Unsupported"
+    },
+    {
+      "name": "CloudSSO",
+      "mode": "CloudSSO",
+      "cloud_sso_sign_in_url": "https://signin.aliyuncs.com",
+      "cloud_sso_account_id": "account-123",
+      "cloud_sso_access_config": "ac-config-456",
+      "access_token": "sso-token",
+      "cloud_sso_access_token_expire": 9999999999
+    },
+    {
+      "name": "OAuthCN",
+      "mode": "OAuth",
+      "oauth_site_type": "CN",
+      "oauth_refresh_token": "cn-refresh-token",
+      "oauth_access_token": "cn-access-token",
+      "oauth_access_token_expire": 9999999999
+    },
+    {
+      "name": "OAuthINTL",
+      "mode": "OAuth",
+      "oauth_site_type": "INTL",
+      "oauth_refresh_token": "intl-refresh-token",
+      "oauth_access_token": "intl-access-token",
+      "oauth_access_token_expire": 9999999999
+    },
+    {
+      "name": "OAuthInvalid",
+      "mode": "OAuth",
+      "oauth_site_type": "INVALID",
+      "oauth_refresh_token": "refresh-token",
+      "oauth_access_token": "access-token",
+      "oauth_access_token_expire": 9999999999
     }
   ]
 }
