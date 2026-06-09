@@ -74,11 +74,11 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
     }
 
     AlibabaCloudCredentialsProvider reloadCredentialsProvider(Config config, String profileName) {
-        String currentProfileName = !StringUtils.isEmpty(profileName) ? profileName : config.getCurrent();
+        String selectedProfileName = !StringUtils.isEmpty(profileName) ? profileName : config.getCurrent();
         List<Profile> profiles = config.getProfiles();
         if (profiles != null && !profiles.isEmpty()) {
             for (Profile profile : profiles) {
-                if (!StringUtils.isEmpty(profile.getName()) && profile.getName().equals(currentProfileName)) {
+                if (!StringUtils.isEmpty(profile.getName()) && profile.getName().equals(selectedProfileName)) {
                     switch (profile.getMode()) {
                         case "AK":
                             return StaticCredentialsProvider.builder()
@@ -189,7 +189,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 }
             }
         }
-        throw new CredentialException(String.format("Unable to get profile with '%s' form CLI credentials file.", currentProfileName));
+            throw new CredentialException(String.format("Unable to get profile with '%s' form CLI credentials file.", selectedProfileName));
     }
 
     Config parseProfile(String configFilePath) {
@@ -450,7 +450,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         @SerializedName("access_token")
         private String accessToken;
         @SerializedName("cloud_sso_access_token_expire")
-        private long accessTokenExpire;
+        private Long accessTokenExpire;
         @SerializedName("oauth_site_type")
         private String oauthSiteType;
         @SerializedName("oauth_refresh_token")
@@ -458,11 +458,11 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         @SerializedName("oauth_access_token")
         private String oauthAccessToken;
         @SerializedName("oauth_access_token_expire")
-        private long oauthAccessTokenExpire;
+        private Long oauthAccessTokenExpire;
         @SerializedName("process_command")
         private String processCommand;
         @SerializedName("sts_expiration")
-        private long stsExpire;
+        private Long stsExpire;
 
         public String getName() {
             return name;
@@ -545,6 +545,9 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         }
 
         public long getAccessTokenExpire() {
+            if (accessTokenExpire == null) {
+                return 0L;
+            }
             return accessTokenExpire;
         }
 
@@ -561,6 +564,9 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         }
 
         public long getOauthAccessTokenExpire() {
+            if (oauthAccessTokenExpire == null) {
+                return 0L;
+            }
             return oauthAccessTokenExpire;
         }
 
@@ -569,6 +575,9 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         }
 
         public long getStsExpire() {
+            if (stsExpire == null) {
+                return 0L;
+            }
             return stsExpire;
         }
 
