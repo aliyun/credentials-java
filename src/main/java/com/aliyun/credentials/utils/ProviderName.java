@@ -10,6 +10,7 @@ public final class ProviderName {
     public static final String CREDENTIALS_URI = "credentials_uri";
 
     public static final String OAUTH = "oauth";
+    public static final String EXTERNAL = "external";
     public static final String CLOUD_SSO = "cloud_sso";
 
     public static final String ENV = "env";

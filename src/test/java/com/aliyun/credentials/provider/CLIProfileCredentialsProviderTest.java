@@ -201,6 +201,21 @@ public class CLIProfileCredentialsProviderTest {
     }
 
     @Test
+    public void testExternalMode() {
+        CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
+        String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
+                getResource(".aliyun/config.json").getPath();
+        CLIProfileCredentialsProvider.Config config = provider.parseProfile(configPath);
+
+        AlibabaCloudCredentialsProvider credentialsProvider = provider.reloadCredentialsProvider(config, "External");
+        Assert.assertTrue(credentialsProvider instanceof ExternalCredentialsProvider);
+        Assert.assertEquals("external", credentialsProvider.getProviderName());
+        CredentialModel credential = credentialsProvider.getCredentials();
+        Assert.assertEquals("externalAk", credential.getAccessKeyId());
+        Assert.assertEquals("externalSk", credential.getAccessKeySecret());
+    }
+
+    @Test
     public void getCredentialsTest() {
         String homePath = System.getProperty("user.home");
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().

@@ -178,6 +178,11 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                                     .accessTokenExpire(profile.getOauthAccessTokenExpire())
                                     .tokenUpdateCallback(createOAuthTokenUpdateCallback())
                                     .build();
+                        case "External":
+                            return ExternalCredentialsProvider.builder()
+                                    .processCommand(profile.getProcessCommand())
+                                    .credentialUpdateCallback(createExternalCredentialUpdateCallback())
+                                    .build();
                         default:
                             throw new CredentialException(String.format("Unsupported profile mode '%s' form CLI credentials file.", profile.getMode()));
                     }
@@ -225,6 +230,12 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         };
     }
 
+    private ExternalCredentialsProvider.ExternalCredentialUpdateCallback createExternalCredentialUpdateCallback() {
+        return (accessKeyId, accessKeySecret, securityToken, expiration) -> {
+            updateExternalCredentials(accessKeyId, accessKeySecret, securityToken, expiration);
+        };
+    }
+
     private void updateOAuthTokens(String refreshToken, String accessToken, String accessKeyId,
                                    String accessKeySecret, String securityToken,
                                    long accessTokenExpire, long stsExpire) {
@@ -236,6 +247,9 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         try (RandomAccessFile raf = new RandomAccessFile(configFile, "rw");
              FileChannel channel = raf.getChannel();
              FileLock lock = channel.lock()) {
+            if (!lock.isValid()) {
+                return;
+            }
 
             byte[] bytes = new byte[(int) raf.length()];
             raf.readFully(bytes);
@@ -276,6 +290,56 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         }
     }
 
+    private void updateExternalCredentials(String accessKeyId, String accessKeySecret,
+                                           String securityToken, long expiration) {
+        File configFile = new File(CLI_CREDENTIALS_CONFIG_PATH);
+        if (!configFile.exists()) {
+            return;
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(configFile, "rw");
+             FileChannel channel = raf.getChannel();
+             FileLock lock = channel.lock()) {
+            if (!lock.isValid()) {
+                return;
+            }
+
+            byte[] bytes = new byte[(int) raf.length()];
+            raf.readFully(bytes);
+            String jsonContent = new String(bytes, "UTF-8");
+
+            Gson gson = new Gson();
+            Config config = gson.fromJson(jsonContent, Config.class);
+            if (config == null || config.getProfiles() == null) {
+                return;
+            }
+
+            String profileName = this.currentProfileName;
+            if (StringUtils.isEmpty(profileName)) {
+                profileName = config.getCurrent();
+            }
+
+            Profile externalProfile = findExternalProfile(config, profileName);
+            if (externalProfile == null) {
+                return;
+            }
+
+            externalProfile.setAccessKeyId(accessKeyId);
+            externalProfile.setAccessKeySecret(accessKeySecret);
+            externalProfile.setSecurityToken(securityToken);
+            externalProfile.setStsExpire(expiration);
+
+            Gson writer = new GsonBuilder().setPrettyPrinting().create();
+            String updatedJson = writer.toJson(config);
+
+            raf.seek(0);
+            raf.setLength(0);
+            raf.write(updatedJson.getBytes("UTF-8"));
+        } catch (Exception e) {
+            // Warning only
+        }
+    }
+
     private Profile findOAuthProfile(Config config, String profileName) {
         if (config.getProfiles() == null) {
             return null;
@@ -287,6 +351,24 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 }
                 if (!StringUtils.isEmpty(p.getSourceProfile())) {
                     return findOAuthProfile(config, p.getSourceProfile());
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private Profile findExternalProfile(Config config, String profileName) {
+        if (config.getProfiles() == null) {
+            return null;
+        }
+        for (Profile p : config.getProfiles()) {
+            if (p.getName() != null && p.getName().equals(profileName)) {
+                if ("External".equals(p.getMode())) {
+                    return p;
+                }
+                if (!StringUtils.isEmpty(p.getSourceProfile())) {
+                    return findExternalProfile(config, p.getSourceProfile());
                 }
                 return null;
             }
@@ -377,6 +459,8 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         private String oauthAccessToken;
         @SerializedName("oauth_access_token_expire")
         private long oauthAccessTokenExpire;
+        @SerializedName("process_command")
+        private String processCommand;
         @SerializedName("sts_expiration")
         private long stsExpire;
 
@@ -478,6 +562,10 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
 
         public long getOauthAccessTokenExpire() {
             return oauthAccessTokenExpire;
+        }
+
+        public String getProcessCommand() {
+            return processCommand;
         }
 
         public long getStsExpire() {
