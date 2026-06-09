@@ -1,3 +1,6 @@
+2026-06-09 Version: 1.0.4
+1.feat: support cloudsso && oauth && external credentials.
+
 2025-09-25 Version: 1.0.3
 1.deprecate regionId in assume role & oidc.
 2.fix: resolve sensitive value in model.

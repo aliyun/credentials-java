@@ -1,5 +1,15 @@
 package com.aliyun.credentials.provider;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
@@ -10,13 +20,6 @@ import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
-
-import java.io.*;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
     private static final Map<String, String> OAUTH_BASE_URL_MAP = new HashMap<String, String>() {{
@@ -189,7 +192,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 }
             }
         }
-            throw new CredentialException(String.format("Unable to get profile with '%s' form CLI credentials file.", selectedProfileName));
+        throw new CredentialException(String.format("Unable to get profile with '%s' form CLI credentials file.", selectedProfileName));
     }
 
     Config parseProfile(String configFilePath) {
