@@ -8,14 +8,26 @@ import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.SerializedName;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
+    private static final Map<String, String> OAUTH_BASE_URL_MAP = new HashMap<String, String>() {{
+        put("CN", "https://oauth.aliyun.com");
+        put("INTL", "https://oauth.alibabacloud.com");
+    }};
+    private static final Map<String, String> OAUTH_CLIENT_MAP = new HashMap<String, String>() {{
+        put("CN", "4038181954557748008");
+        put("INTL", "4103531455503354461");
+    }};
+
     private final String CLI_CREDENTIALS_CONFIG_PATH = System.getProperty("user.home") +
             "/.aliyun/config.json";
     private volatile AlibabaCloudCredentialsProvider credentialsProvider;
@@ -62,11 +74,11 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
     }
 
     AlibabaCloudCredentialsProvider reloadCredentialsProvider(Config config, String profileName) {
-        String currentProfileName = !StringUtils.isEmpty(profileName) ? profileName : config.getCurrent();
+        String selectedProfileName = !StringUtils.isEmpty(profileName) ? profileName : config.getCurrent();
         List<Profile> profiles = config.getProfiles();
         if (profiles != null && !profiles.isEmpty()) {
             for (Profile profile : profiles) {
-                if (!StringUtils.isEmpty(profile.getName()) && profile.getName().equals(currentProfileName)) {
+                if (!StringUtils.isEmpty(profile.getName()) && profile.getName().equals(selectedProfileName)) {
                     switch (profile.getMode()) {
                         case "AK":
                             return StaticCredentialsProvider.builder()
@@ -142,13 +154,42 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                                     .policy(profile.getPolicy())
                                     .externalId(profile.getExternalId())
                                     .build();
+                        case "CloudSSO":
+                            return CloudSSOCredentialsProvider.builder()
+                                    .signInUrl(profile.getSignInUrl())
+                                    .accountId(profile.getAccountId())
+                                    .accessConfig(profile.getAccessConfig())
+                                    .accessToken(profile.getAccessToken())
+                                    .accessTokenExpire(profile.getAccessTokenExpire())
+                                    .build();
+                        case "OAuth":
+                            String siteType = profile.getOauthSiteType() != null
+                                    ? profile.getOauthSiteType().toUpperCase() : "";
+                            String oauthSignInUrl = OAUTH_BASE_URL_MAP.get(siteType);
+                            if (StringUtils.isEmpty(oauthSignInUrl)) {
+                                throw new CredentialException("Invalid OAuth site type, support CN or INTL.");
+                            }
+                            String oauthClientId = OAUTH_CLIENT_MAP.get(siteType);
+                            return OAuthCredentialsProvider.builder()
+                                    .signInUrl(oauthSignInUrl)
+                                    .clientId(oauthClientId)
+                                    .refreshToken(profile.getOauthRefreshToken())
+                                    .accessToken(profile.getOauthAccessToken())
+                                    .accessTokenExpire(profile.getOauthAccessTokenExpire())
+                                    .tokenUpdateCallback(createOAuthTokenUpdateCallback())
+                                    .build();
+                        case "External":
+                            return ExternalCredentialsProvider.builder()
+                                    .processCommand(profile.getProcessCommand())
+                                    .credentialUpdateCallback(createExternalCredentialUpdateCallback())
+                                    .build();
                         default:
                             throw new CredentialException(String.format("Unsupported profile mode '%s' form CLI credentials file.", profile.getMode()));
                     }
                 }
             }
         }
-        throw new CredentialException(String.format("Unable to get profile with '%s' form CLI credentials file.", currentProfileName));
+            throw new CredentialException(String.format("Unable to get profile with '%s' form CLI credentials file.", selectedProfileName));
     }
 
     Config parseProfile(String configFilePath) {
@@ -181,6 +222,158 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
     @Override
     public String getProviderName() {
         return ProviderName.CLI_PROFILE;
+    }
+
+    private OAuthCredentialsProvider.OAuthTokenUpdateCallback createOAuthTokenUpdateCallback() {
+        return (refreshToken, accessToken, accessKeyId, accessKeySecret, securityToken, accessTokenExpire, stsExpire) -> {
+            updateOAuthTokens(refreshToken, accessToken, accessKeyId, accessKeySecret, securityToken, accessTokenExpire, stsExpire);
+        };
+    }
+
+    private ExternalCredentialsProvider.ExternalCredentialUpdateCallback createExternalCredentialUpdateCallback() {
+        return (accessKeyId, accessKeySecret, securityToken, expiration) -> {
+            updateExternalCredentials(accessKeyId, accessKeySecret, securityToken, expiration);
+        };
+    }
+
+    private void updateOAuthTokens(String refreshToken, String accessToken, String accessKeyId,
+                                   String accessKeySecret, String securityToken,
+                                   long accessTokenExpire, long stsExpire) {
+        File configFile = new File(CLI_CREDENTIALS_CONFIG_PATH);
+        if (!configFile.exists()) {
+            return;
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(configFile, "rw");
+             FileChannel channel = raf.getChannel();
+             FileLock lock = channel.lock()) {
+            if (!lock.isValid()) {
+                return;
+            }
+
+            byte[] bytes = new byte[(int) raf.length()];
+            raf.readFully(bytes);
+            String jsonContent = new String(bytes, "UTF-8");
+
+            Gson gson = new Gson();
+            Config config = gson.fromJson(jsonContent, Config.class);
+            if (config == null || config.getProfiles() == null) {
+                return;
+            }
+
+            String profileName = this.currentProfileName;
+            if (StringUtils.isEmpty(profileName)) {
+                profileName = config.getCurrent();
+            }
+
+            Profile oauthProfile = findOAuthProfile(config, profileName);
+            if (oauthProfile == null) {
+                return;
+            }
+
+            oauthProfile.setOauthRefreshToken(refreshToken);
+            oauthProfile.setOauthAccessToken(accessToken);
+            oauthProfile.setOauthAccessTokenExpire(accessTokenExpire);
+            oauthProfile.setAccessKeyId(accessKeyId);
+            oauthProfile.setAccessKeySecret(accessKeySecret);
+            oauthProfile.setSecurityToken(securityToken);
+            oauthProfile.setStsExpire(stsExpire);
+
+            Gson writer = new GsonBuilder().setPrettyPrinting().create();
+            String updatedJson = writer.toJson(config);
+
+            raf.seek(0);
+            raf.setLength(0);
+            raf.write(updatedJson.getBytes("UTF-8"));
+        } catch (Exception e) {
+            // Warning only
+        }
+    }
+
+    private void updateExternalCredentials(String accessKeyId, String accessKeySecret,
+                                           String securityToken, long expiration) {
+        File configFile = new File(CLI_CREDENTIALS_CONFIG_PATH);
+        if (!configFile.exists()) {
+            return;
+        }
+
+        try (RandomAccessFile raf = new RandomAccessFile(configFile, "rw");
+             FileChannel channel = raf.getChannel();
+             FileLock lock = channel.lock()) {
+            if (!lock.isValid()) {
+                return;
+            }
+
+            byte[] bytes = new byte[(int) raf.length()];
+            raf.readFully(bytes);
+            String jsonContent = new String(bytes, "UTF-8");
+
+            Gson gson = new Gson();
+            Config config = gson.fromJson(jsonContent, Config.class);
+            if (config == null || config.getProfiles() == null) {
+                return;
+            }
+
+            String profileName = this.currentProfileName;
+            if (StringUtils.isEmpty(profileName)) {
+                profileName = config.getCurrent();
+            }
+
+            Profile externalProfile = findExternalProfile(config, profileName);
+            if (externalProfile == null) {
+                return;
+            }
+
+            externalProfile.setAccessKeyId(accessKeyId);
+            externalProfile.setAccessKeySecret(accessKeySecret);
+            externalProfile.setSecurityToken(securityToken);
+            externalProfile.setStsExpire(expiration);
+
+            Gson writer = new GsonBuilder().setPrettyPrinting().create();
+            String updatedJson = writer.toJson(config);
+
+            raf.seek(0);
+            raf.setLength(0);
+            raf.write(updatedJson.getBytes("UTF-8"));
+        } catch (Exception e) {
+            // Warning only
+        }
+    }
+
+    private Profile findOAuthProfile(Config config, String profileName) {
+        if (config.getProfiles() == null) {
+            return null;
+        }
+        for (Profile p : config.getProfiles()) {
+            if (p.getName() != null && p.getName().equals(profileName)) {
+                if ("OAuth".equals(p.getMode())) {
+                    return p;
+                }
+                if (!StringUtils.isEmpty(p.getSourceProfile())) {
+                    return findOAuthProfile(config, p.getSourceProfile());
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private Profile findExternalProfile(Config config, String profileName) {
+        if (config.getProfiles() == null) {
+            return null;
+        }
+        for (Profile p : config.getProfiles()) {
+            if (p.getName() != null && p.getName().equals(profileName)) {
+                if ("External".equals(p.getMode())) {
+                    return p;
+                }
+                if (!StringUtils.isEmpty(p.getSourceProfile())) {
+                    return findExternalProfile(config, p.getSourceProfile());
+                }
+                return null;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -248,6 +441,28 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         private String policy;
         @SerializedName("external_id")
         private String externalId;
+        @SerializedName("cloud_sso_sign_in_url")
+        private String signInUrl;
+        @SerializedName("cloud_sso_account_id")
+        private String accountId;
+        @SerializedName("cloud_sso_access_config")
+        private String accessConfig;
+        @SerializedName("access_token")
+        private String accessToken;
+        @SerializedName("cloud_sso_access_token_expire")
+        private Long accessTokenExpire;
+        @SerializedName("oauth_site_type")
+        private String oauthSiteType;
+        @SerializedName("oauth_refresh_token")
+        private String oauthRefreshToken;
+        @SerializedName("oauth_access_token")
+        private String oauthAccessToken;
+        @SerializedName("oauth_access_token_expire")
+        private Long oauthAccessTokenExpire;
+        @SerializedName("process_command")
+        private String processCommand;
+        @SerializedName("sts_expiration")
+        private Long stsExpire;
 
         public String getName() {
             return name;
@@ -311,6 +526,87 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
 
         public String getExternalId() {
             return externalId;
+        }
+
+        public String getSignInUrl() {
+            return signInUrl;
+        }
+
+        public String getAccountId() {
+            return accountId;
+        }
+
+        public String getAccessConfig() {
+            return accessConfig;
+        }
+
+        public String getAccessToken() {
+            return accessToken;
+        }
+
+        public long getAccessTokenExpire() {
+            if (accessTokenExpire == null) {
+                return 0L;
+            }
+            return accessTokenExpire;
+        }
+
+        public String getOauthSiteType() {
+            return oauthSiteType;
+        }
+
+        public String getOauthRefreshToken() {
+            return oauthRefreshToken;
+        }
+
+        public String getOauthAccessToken() {
+            return oauthAccessToken;
+        }
+
+        public long getOauthAccessTokenExpire() {
+            if (oauthAccessTokenExpire == null) {
+                return 0L;
+            }
+            return oauthAccessTokenExpire;
+        }
+
+        public String getProcessCommand() {
+            return processCommand;
+        }
+
+        public long getStsExpire() {
+            if (stsExpire == null) {
+                return 0L;
+            }
+            return stsExpire;
+        }
+
+        public void setOauthRefreshToken(String oauthRefreshToken) {
+            this.oauthRefreshToken = oauthRefreshToken;
+        }
+
+        public void setOauthAccessToken(String oauthAccessToken) {
+            this.oauthAccessToken = oauthAccessToken;
+        }
+
+        public void setOauthAccessTokenExpire(long oauthAccessTokenExpire) {
+            this.oauthAccessTokenExpire = oauthAccessTokenExpire;
+        }
+
+        public void setAccessKeyId(String accessKeyId) {
+            this.accessKeyId = accessKeyId;
+        }
+
+        public void setAccessKeySecret(String accessKeySecret) {
+            this.accessKeySecret = accessKeySecret;
+        }
+
+        public void setSecurityToken(String securityToken) {
+            this.securityToken = securityToken;
+        }
+
+        public void setStsExpire(long stsExpire) {
+            this.stsExpire = stsExpire;
         }
     }
 }
