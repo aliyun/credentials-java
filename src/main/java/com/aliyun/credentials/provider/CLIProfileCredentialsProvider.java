@@ -31,8 +31,10 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
         put("INTL", "4103531455503354461");
     }};
 
-    private final String CLI_CREDENTIALS_CONFIG_PATH = System.getProperty("user.home") +
-            "/.aliyun/config.json";
+    private final String CLI_CREDENTIALS_CONFIG_PATH = new File(
+            new File(System.getProperty("user.home"), ".aliyun"),
+            "config.json"
+    ).getPath();
     private volatile AlibabaCloudCredentialsProvider credentialsProvider;
     private volatile String currentProfileName;
     private final Object credentialsProviderLock = new Object();
