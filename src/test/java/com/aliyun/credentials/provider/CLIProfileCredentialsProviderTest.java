@@ -7,6 +7,7 @@ import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.google.gson.Gson;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 public class CLIProfileCredentialsProviderTest {
@@ -204,6 +205,10 @@ public class CLIProfileCredentialsProviderTest {
 
     @Test
     public void testExternalMode() {
+        Assume.assumeFalse(
+                "external profile uses /bin/echo",
+                System.getProperty("os.name").toLowerCase().contains("win")
+        );
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
                 getResource(".aliyun/config.json").getPath();

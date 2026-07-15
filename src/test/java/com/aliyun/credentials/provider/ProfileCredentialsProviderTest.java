@@ -325,7 +325,11 @@ public class ProfileCredentialsProviderTest {
             Assert.fail();
         } catch (Exception e) {
             String message = e.getCause().getLocalizedMessage();
-            Assert.assertEquals("rsa_key_pair (No such file or directory)", message);
+            Assert.assertTrue(
+                    "unexpected: " + message,
+                    message.equals("rsa_key_pair (No such file or directory)")
+                            || message.equals("rsa_key_pair (The system cannot find the file specified)")
+            );
         }
         AuthUtils.setPrivateKey(null);
 
