@@ -36,7 +36,8 @@ jobs:
     runs-on: windows-2025
     strategy:
       matrix:
-        java: [11, 17]
+        # keep in sync with Linux build matrix
+        java: [8, 11, 17]
       fail-fast: false
 
     steps:
