@@ -3,12 +3,22 @@ package com.aliyun.credentials.provider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class ExternalCredentialsProviderTest {
+
+    @Before
+    public void skipUnixEchoOnWindows() {
+        Assume.assumeFalse(
+                "external process tests rely on /bin/echo",
+                System.getProperty("os.name").toLowerCase().contains("win")
+        );
+    }
 
     @Test
     public void testBuilderValidation() {

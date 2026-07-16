@@ -221,8 +221,12 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("sads (No such file or directory)",
-                    e.getCause().getLocalizedMessage());
+            String missingFileMsg = e.getCause().getLocalizedMessage();
+            Assert.assertTrue(
+                    "unexpected: " + missingFileMsg,
+                    missingFileMsg.equals("sads (No such file or directory)")
+                            || missingFileMsg.equals("sads (The system cannot find the file specified)")
+            );
         }
 
         client.put(AuthConstant.INI_PUBLIC_KEY_ID, "test");
@@ -231,16 +235,24 @@ public class ProfileCredentialsProviderTest {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("sads (No such file or directory)",
-                    e.getCause().getLocalizedMessage());
+            String missingFileMsg = e.getCause().getLocalizedMessage();
+            Assert.assertTrue(
+                    "unexpected: " + missingFileMsg,
+                    missingFileMsg.equals("sads (No such file or directory)")
+                            || missingFileMsg.equals("sads (The system cannot find the file specified)")
+            );
         }
 
         try {
             createCredential.invoke(provider, client, factory);
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertEquals("sads (No such file or directory)",
-                    e.getCause().getLocalizedMessage());
+            String missingFileMsg = e.getCause().getLocalizedMessage();
+            Assert.assertTrue(
+                    "unexpected: " + missingFileMsg,
+                    missingFileMsg.equals("sads (No such file or directory)")
+                            || missingFileMsg.equals("sads (The system cannot find the file specified)")
+            );
         }
 
 
@@ -325,7 +337,11 @@ public class ProfileCredentialsProviderTest {
             Assert.fail();
         } catch (Exception e) {
             String message = e.getCause().getLocalizedMessage();
-            Assert.assertEquals("rsa_key_pair (No such file or directory)", message);
+            Assert.assertTrue(
+                    "unexpected: " + message,
+                    message.equals("rsa_key_pair (No such file or directory)")
+                            || message.equals("rsa_key_pair (The system cannot find the file specified)")
+            );
         }
         AuthUtils.setPrivateKey(null);
 

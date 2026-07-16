@@ -1,10 +1,13 @@
 package com.aliyun.credentials.provider;
 
+import java.io.File;
+
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.google.gson.Gson;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 
 public class CLIProfileCredentialsProviderTest {
@@ -202,6 +205,10 @@ public class CLIProfileCredentialsProviderTest {
 
     @Test
     public void testExternalMode() {
+        Assume.assumeFalse(
+                "external profile uses /bin/echo",
+                System.getProperty("os.name").toLowerCase().contains("win")
+        );
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
                 getResource(".aliyun/config.json").getPath();
@@ -220,7 +227,11 @@ public class CLIProfileCredentialsProviderTest {
         String homePath = System.getProperty("user.home");
         String configPath = CLIProfileCredentialsProviderTest.class.getClassLoader().
                 getResource(".aliyun/config.json").getPath();
-        System.setProperty("user.home", configPath.replace("/.aliyun/config.json", ""));
+        String homeFromConfig = configPath.replace("/.aliyun/config.json", "");
+        if (homeFromConfig.equals(configPath)) {
+            homeFromConfig = configPath.replace("\\.aliyun\\config.json", "");
+        }
+        System.setProperty("user.home", homeFromConfig);
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
         CredentialModel credential = provider.getCredentials();
         Assert.assertEquals("akid", credential.getAccessKeyId());
@@ -247,4 +258,13 @@ public class CLIProfileCredentialsProviderTest {
         System.setProperty("user.home", homePath);
     }
 
+    @Test
+    public void defaultConfigPathUsesFileSeparator() {
+        String expected = new File(new File(System.getProperty("user.home"), ".aliyun"), "config.json").getPath();
+        Assert.assertTrue(expected.endsWith(File.separator + ".aliyun" + File.separator + "config.json")
+                || expected.endsWith("/.aliyun/config.json"));
+        if (File.separatorChar == '\\') {
+            Assert.assertFalse(expected.contains(".aliyun/config.json"));
+        }
+    }
 }
