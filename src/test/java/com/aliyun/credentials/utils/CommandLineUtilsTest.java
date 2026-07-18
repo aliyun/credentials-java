@@ -106,6 +106,20 @@ public class CommandLineUtilsTest {
                 CommandLineUtils.split("tool \"a b\"'c d'"));
     }
 
+    @Test
+    public void testBackslashNewlineOutsideQuotesIsLineContinuationUnix() {
+        Assert.assertArrayEquals(
+                new String[]{"tool", "arg1", "arg2"},
+                CommandLineUtils.split("tool arg1 \\\n arg2", false));
+    }
+
+    @Test
+    public void testBackslashNewlineInsideDoubleQuotesIsLineContinuationUnix() {
+        Assert.assertArrayEquals(
+                new String[]{"tool", "ab"},
+                CommandLineUtils.split("tool \"a\\\nb\"", false));
+    }
+
     @Test(expected = CredentialException.class)
     public void testEmpty() {
         CommandLineUtils.split("   ");

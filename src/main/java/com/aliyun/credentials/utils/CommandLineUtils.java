@@ -11,8 +11,9 @@ import java.util.List;
  * (e.g. Windows "C:\\Program Files\\...") can be passed as a single argument.
  * <p>
  * On Unix, escape rules follow POSIX shlex: outside quotes, '\' escapes the
- * next char; inside double quotes, '\' only escapes '"', '\', '$', '`' and
- * newline; inside single quotes, all characters are literal.
+ * next char; inside double quotes, '\' only escapes '"', '\', '$' and '`';
+ * backslash-newline is a line continuation (both removed) outside single
+ * quotes; inside single quotes, all characters are literal.
  * <p>
  * On Windows, '\' is a path separator and is treated as a literal (except
  * '\"' inside double quotes), so unquoted paths like C:\tools\cred.exe keep
@@ -63,7 +64,11 @@ public final class CommandLineUtils {
                             i++;
                             continue;
                         }
-                    } else if (next == '"' || next == '\\' || next == '$' || next == '`' || next == '\n') {
+                    } else if (next == '\n') {
+                        // Backslash-newline is a line continuation: both removed.
+                        i++;
+                        continue;
+                    } else if (next == '"' || next == '\\' || next == '$' || next == '`') {
                         current.append(next);
                         i++;
                         continue;
@@ -81,6 +86,11 @@ public final class CommandLineUtils {
                 }
                 if (i + 1 >= chars.length) {
                     throw new CredentialException("invalid process_command: trailing backslash");
+                }
+                if (chars[i + 1] == '\n') {
+                    // Backslash-newline is a line continuation: both removed.
+                    i++;
+                    continue;
                 }
                 hasToken = true;
                 current.append(chars[++i]);
