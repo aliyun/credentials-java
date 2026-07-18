@@ -24,7 +24,7 @@ public class CommandLineUtilsTest {
     public void testWindowsQuotedPath() {
         Assert.assertArrayEquals(
                 new String[]{"C:\\Program Files\\tool\\cred.exe", "get", "--profile", "default"},
-                CommandLineUtils.split("\"C:\\Program Files\\tool\\cred.exe\" get --profile default"));
+                CommandLineUtils.split("\"C:\\Program Files\\tool\\cred.exe\" get --profile default", true));
     }
 
     @Test
@@ -42,25 +42,47 @@ public class CommandLineUtilsTest {
     }
 
     @Test
-    public void testEscapedSpace() {
+    public void testEscapedSpaceUnix() {
         Assert.assertArrayEquals(
                 new String[]{"tool", "arg with space"},
-                CommandLineUtils.split("tool arg\\ with\\ space"));
+                CommandLineUtils.split("tool arg\\ with\\ space", false));
     }
 
     @Test
-    public void testEscapedQuoteInsideDoubleQuotes() {
+    public void testEscapedQuoteInsideDoubleQuotesUnix() {
         Assert.assertArrayEquals(
                 new String[]{"tool", "say \"hi\""},
-                CommandLineUtils.split("tool \"say \\\"hi\\\"\""));
+                CommandLineUtils.split("tool \"say \\\"hi\\\"\"", false));
     }
 
     @Test
-    public void testBackslashInsideDoubleQuotesLiteral() {
+    public void testSingleQuotedKeepsBackslashesUnix() {
+        // printf-style octal escapes must survive tokenizing when single quoted
+        Assert.assertArrayEquals(
+                new String[]{"/usr/bin/printf", "\\173\\042mode\\042\\175"},
+                CommandLineUtils.split("/usr/bin/printf '\\173\\042mode\\042\\175'", false));
+    }
+
+    @Test
+    public void testWindowsUnquotedPathKeepsBackslashes() {
+        Assert.assertArrayEquals(
+                new String[]{"C:\\tools\\cred.exe", "get"},
+                CommandLineUtils.split("C:\\tools\\cred.exe get", true));
+    }
+
+    @Test
+    public void testWindowsEscapedQuoteInsideDoubleQuotes() {
+        Assert.assertArrayEquals(
+                new String[]{"tool", "say \"hi\""},
+                CommandLineUtils.split("tool \"say \\\"hi\\\"\"", true));
+    }
+
+    @Test
+    public void testWindowsBackslashInsideDoubleQuotesLiteral() {
         // Windows path backslashes inside double quotes stay literal
         Assert.assertArrayEquals(
                 new String[]{"C:\\Program Files\\tool.exe"},
-                CommandLineUtils.split("\"C:\\Program Files\\tool.exe\""));
+                CommandLineUtils.split("\"C:\\Program Files\\tool.exe\"", true));
     }
 
     @Test
@@ -106,9 +128,9 @@ public class CommandLineUtilsTest {
     }
 
     @Test
-    public void testTrailingBackslash() {
+    public void testTrailingBackslashUnix() {
         try {
-            CommandLineUtils.split("tool\\");
+            CommandLineUtils.split("tool\\", false);
             Assert.fail();
         } catch (CredentialException e) {
             Assert.assertTrue(e.getMessage().contains("trailing backslash"));

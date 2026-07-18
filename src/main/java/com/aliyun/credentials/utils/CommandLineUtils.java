@@ -2,19 +2,31 @@ package com.aliyun.credentials.utils;
 
 import com.aliyun.credentials.exception.CredentialException;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Split process_command into argv with quote support so paths containing spaces
  * (e.g. Windows "C:\\Program Files\\...") can be passed as a single argument.
- * Escape rules follow POSIX shlex semantics.
+ * <p>
+ * On Unix, escape rules follow POSIX shlex: outside quotes, '\' escapes the
+ * next char; inside double quotes, '\' only escapes '"', '\', '$', '`' and
+ * newline; inside single quotes, all characters are literal.
+ * <p>
+ * On Windows, '\' is a path separator and is treated as a literal (except
+ * '\"' inside double quotes), so unquoted paths like C:\tools\cred.exe keep
+ * their backslashes.
  */
 public final class CommandLineUtils {
     private CommandLineUtils() {
     }
 
     public static String[] split(String command) {
+        return split(command, File.separatorChar == '\\');
+    }
+
+    static String[] split(String command, boolean windows) {
         if (command == null || command.trim().isEmpty()) {
             throw new CredentialException("process_command is empty");
         }
@@ -44,7 +56,14 @@ public final class CommandLineUtils {
                 }
                 if (c == '\\' && i + 1 < chars.length) {
                     char next = chars[i + 1];
-                    if (next == '"' || next == '\\' || next == '$' || next == '`' || next == '\n') {
+                    if (windows) {
+                        // On Windows only \" is an escape inside double quotes.
+                        if (next == '"') {
+                            current.append(next);
+                            i++;
+                            continue;
+                        }
+                    } else if (next == '"' || next == '\\' || next == '$' || next == '`' || next == '\n') {
                         current.append(next);
                         i++;
                         continue;
@@ -54,6 +73,12 @@ public final class CommandLineUtils {
                 continue;
             }
             if (c == '\\') {
+                if (windows) {
+                    // Path separator — keep literal.
+                    hasToken = true;
+                    current.append(c);
+                    continue;
+                }
                 if (i + 1 >= chars.length) {
                     throw new CredentialException("invalid process_command: trailing backslash");
                 }
