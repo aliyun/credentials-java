@@ -23,6 +23,9 @@ public final class CommandLineUtils {
         StringBuilder current = new StringBuilder();
         boolean inSingle = false;
         boolean inDouble = false;
+        // Tracks that a token has started even if it is empty, so quoted empty
+        // arguments like `tool "" arg` keep their empty argv element.
+        boolean hasToken = false;
 
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
@@ -54,31 +57,36 @@ public final class CommandLineUtils {
                 if (i + 1 >= chars.length) {
                     throw new CredentialException("invalid process_command: trailing backslash");
                 }
+                hasToken = true;
                 current.append(chars[++i]);
                 continue;
             }
             if (c == '\'') {
                 inSingle = true;
+                hasToken = true;
                 continue;
             }
             if (c == '"') {
                 inDouble = true;
+                hasToken = true;
                 continue;
             }
             if (Character.isWhitespace(c)) {
-                if (current.length() > 0) {
+                if (hasToken) {
                     args.add(current.toString());
                     current.setLength(0);
+                    hasToken = false;
                 }
                 continue;
             }
+            hasToken = true;
             current.append(c);
         }
 
         if (inSingle || inDouble) {
             throw new CredentialException("invalid process_command: unclosed quote");
         }
-        if (current.length() > 0) {
+        if (hasToken) {
             args.add(current.toString());
         }
         if (args.isEmpty() || StringUtils.isEmpty(args.get(0))) {

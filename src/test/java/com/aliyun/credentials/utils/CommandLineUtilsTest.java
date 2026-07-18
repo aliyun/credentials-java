@@ -63,6 +63,27 @@ public class CommandLineUtilsTest {
                 CommandLineUtils.split("\"C:\\Program Files\\tool.exe\""));
     }
 
+    @Test
+    public void testEmptyDoubleQuotedArgument() {
+        Assert.assertArrayEquals(
+                new String[]{"tool", "", "arg"},
+                CommandLineUtils.split("tool \"\" arg"));
+    }
+
+    @Test
+    public void testEmptySingleQuotedArgument() {
+        Assert.assertArrayEquals(
+                new String[]{"tool", "", "arg"},
+                CommandLineUtils.split("tool '' arg"));
+    }
+
+    @Test
+    public void testAdjacentQuotedSegmentsFormOneArgument() {
+        Assert.assertArrayEquals(
+                new String[]{"tool", "a bc d"},
+                CommandLineUtils.split("tool \"a b\"'c d'"));
+    }
+
     @Test(expected = CredentialException.class)
     public void testEmpty() {
         CommandLineUtils.split("   ");
