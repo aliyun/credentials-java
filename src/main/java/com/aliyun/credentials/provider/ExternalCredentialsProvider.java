@@ -3,6 +3,7 @@ package com.aliyun.credentials.provider;
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthConstant;
+import com.aliyun.credentials.utils.CommandLineUtils;
 import com.aliyun.credentials.utils.ProviderName;
 import com.aliyun.credentials.utils.StringUtils;
 import com.google.gson.Gson;
@@ -70,10 +71,7 @@ public class ExternalCredentialsProvider implements AlibabaCloudCredentialsProvi
     }
 
     CredentialModel getCredentialsInternal() {
-        String[] args = this.processCommand.trim().split("\\s+");
-        if (args.length == 0 || StringUtils.isEmpty(args[0])) {
-            throw new CredentialException("process_command is empty");
-        }
+        String[] args = CommandLineUtils.split(this.processCommand);
 
         ProcessBuilder processBuilder = new ProcessBuilder(args);
         try {

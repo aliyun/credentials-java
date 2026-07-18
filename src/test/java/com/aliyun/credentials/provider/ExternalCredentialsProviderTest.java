@@ -33,7 +33,7 @@ public class ExternalCredentialsProviderTest {
     @Test
     public void testGetCredentialsAK() {
         ExternalCredentialsProvider provider = ExternalCredentialsProvider.builder()
-                .processCommand("/bin/echo {\"mode\":\"AK\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\"}")
+                .processCommand("/bin/echo '{\"mode\":\"AK\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\"}'")
                 .build();
 
         CredentialModel credential = provider.getCredentials();
@@ -49,7 +49,7 @@ public class ExternalCredentialsProviderTest {
         final AtomicReference<Long> capturedExpiration = new AtomicReference<>();
 
         ExternalCredentialsProvider provider = ExternalCredentialsProvider.builder()
-                .processCommand("/bin/echo {\"mode\":\"StsToken\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\",\"sts_token\":\"token\",\"expiration\":\"2049-10-20T04:27:09Z\"}")
+                .processCommand("/bin/echo '{\"mode\":\"StsToken\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\",\"sts_token\":\"token\",\"expiration\":\"2049-10-20T04:27:09Z\"}'")
                 .credentialUpdateCallback((accessKeyId, accessKeySecret, securityToken, expiration) -> {
                     capturedToken.set(securityToken);
                     capturedExpiration.set(expiration);
@@ -68,7 +68,7 @@ public class ExternalCredentialsProviderTest {
     public void testRefreshEveryCallWithoutExpiration() {
         final AtomicInteger callbackCount = new AtomicInteger(0);
         ExternalCredentialsProvider provider = ExternalCredentialsProvider.builder()
-                .processCommand("/bin/echo {\"mode\":\"AK\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\"}")
+                .processCommand("/bin/echo '{\"mode\":\"AK\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\"}'")
                 .credentialUpdateCallback((accessKeyId, accessKeySecret, securityToken, expiration) -> callbackCount.incrementAndGet())
                 .build();
 
@@ -80,7 +80,7 @@ public class ExternalCredentialsProviderTest {
     @Test
     public void testMissingFields() {
         ExternalCredentialsProvider provider = ExternalCredentialsProvider.builder()
-                .processCommand("/bin/echo {\"mode\":\"AK\",\"access_key_id\":\"ak\"}")
+                .processCommand("/bin/echo '{\"mode\":\"AK\",\"access_key_id\":\"ak\"}'")
                 .build();
 
         try {
@@ -94,7 +94,7 @@ public class ExternalCredentialsProviderTest {
     @Test
     public void testMissingStsToken() {
         ExternalCredentialsProvider provider = ExternalCredentialsProvider.builder()
-                .processCommand("/bin/echo {\"mode\":\"StsToken\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\"}")
+                .processCommand("/bin/echo '{\"mode\":\"StsToken\",\"access_key_id\":\"ak\",\"access_key_secret\":\"sk\"}'")
                 .build();
 
         try {
