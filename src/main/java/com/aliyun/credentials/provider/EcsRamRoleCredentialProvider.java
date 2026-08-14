@@ -59,7 +59,8 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
                         "",
                         config.disableIMDSv1,
                         config.connectTimeout,
-                        config.timeout
+                        config.timeout,
+                        resolveEnableIMDSv2(config.enableIMDSv2)
                 ).fetchRoleName(client);
             }
 
@@ -68,7 +69,8 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
                 roleName,
                 config.disableIMDSv1,
                 config.connectTimeout,
-                config.timeout);
+                config.timeout,
+                resolveEnableIMDSv2(config.enableIMDSv2));
         checkCredentialsUpdateAsynchronously();
     }
 
@@ -79,11 +81,13 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
         }
         String roleName = builder.roleName == null ? AuthUtils.getEnvironmentECSMetaData() : builder.roleName;
         boolean disableIMDSv1 = builder.disableIMDSv1 == null ? AuthUtils.getDisableECSIMDSv1() : builder.disableIMDSv1;
+        boolean enableIMDSv2 = resolveEnableIMDSv2(builder.enableIMDSv2);
         this.fetcher = new ECSMetadataServiceCredentialsFetcher(
                 roleName,
                 disableIMDSv1,
                 builder.connectionTimeout,
-                builder.readTimeout);
+                builder.readTimeout,
+                enableIMDSv2);
         checkCredentialsUpdateAsynchronously();
     }
 
@@ -115,6 +119,13 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
                 }
             }, 0, ASYNC_REFRESH_INTERVAL_TIME_MINUTES, TimeUnit.MINUTES);
         }
+    }
+
+    static boolean resolveEnableIMDSv2(Boolean explicit) {
+        if (explicit != null) {
+            return explicit;
+        }
+        return !AuthUtils.shouldSkipECSIMDSv2();
     }
 
     public static Builder builder() {
@@ -157,8 +168,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
 
         Builder disableIMDSv1(Boolean disableIMDSv1);
 
-        @Deprecated
-        Builder enableIMDSv2(boolean enableIMDSv2);
+        Builder enableIMDSv2(Boolean enableIMDSv2);
 
         @Deprecated
         Builder metadataTokenDuration(int metadataTokenDuration);
@@ -176,7 +186,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             implements Builder {
         private String roleName;
         private Boolean disableIMDSv1;
-        private boolean enableIMDSv2;
+        private Boolean enableIMDSv2;
         private int metadataTokenDuration;
         private Integer connectionTimeout;
         private Integer readTimeout;
@@ -197,7 +207,7 @@ public class EcsRamRoleCredentialProvider extends SessionCredentialsProvider {
             return this;
         }
 
-        public Builder enableIMDSv2(boolean enableIMDSv2) {
+        public Builder enableIMDSv2(Boolean enableIMDSv2) {
             this.enableIMDSv2 = enableIMDSv2;
             return this;
         }

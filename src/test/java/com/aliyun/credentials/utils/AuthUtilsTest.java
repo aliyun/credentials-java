@@ -42,6 +42,7 @@ public class AuthUtilsTest {
         Assert.assertTrue(AuthUtils.getEnableECSIMDSv2());
         AuthUtils.enableECSIMDSv2(false);
         Assert.assertFalse(AuthUtils.getEnableECSIMDSv2());
+        Assert.assertFalse(AuthUtils.shouldSkipECSIMDSv2());
 
         Assert.assertFalse(AuthUtils.getDisableECSIMDSv1());
         AuthUtils.disableECSIMDSv1(true);

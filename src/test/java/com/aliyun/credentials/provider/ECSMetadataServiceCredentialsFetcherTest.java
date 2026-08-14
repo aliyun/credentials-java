@@ -5,6 +5,7 @@ import com.aliyun.credentials.http.CompatibleUrlConnClient;
 import com.aliyun.credentials.http.FormatType;
 import com.aliyun.credentials.http.HttpRequest;
 import com.aliyun.credentials.http.HttpResponse;
+import com.aliyun.credentials.http.MethodType;
 import com.aliyun.credentials.utils.AuthConstant;
 import org.junit.Assert;
 import org.junit.Test;
@@ -167,5 +168,79 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         when(response.getHttpContent()).thenReturn("roleNameTest".getBytes("UTF-8"));
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
         Assert.assertEquals("roleNameTest", fetcher.fetchRoleName(client));
+    }
+
+    @Test
+    public void fallbackToIMDSv1WhenGetFailsAfterTokenOk() throws Exception {
+        ECSMetadataServiceCredentialsFetcher fetcher = new ECSMetadataServiceCredentialsFetcher("test");
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenAnswer(invocation -> {
+            HttpRequest req = invocation.getArgument(0);
+            if (MethodType.PUT.equals(req.getSysMethod())) {
+                HttpResponse token = new HttpResponse("token");
+                token.setResponseCode(200);
+                token.setHttpContent("tokenxxxxx".getBytes(), "UTF-8", FormatType.PLAIN);
+                return token;
+            }
+            if (req.getHeaderValue("X-aliyun-ecs-metadata-token") != null) {
+                HttpResponse fail = new HttpResponse("fail");
+                fail.setResponseCode(500);
+                fail.setHttpContent("v2 failed".getBytes(), "UTF-8", FormatType.PLAIN);
+                return fail;
+            }
+            HttpResponse ok = new HttpResponse("ok");
+            ok.setResponseCode(200);
+            ok.setHttpContent(("{\"Code\":\"Success\",  \"AccessKeyId\":\"akid\", " +
+                    "\"AccessKeySecret\":\"aksecret\", \"SecurityToken\":\"ststoken\",  \"Expiration\":\"2200-08-08T01:01:01Z\"}").getBytes(),
+                    "UTF-8", FormatType.JSON);
+            return ok;
+        });
+        Assert.assertEquals("akid", fetcher.fetch(client).value().getAccessKeyId());
+        Assert.assertEquals("aksecret", fetcher.fetch(client).value().getAccessKeySecret());
+    }
+
+    @Test
+    public void noFallbackWhenDisableIMDSv1() throws Exception {
+        ECSMetadataServiceCredentialsFetcher fetcher = new ECSMetadataServiceCredentialsFetcher("test", true, 1000, 1000);
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenAnswer(invocation -> {
+            HttpRequest req = invocation.getArgument(0);
+            if (MethodType.PUT.equals(req.getSysMethod())) {
+                HttpResponse token = new HttpResponse("token");
+                token.setResponseCode(200);
+                token.setHttpContent("tokenxxxxx".getBytes(), "UTF-8", FormatType.PLAIN);
+                return token;
+            }
+            HttpResponse fail = new HttpResponse("fail");
+            fail.setResponseCode(500);
+            return fail;
+        });
+        try {
+            fetcher.fetch(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=500",
+                    e.getMessage());
+        }
+    }
+
+    @Test
+    public void skipIMDSv2WhenDisabled() throws Exception {
+        ECSMetadataServiceCredentialsFetcher fetcher =
+                new ECSMetadataServiceCredentialsFetcher("test", false, 1000, 1000, false);
+        Assert.assertFalse(fetcher.getEnableIMDSv2());
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(any(HttpRequest.class))).thenAnswer(invocation -> {
+            HttpRequest req = invocation.getArgument(0);
+            Assert.assertNotEquals(MethodType.PUT, req.getSysMethod());
+            Assert.assertNull(req.getHeaderValue("X-aliyun-ecs-metadata-token"));
+            HttpResponse ok = new HttpResponse("ok");
+            ok.setResponseCode(200);
+            ok.setHttpContent(("{\"Code\":\"Success\",  \"AccessKeyId\":\"akid\", " +
+                    "\"AccessKeySecret\":\"aksecret\", \"SecurityToken\":\"ststoken\",  \"Expiration\":\"2200-08-08T01:01:01Z\"}").getBytes(),
+                    "UTF-8", FormatType.JSON);
+            return ok;
+        });
+        Assert.assertEquals("akid", fetcher.fetch(client).value().getAccessKeyId());
     }
 }

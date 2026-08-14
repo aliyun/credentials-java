@@ -66,6 +66,7 @@ public class Client {
                 return EcsRamRoleCredentialProvider.builder()
                         .roleName(config.roleName)
                         .disableIMDSv1(config.disableIMDSv1)
+                        .enableIMDSv2(config.enableIMDSv2)
                         .connectionTimeout(config.connectTimeout)
                         .readTimeout(config.timeout)
                         .build();
