@@ -147,16 +147,6 @@ public class AuthUtils {
         return false;
     }
 
-    /**
-     * Skip IMDSv2 probe and use IMDSv1 only.
-     * Unlike {@link #getEnableECSIMDSv2()}, this is false by default so hardening mode
-     * is still tried unless ALIBABA_CLOUD_ECS_IMDSV2_ENABLE is explicitly "false".
-     */
-    public static boolean shouldSkipECSIMDSv2() {
-        String env = System.getenv("ALIBABA_CLOUD_ECS_IMDSV2_ENABLE");
-        return env != null && "false".equalsIgnoreCase(env);
-    }
-
     public static void disableECSIMDSv1(boolean disableECSIMDSv1) {
         AuthUtils.disableECSIMDSv1 = disableECSIMDSv1;
     }

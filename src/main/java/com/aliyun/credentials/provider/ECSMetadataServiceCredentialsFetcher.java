@@ -27,14 +27,12 @@ public class ECSMetadataServiceCredentialsFetcher {
     private int connectionTimeout = 1000;
     private int readTimeout = 1000;
     private final boolean disableIMDSv1;
-    private final boolean enableIMDSv2;
     private final int metadataTokenDuration = 21600;
 
     public ECSMetadataServiceCredentialsFetcher(String roleName, Integer connectionTimeout, Integer readTimeout) {
         this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
         this.readTimeout = readTimeout == null ? 1000 : readTimeout;
         this.disableIMDSv1 = false;
-        this.enableIMDSv2 = true;
         this.roleName = roleName;
         setCredentialUrl();
     }
@@ -44,20 +42,14 @@ public class ECSMetadataServiceCredentialsFetcher {
         this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
         this.readTimeout = readTimeout == null ? 1000 : readTimeout;
         this.disableIMDSv1 = disableIMDSv1;
-        this.enableIMDSv2 = true;
         this.roleName = roleName;
         setCredentialUrl();
     }
 
     public ECSMetadataServiceCredentialsFetcher(String roleName, Boolean disableIMDSv1, Integer connectionTimeout, Integer readTimeout) {
-        this(roleName, disableIMDSv1, connectionTimeout, readTimeout, true);
-    }
-
-    public ECSMetadataServiceCredentialsFetcher(String roleName, Boolean disableIMDSv1, Integer connectionTimeout, Integer readTimeout, Boolean enableIMDSv2) {
         this.connectionTimeout = connectionTimeout == null ? 1000 : connectionTimeout;
         this.readTimeout = readTimeout == null ? 1000 : readTimeout;
         this.disableIMDSv1 = disableIMDSv1 == null ? false : disableIMDSv1;
-        this.enableIMDSv2 = enableIMDSv2 == null ? true : enableIMDSv2;
         this.roleName = roleName;
         setCredentialUrl();
     }
@@ -65,7 +57,6 @@ public class ECSMetadataServiceCredentialsFetcher {
     public ECSMetadataServiceCredentialsFetcher(String roleName) {
         this.roleName = roleName;
         this.disableIMDSv1 = false;
-        this.enableIMDSv2 = true;
         setCredentialUrl();
     }
 
@@ -191,18 +182,11 @@ public class ECSMetadataServiceCredentialsFetcher {
         return disableIMDSv1;
     }
 
-    public boolean getEnableIMDSv2() {
-        return enableIMDSv2;
-    }
-
     public int getMetadataTokenDuration() {
         return metadataTokenDuration;
     }
 
     private String getMetadataToken(CompatibleUrlConnClient client) {
-        if (!this.enableIMDSv2) {
-            return null;
-        }
         try {
             HttpRequest request = new HttpRequest("http://" + metadataServiceHost + URL_IN_METADATA_TOKEN);
             request.setSysMethod(MethodType.PUT);

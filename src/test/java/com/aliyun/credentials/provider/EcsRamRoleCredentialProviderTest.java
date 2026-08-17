@@ -76,20 +76,11 @@ public class EcsRamRoleCredentialProviderTest {
         Assert.assertEquals("ecs_ram_role", provider.getProviderName());
         fetcher = provider.getFetcher();
         Assert.assertTrue(fetcher.getDisableIMDSv1());
-        Assert.assertTrue(fetcher.getEnableIMDSv2());
-
-        config.disableIMDSv1 = false;
-        config.enableIMDSv2 = false;
-        provider = new EcsRamRoleCredentialProvider(config);
-        fetcher = provider.getFetcher();
-        Assert.assertFalse(fetcher.getEnableIMDSv2());
-        config.enableIMDSv2 = null;
         Assert.assertEquals(2000, fetcher.getReadTimeout());
         Assert.assertEquals(2000, fetcher.getConnectionTimeout());
         Assert.assertEquals("test", fetcher.getRoleName());
         Assert.assertEquals("http://100.100.100.200/latest/meta-data/ram/security-credentials/test", fetcher.getCredentialUrl().toString());
 
-        config.disableIMDSv1 = true;
         config.roleName = null;
         try {
             new EcsRamRoleCredentialProvider(config);

@@ -224,23 +224,4 @@ public class ECSMetadataServiceCredentialsFetcherTest {
         }
     }
 
-    @Test
-    public void skipIMDSv2WhenDisabled() throws Exception {
-        ECSMetadataServiceCredentialsFetcher fetcher =
-                new ECSMetadataServiceCredentialsFetcher("test", false, 1000, 1000, false);
-        Assert.assertFalse(fetcher.getEnableIMDSv2());
-        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
-        when(client.syncInvoke(any(HttpRequest.class))).thenAnswer(invocation -> {
-            HttpRequest req = invocation.getArgument(0);
-            Assert.assertNotEquals(MethodType.PUT, req.getSysMethod());
-            Assert.assertNull(req.getHeaderValue("X-aliyun-ecs-metadata-token"));
-            HttpResponse ok = new HttpResponse("ok");
-            ok.setResponseCode(200);
-            ok.setHttpContent(("{\"Code\":\"Success\",  \"AccessKeyId\":\"akid\", " +
-                    "\"AccessKeySecret\":\"aksecret\", \"SecurityToken\":\"ststoken\",  \"Expiration\":\"2200-08-08T01:01:01Z\"}").getBytes(),
-                    "UTF-8", FormatType.JSON);
-            return ok;
-        });
-        Assert.assertEquals("akid", fetcher.fetch(client).value().getAccessKeyId());
-    }
 }
