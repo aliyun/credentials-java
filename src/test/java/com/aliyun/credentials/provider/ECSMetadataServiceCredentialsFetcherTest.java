@@ -67,7 +67,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
+            Assert.assertEquals("Failed to connect ECS Metadata Service: test",
                     e.getMessage());
         }
         HttpResponse response = new HttpResponse("test");
@@ -78,7 +78,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=500",
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode: 500, result: ",
                     e.getMessage());
         }
 
@@ -112,7 +112,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
+            Assert.assertEquals("Failed to connect ECS Metadata Service: test",
                     e.getMessage());
         }
 
@@ -121,7 +121,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to connect ECS Metadata Service: java.lang.RuntimeException: test",
+            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to connect ECS Metadata Service: test",
                     e.getMessage());
         }
 
@@ -134,7 +134,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to get token from ECS Metadata Service. HttpCode=500, ResponseMessage=no token",
+            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to get token from ECS Metadata Service. HttpCode: 500, result: no token",
                     e.getMessage());
         }
 

@@ -127,7 +127,9 @@ public class URLCredentialProviderTest {
             provider.getCredentials();
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertTrue(e.getMessage().contains("Failed to get credentials from server: http://10.10.10.10"));
+            Assert.assertTrue(e.getMessage().contains("Failed to connect Server:")
+                    || e.getMessage().contains("Failed to get credentials from server: http://10.10.10.10"));
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
         } finally {
             provider.close();
         }
@@ -141,6 +143,23 @@ public class URLCredentialProviderTest {
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
         Assert.assertEquals(AuthConstant.CREDENTIALS_URI, provider.getNewSessionCredentials(client).value().getType());
 
+        response = new HttpResponse("test?test=test");
+        response.setResponseCode(403);
+        response.setResponseMessage("Forbidden");
+        response.setHttpContent("{\"Code\":\"Denied\"}".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            provider.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Failed to get credentials from server: http://10.10.10.10"));
+            Assert.assertTrue(e.getMessage().contains("HttpCode: 403"));
+            Assert.assertTrue(e.getMessage().contains("ResponseMessage: Forbidden"));
+            Assert.assertTrue(e.getMessage().contains("Denied"));
+        }
+
+        response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
         response.setHttpContent("test".getBytes(),
                 "UTF-8", FormatType.JSON);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);

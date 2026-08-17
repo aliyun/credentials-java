@@ -91,7 +91,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         try {
             response = client.syncInvoke(request);
         } catch (Exception e) {
-            throw new CredentialException("Failed to connect ECS Metadata Service: " + e);
+            throw new CredentialException("Failed to connect ECS Metadata Service: " + e.getMessage(), e);
         }
 
         if (response.getResponseCode() == 404) {
@@ -99,7 +99,7 @@ public class ECSMetadataServiceCredentialsFetcher {
         }
 
         if (response.getResponseCode() != 200) {
-            throw new CredentialException(ECS_METADATA_FETCH_ERROR_MSG + " HttpCode=" + response.getResponseCode());
+            throw new CredentialException(ECS_METADATA_FETCH_ERROR_MSG + " " + response.toHttpFailureString());
         }
 
         return new String(response.getHttpContent());
@@ -182,10 +182,10 @@ public class ECSMetadataServiceCredentialsFetcher {
             try {
                 response = client.syncInvoke(request);
             } catch (Exception e) {
-                throw new CredentialException("Failed to connect ECS Metadata Service: " + e);
+                throw new CredentialException("Failed to connect ECS Metadata Service: " + e.getMessage(), e);
             }
             if (response.getResponseCode() != 200) {
-                throw new CredentialException("Failed to get token from ECS Metadata Service. HttpCode=" + response.getResponseCode() + ", ResponseMessage=" + response.getHttpContentString());
+                throw new CredentialException("Failed to get token from ECS Metadata Service. " + response.toHttpFailureString());
             }
             return new String(response.getHttpContent());
         } catch (Exception ex) {

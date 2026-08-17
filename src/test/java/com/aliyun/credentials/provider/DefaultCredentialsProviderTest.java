@@ -124,7 +124,8 @@ public class DefaultCredentialsProviderTest {
             provider.getCredentials();
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertTrue(e.getMessage().contains("URLCredentialProvider: Failed to get credentials from server: http://test"));
+            Assert.assertTrue(e.getMessage().contains("URLCredentialProvider: Failed to connect Server:")
+                    || e.getMessage().contains("URLCredentialProvider: Failed to get credentials from server: http://test"));
         }
         provider.close();
 

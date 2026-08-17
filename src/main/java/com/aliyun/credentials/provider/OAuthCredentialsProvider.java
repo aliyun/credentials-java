@@ -99,8 +99,8 @@ public class OAuthCredentialsProvider extends SessionCredentialsProvider {
 
         if (httpResponse.getResponseCode() != 200) {
             throw new CredentialException(String.format(
-                    "Get session token from OAuth failed, HttpCode: %s, result: %s.",
-                    httpResponse.getResponseCode(), httpResponse.getHttpContentString()));
+                    "Get session token from OAuth failed, %s.",
+                    httpResponse.toHttpFailureString()));
         }
 
         Gson gson = new Gson();
@@ -187,8 +187,8 @@ public class OAuthCredentialsProvider extends SessionCredentialsProvider {
 
         if (httpResponse.getResponseCode() != 200) {
             throw new CredentialException(String.format(
-                    "Failed to refresh OAuth token, status code: %d, result: %s.",
-                    httpResponse.getResponseCode(), httpResponse.getHttpContentString()));
+                    "Failed to refresh OAuth token, %s.",
+                    httpResponse.toHttpFailureString()));
         }
 
         Gson gson = new Gson();

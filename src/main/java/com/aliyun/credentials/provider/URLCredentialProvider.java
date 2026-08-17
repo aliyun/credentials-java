@@ -108,8 +108,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
 
         if (response.getResponseCode() >= 300 || response.getResponseCode() < 200) {
             throw new CredentialException("Failed to get credentials from server: " + this.credentialsURI.toString()
-                    + "\nHttpCode=" + response.getResponseCode()
-                    + "\nHttpRAWContent=" + response.getHttpContentString());
+                    + "\n" + response.toHttpFailureString());
         }
 
         Gson gson = new Gson();
@@ -118,8 +117,7 @@ public class URLCredentialProvider extends SessionCredentialsProvider {
             map = gson.fromJson(response.getHttpContentString(), Map.class);
         } catch (Exception e) {
             throw new CredentialException("Failed to get credentials from server: " + this.credentialsURI.toString()
-                    + "\nHttpCode=" + response.getResponseCode()
-                    + "\nHttpRAWContent=" + response.getHttpContentString(), e);
+                    + "\n" + response.toHttpFailureString(), e);
         }
         if (null == map || !map.containsKey("Code") || !map.get("Code").equals("Success")) {
             throw new CredentialException(String.format("Error retrieving credentials from credentialsURI result: %s.", response.getHttpContentString()));

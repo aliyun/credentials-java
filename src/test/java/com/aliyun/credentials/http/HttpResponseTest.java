@@ -4,20 +4,26 @@ import org.junit.Assert;
 import org.junit.Test;
 
 public class HttpResponseTest {
-    private HttpResponse response;
 
     @Test
-    public void httpResponseTest() {
-        response = new HttpResponse("test");
-        Assert.assertEquals("test", response.getSysUrl());
+    public void toHttpFailureStringIncludesCodeMessageAndBody() {
+        HttpResponse response = new HttpResponse("https://example.com");
+        response.setResponseCode(403);
+        response.setResponseMessage("Forbidden");
+        response.setHttpContent("{\"Message\":\"denied\"}".getBytes(), "UTF-8", FormatType.JSON);
+
+        String detail = response.toHttpFailureString();
+        Assert.assertEquals("HttpCode: 403, ResponseMessage: Forbidden, result: {\"Message\":\"denied\"}", detail);
     }
-    
+
     @Test
-    public void getSetTest() {
-        response = new HttpResponse("test");
-        response.setResponseCode(200);
-        Assert.assertEquals(200, response.getResponseCode());
-        response.setResponseMessage("OK");
-        Assert.assertEquals("OK", response.getResponseMessage());
+    public void toHttpFailureStringOmitsEmptyResponseMessage() {
+        HttpResponse response = new HttpResponse("https://example.com");
+        response.setResponseCode(500);
+        response.setResponseMessage("");
+        Assert.assertEquals("HttpCode: 500, result: ", response.toHttpFailureString());
+
+        response.setResponseMessage(null);
+        Assert.assertEquals("HttpCode: 500, result: ", response.toHttpFailureString());
     }
 }

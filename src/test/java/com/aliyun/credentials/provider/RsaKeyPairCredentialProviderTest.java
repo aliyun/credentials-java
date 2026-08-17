@@ -84,6 +84,25 @@ public class RsaKeyPairCredentialProviderTest {
     }
 
     @Test
+    public void createCredentialTransportErrorPreservesCause() {
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        RsaKeyPairCredentialProvider provider = new RsaKeyPairCredentialProvider("test", file);
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any()))
+                .thenThrow(new com.aliyun.credentials.exception.CredentialException(
+                        "Connection refused", new java.net.ConnectException("Connection refused")));
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Failed to connect RsaKeyPair Service: Connection refused"));
+            Assert.assertNotNull(e.getCause());
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
+        }
+    }
+
+    @Test
     public void getSet() {
         String file = ProfileCredentialsProviderTest.class.getClassLoader().
                 getResource("private_key.txt").getPath();
