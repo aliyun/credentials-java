@@ -78,16 +78,31 @@ public class ECSMetadataServiceCredentialsFetcher {
     }
 
     private String getMetadata(CompatibleUrlConnClient client, String url) {
+        String metadataToken = this.getMetadataToken(client);
+        try {
+            return doGetMetadata(client, url, metadataToken);
+        } catch (CredentialException e) {
+            if (shouldFallbackToIMDSv1(metadataToken)) {
+                return doGetMetadata(client, url, null);
+            }
+            throw e;
+        }
+    }
+
+    private boolean shouldFallbackToIMDSv1(String metadataToken) {
+        return metadataToken != null && !this.disableIMDSv1;
+    }
+
+    private String doGetMetadata(CompatibleUrlConnClient client, String url, String metadataToken) {
         HttpRequest request = new HttpRequest(url);
         request.setSysMethod(MethodType.GET);
         request.setSysConnectTimeout(connectionTimeout);
         request.setSysReadTimeout(readTimeout);
-        HttpResponse response;
-        String metadataToken = this.getMetadataToken(client);
         if (metadataToken != null) {
             request.putHeaderParameter("X-aliyun-ecs-metadata-token", metadataToken);
         }
 
+        HttpResponse response;
         try {
             response = client.syncInvoke(request);
         } catch (Exception e) {
