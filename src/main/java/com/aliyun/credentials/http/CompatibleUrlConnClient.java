@@ -60,7 +60,14 @@ public class CompatibleUrlConnClient implements Closeable {
             parseHttpConn(response, httpConn, content, null);
             return response;
         } catch (IOException e) {
+            // HTTP 4xx/5xx usually expose an error stream with status + body.
+            // Transport failures (DNS, connect/read timeout, TLS, connection refused)
+            // have no HTTP response: error stream is null and responseCode would stay 0.
             content = httpConn.getErrorStream();
+            if (content == null) {
+                String message = e.getMessage() != null ? e.getMessage() : e.toString();
+                throw new CredentialException(message, e);
+            }
             response = new HttpResponse(httpConn.getURL().toString());
             parseHttpConn(response, httpConn, content, e);
             return response;
@@ -177,14 +184,15 @@ public class CompatibleUrlConnClient implements Closeable {
     }
 
     public void parseHttpConn(HttpResponse response, HttpURLConnection httpConn, InputStream content, Exception e) {
+        if (null == content) {
+            // No response body/stream: treat as transport-layer failure.
+            String message = (e != null && e.getMessage() != null) ? e.getMessage()
+                    : (e != null ? e.toString() : "HTTP request failed without response");
+            throw new CredentialException(message, e);
+        }
         byte[] buff;
         try {
-            if (null != content) {
-                buff = readContent(content);
-            } else {
-                response.setResponseMessage(e.getMessage());
-                return;
-            }
+            buff = readContent(content);
             response.setResponseCode(httpConn.getResponseCode());
             response.setResponseMessage(httpConn.getResponseMessage());
             Map<String, List<String>> headers = httpConn.getHeaderFields();

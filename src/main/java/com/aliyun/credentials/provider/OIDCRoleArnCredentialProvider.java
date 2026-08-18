@@ -224,10 +224,10 @@ public class OIDCRoleArnCredentialProvider extends SessionCredentialsProvider {
         try {
             httpResponse = client.syncInvoke(httpRequest);
         } catch (Exception e) {
-            throw new CredentialException("Failed to connect OIDC Service: " + e);
+            throw new CredentialException("Failed to connect OIDC Service: " + e.getMessage(), e);
         }
         if (httpResponse.getResponseCode() != 200) {
-            throw new CredentialException(String.format("Error refreshing credentials from OIDC, HttpCode: %s, result: %s.", httpResponse.getResponseCode(), httpResponse.getHttpContentString()));
+            throw new CredentialException(String.format("Error refreshing credentials from OIDC, %s.", httpResponse.toHttpFailureString()));
         }
 
         Gson gson = new Gson();

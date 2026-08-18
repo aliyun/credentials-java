@@ -85,8 +85,8 @@ public class CloudSSOCredentialsProvider extends SessionCredentialsProvider {
 
         if (httpResponse.getResponseCode() != 200) {
             throw new CredentialException(String.format(
-                    "Get session token from CloudSSO failed, HttpCode: %s, result: %s.",
-                    httpResponse.getResponseCode(), httpResponse.getHttpContentString()));
+                    "Get session token from CloudSSO failed, %s.",
+                    httpResponse.toHttpFailureString()));
         }
 
         Gson gson = new Gson();

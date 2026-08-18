@@ -23,8 +23,10 @@ public class EcsRamRoleCredentialProviderTest {
             new EcsRamRoleCredentialProvider("");
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
-                    e.getMessage());
+            Assert.assertTrue(e.getMessage().contains("Failed to connect ECS Metadata Service:")
+                    || e.getMessage().contains("Failed to get RAM session credentials from ECS metadata service."));
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
+            Assert.assertFalse(e.getMessage().contains("HttpCode=0"));
         }
 
         EcsRamRoleCredentialProvider provider = new EcsRamRoleCredentialProvider("test");
@@ -54,8 +56,10 @@ public class EcsRamRoleCredentialProviderTest {
             new EcsRamRoleCredentialProvider(configuration);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
-                    e.getMessage());
+            Assert.assertTrue(e.getMessage().contains("Failed to connect ECS Metadata Service:")
+                    || e.getMessage().contains("Failed to get RAM session credentials from ECS metadata service."));
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
+            Assert.assertFalse(e.getMessage().contains("HttpCode=0"));
         }
 
         Config config = new Config();
@@ -86,8 +90,12 @@ public class EcsRamRoleCredentialProviderTest {
             new EcsRamRoleCredentialProvider(config);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get token from ECS Metadata Service, and fallback to IMDS v1 is disabled via the disableIMDSv1 configuration is turned on. Original error: Failed to get token from ECS Metadata Service. HttpCode=0, ResponseMessage=",
-                    e.getMessage());
+            Assert.assertTrue(e.getMessage().contains("Failed to get token from ECS Metadata Service"));
+            Assert.assertTrue(e.getMessage().contains("disableIMDSv1"));
+            Assert.assertTrue(e.getMessage().contains("Failed to connect ECS Metadata Service:")
+                    || e.getMessage().contains("Original error:"));
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
+            Assert.assertFalse(e.getMessage().contains("HttpCode=0"));
         }
 
         config.disableIMDSv1 = false;
@@ -95,8 +103,10 @@ public class EcsRamRoleCredentialProviderTest {
             new EcsRamRoleCredentialProvider(config);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=0",
-                    e.getMessage());
+            Assert.assertTrue(e.getMessage().contains("Failed to connect ECS Metadata Service:")
+                    || e.getMessage().contains("Failed to get RAM session credentials from ECS metadata service."));
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
+            Assert.assertFalse(e.getMessage().contains("HttpCode=0"));
         }
 
         AuthUtils.disableECSMetaData(true);

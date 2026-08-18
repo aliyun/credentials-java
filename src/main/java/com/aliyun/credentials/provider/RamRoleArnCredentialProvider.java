@@ -206,10 +206,10 @@ public class RamRoleArnCredentialProvider extends SessionCredentialsProvider {
         try {
             httpResponse = client.syncInvoke(httpRequest);
         } catch (Exception e) {
-            throw new CredentialException("Failed to connect RamRoleArn Service: " + e);
+            throw new CredentialException("Failed to connect RamRoleArn Service: " + e.getMessage(), e);
         }
         if (httpResponse.getResponseCode() != 200) {
-            throw new CredentialException(String.format("Error refreshing credentials from RamRoleArn, HttpCode: %s, result: %s.", httpResponse.getResponseCode(), httpResponse.getHttpContentString()));
+            throw new CredentialException(String.format("Error refreshing credentials from RamRoleArn, %s.", httpResponse.toHttpFailureString()));
         }
         Gson gson = new Gson();
         Map<String, Object> map = gson.fromJson(httpResponse.getHttpContentString(), Map.class);

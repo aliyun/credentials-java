@@ -118,6 +118,24 @@ public class RamRoleArnCredentialProviderTest {
     }
 
     @Test
+    public void createCredentialTransportErrorPreservesCause() {
+        Configuration config = new Configuration();
+        RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any()))
+                .thenThrow(new com.aliyun.credentials.exception.CredentialException(
+                        "connect timed out", new java.net.SocketTimeoutException("connect timed out")));
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Failed to connect RamRoleArn Service: connect timed out"));
+            Assert.assertNotNull(e.getCause());
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
+        }
+    }
+
+    @Test
     public void getSetTest() {
         RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(null, null, null);
         provider.setConnectTimeout(888);

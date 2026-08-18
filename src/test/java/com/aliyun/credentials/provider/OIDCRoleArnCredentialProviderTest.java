@@ -158,6 +158,54 @@ public class OIDCRoleArnCredentialProviderTest {
     }
 
     @Test
+    public void createCredentialTransportErrorPreservesCause() {
+        Configuration config = new Configuration();
+        config.setRoleArn("test");
+        config.setOIDCProviderArn("test");
+        config.setOIDCTokenFilePath(OIDCRoleArnCredentialProviderTest.class.getClassLoader().
+                getResource("OIDCToken.txt").getPath());
+        OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(config);
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any()))
+                .thenThrow(new com.aliyun.credentials.exception.CredentialException(
+                        "Connection refused", new java.net.ConnectException("Connection refused")));
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Failed to connect OIDC Service: Connection refused"));
+            Assert.assertFalse(e.getMessage().contains("HttpCode: 0"));
+            Assert.assertFalse(e.getMessage().contains("result: ."));
+            Assert.assertNotNull(e.getCause());
+        }
+    }
+
+    @Test
+    public void createCredentialHttpErrorIncludesDetails() {
+        Configuration config = new Configuration();
+        config.setRoleArn("test");
+        config.setOIDCProviderArn("test");
+        config.setOIDCTokenFilePath(OIDCRoleArnCredentialProviderTest.class.getClassLoader().
+                getResource("OIDCToken.txt").getPath());
+        OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(config);
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        HttpResponse response = new HttpResponse("https://sts.aliyuncs.com");
+        response.setResponseCode(400);
+        response.setResponseMessage("Bad Request");
+        response.setHttpContent("{\"Code\":\"InvalidParameter\"}".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error refreshing credentials from OIDC"));
+            Assert.assertTrue(e.getMessage().contains("HttpCode: 400"));
+            Assert.assertTrue(e.getMessage().contains("ResponseMessage: Bad Request"));
+            Assert.assertTrue(e.getMessage().contains("InvalidParameter"));
+        }
+    }
+
+    @Test
     public void getSetTest() {
         String filePath = OIDCRoleArnCredentialProviderTest.class.getClassLoader().
                 getResource("OIDCToken.txt").getPath();

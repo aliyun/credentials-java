@@ -205,7 +205,7 @@ public class OAuthCredentialsProviderTest {
             provider.getNewSessionCredentials(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertTrue(e.getMessage().contains("Failed to refresh OAuth token, status code: 400"));
+            Assert.assertTrue(e.getMessage().contains("Failed to refresh OAuth token, HttpCode: 400"));
         }
         provider.close();
     }
