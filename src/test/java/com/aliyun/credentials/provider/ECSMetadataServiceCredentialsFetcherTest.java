@@ -219,7 +219,7 @@ public class ECSMetadataServiceCredentialsFetcherTest {
             fetcher.fetch(client);
             Assert.fail();
         } catch (CredentialException e) {
-            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode=500",
+            Assert.assertEquals("Failed to get RAM session credentials from ECS metadata service. HttpCode: 500, result: ",
                     e.getMessage());
         }
     }
