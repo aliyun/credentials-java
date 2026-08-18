@@ -1,3 +1,8 @@
+2026-08-18 Version: 1.0.6
+1.fix: ECS RAM Role falls back to IMDSv1 when IMDSv2 token succeeds but later metadata requests fail.
+2.fix: treat backslash-newline as POSIX line continuation when splitting process_command.
+3.fix: preserve transport error details for OIDC credential refresh.
+
 2026-07-15 Version: 1.0.5
 1.fix: normalize CLI config path separators for Windows.
 
