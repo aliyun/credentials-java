@@ -110,10 +110,11 @@ public class OAuthCredentialsProvider extends SessionCredentialsProvider {
                     "Get session token from OAuth failed, result: %s.", httpResponse.getHttpContentString()));
         }
 
-        String accessKeyId = (String) map.get("accessKeyId");
-        String accessKeySecret = (String) map.get("accessKeySecret");
-        String securityToken = (String) map.get("securityToken");
-        String expiration = (String) map.get("expiration");
+        // Real OAuth /v1/exchange returns PascalCase; keep camelCase fallback for compatibility.
+        String accessKeyId = getExchangeField(map, "AccessKeyId", "accessKeyId");
+        String accessKeySecret = getExchangeField(map, "AccessKeySecret", "accessKeySecret");
+        String securityToken = getExchangeField(map, "SecurityToken", "securityToken");
+        String expiration = getExchangeField(map, "Expiration", "expiration");
 
         if (StringUtils.isEmpty(accessKeyId) || StringUtils.isEmpty(accessKeySecret)
                 || StringUtils.isEmpty(securityToken)) {
@@ -209,6 +210,17 @@ public class OAuthCredentialsProvider extends SessionCredentialsProvider {
         this.accessToken = newAccessToken;
         this.refreshToken = newRefreshToken;
         this.accessTokenExpire = System.currentTimeMillis() / 1000 + (expiresIn != null ? expiresIn.longValue() : 3600);
+    }
+
+    /**
+     * Prefer the real-service PascalCase key, then fall back to camelCase.
+     */
+    static String getExchangeField(Map<String, Object> map, String primaryKey, String fallbackKey) {
+        Object value = map.get(primaryKey);
+        if (value == null) {
+            value = map.get(fallbackKey);
+        }
+        return value == null ? null : String.valueOf(value);
     }
 
     @Override

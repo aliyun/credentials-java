@@ -64,8 +64,9 @@ public class OAuthCredentialsProviderTest {
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
         response.setResponseCode(200);
-        response.setHttpContent(("{\"accessKeyId\":\"ak\",\"accessKeySecret\":\"sk\"," +
-                "\"securityToken\":\"token\",\"expiration\":\"2019-12-12T1:1:1Z\"}").getBytes(), "UTF-8", FormatType.JSON);
+        // Real OAuth /v1/exchange body uses PascalCase fields
+        response.setHttpContent(("{\"AccessKeyId\":\"ak\",\"AccessKeySecret\":\"sk\"," +
+                "\"SecurityToken\":\"token\",\"Expiration\":\"2019-12-12T1:1:1Z\"}").getBytes(), "UTF-8", FormatType.JSON);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
 
         RefreshResult<CredentialModel> result = provider.getNewSessionCredentials(client);
@@ -75,6 +76,41 @@ public class OAuthCredentialsProviderTest {
         Assert.assertEquals("sk", credential.getAccessKeySecret());
         Assert.assertEquals("token", credential.getSecurityToken());
         provider.close();
+    }
+
+    @Test
+    public void testGetNewSessionCredentialsCamelCaseFallback() {
+        OAuthCredentialsProvider provider = OAuthCredentialsProvider.builder()
+                .clientId("test-client")
+                .signInUrl("https://oauth.aliyun.com")
+                .accessToken("valid-access-token")
+                .accessTokenExpire(System.currentTimeMillis() / 1000 + 3600)
+                .build();
+
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        HttpResponse response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
+        response.setHttpContent(("{\"accessKeyId\":\"ak\",\"accessKeySecret\":\"sk\"," +
+                "\"securityToken\":\"token\",\"expiration\":\"2019-12-12T1:1:1Z\"}").getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+
+        RefreshResult<CredentialModel> result = provider.getNewSessionCredentials(client);
+        Assert.assertEquals("ak", result.value().getAccessKeyId());
+        Assert.assertEquals("sk", result.value().getAccessKeySecret());
+        Assert.assertEquals("token", result.value().getSecurityToken());
+        provider.close();
+    }
+
+    @Test
+    public void testGetExchangeFieldPrefersPascalCase() {
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("AccessKeyId", "pascal");
+        map.put("accessKeyId", "camel");
+        Assert.assertEquals("pascal", OAuthCredentialsProvider.getExchangeField(map, "AccessKeyId", "accessKeyId"));
+        Assert.assertEquals("camel", OAuthCredentialsProvider.getExchangeField(
+                java.util.Collections.singletonMap("accessKeyId", "camel"), "AccessKeyId", "accessKeyId"));
+        Assert.assertNull(OAuthCredentialsProvider.getExchangeField(
+                java.util.Collections.emptyMap(), "AccessKeyId", "accessKeyId"));
     }
 
     @Test
@@ -169,8 +205,8 @@ public class OAuthCredentialsProviderTest {
 
         HttpResponse exchangeResponse = new HttpResponse("test?test=test");
         exchangeResponse.setResponseCode(200);
-        exchangeResponse.setHttpContent(("{\"accessKeyId\":\"ak\",\"accessKeySecret\":\"sk\"," +
-                "\"securityToken\":\"token\",\"expiration\":\"2019-12-12T1:1:1Z\"}").getBytes(), "UTF-8", FormatType.JSON);
+        exchangeResponse.setHttpContent(("{\"AccessKeyId\":\"ak\",\"AccessKeySecret\":\"sk\"," +
+                "\"SecurityToken\":\"token\",\"Expiration\":\"2019-12-12T1:1:1Z\"}").getBytes(), "UTF-8", FormatType.JSON);
 
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any()))
                 .thenReturn(refreshResponse)
@@ -232,8 +268,8 @@ public class OAuthCredentialsProviderTest {
         CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
         HttpResponse response = new HttpResponse("test?test=test");
         response.setResponseCode(200);
-        response.setHttpContent(("{\"accessKeyId\":\"ak\",\"accessKeySecret\":\"sk\"," +
-                "\"securityToken\":\"token\",\"expiration\":\"2019-12-12T1:1:1Z\"}").getBytes(), "UTF-8", FormatType.JSON);
+        response.setHttpContent(("{\"AccessKeyId\":\"ak\",\"AccessKeySecret\":\"sk\"," +
+                "\"SecurityToken\":\"token\",\"Expiration\":\"2019-12-12T1:1:1Z\"}").getBytes(), "UTF-8", FormatType.JSON);
         when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
 
         provider.getNewSessionCredentials(client);
