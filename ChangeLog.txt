@@ -1,3 +1,6 @@
+2026-09-18 Version: 1.0.7
+1.fix: bump commons-codec to 1.19.0 (clear nested POM commons-lang3 3.14.0 scan noise).
+
 2026-08-18 Version: 1.0.6
 1.fix: ECS RAM Role falls back to IMDSv1 when IMDSv2 token succeeds but later metadata requests fail.
 2.fix: treat backslash-newline as POSIX line continuation when splitting process_command.

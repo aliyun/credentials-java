@@ -6,7 +6,7 @@
 
     <groupId>com.aliyun</groupId>
     <artifactId>credentials-java</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <packaging>jar</packaging>
 
     <name>credentials-java</name>
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
-            <version>1.17.1</version>
+            <version>1.19.0</version>
         </dependency>
     </dependencies>
 
