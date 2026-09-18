@@ -1,3 +1,6 @@
+2026-09-18 Version: 1.0.8
+1.fix: parse OAuth /v1/exchange fields as PascalCase (#109).
+
 2026-09-18 Version: 1.0.7
 1.fix: bump commons-codec to 1.19.0 (clear nested POM commons-lang3 3.14.0 scan noise).
 
