@@ -115,5 +115,16 @@ public class ConfigTest {
         Assert.assertEquals("test", config.getSTSEndpoint());
         Assert.assertEquals("test", config.getExternalId());
         Assert.assertEquals("test", config.getProxy());
+        Assert.assertEquals("test", config.getBearerToken());
+    }
+
+    @Test
+    public void buildWrapsInvalidMap() {
+        try {
+            Config.build(null);
+            Assert.fail();
+        } catch (com.aliyun.credentials.exception.CredentialException e) {
+            Assert.assertNotNull(e.getCause());
+        }
     }
 }

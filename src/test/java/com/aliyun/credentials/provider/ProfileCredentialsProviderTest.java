@@ -279,6 +279,38 @@ public class ProfileCredentialsProviderTest {
         AuthUtils.setPrivateKey(null);
     }
 
+    @Test
+    public void getSTSGetSessionAccessKeyCredentialsReturnsWrappedCredential() throws Exception {
+        ProfileCredentialsProvider provider = new ProfileCredentialsProvider();
+        Method method = ProfileCredentialsProvider.class.getDeclaredMethod(
+                "getSTSGetSessionAccessKeyCredentials", Map.class, CredentialsProviderFactory.class);
+        method.setAccessible(true);
+        String file = ProfileCredentialsProviderTest.class.getClassLoader().
+                getResource("private_key.txt").getPath();
+        Map<String, String> client = new HashMap<String, String>();
+        client.put(AuthConstant.INI_TYPE, AuthConstant.INI_TYPE_KEY_PAIR);
+        client.put(AuthConstant.INI_PRIVATE_KEY_FILE, file);
+        client.put(AuthConstant.INI_PUBLIC_KEY_ID, "public-key-id");
+
+        RsaKeyPairCredentialProvider rsa = Mockito.mock(RsaKeyPairCredentialProvider.class);
+        Mockito.when(rsa.getProviderName()).thenReturn("rsa_key_pair");
+        Mockito.when(rsa.getCredentials()).thenReturn(CredentialModel.builder()
+                .accessKeyId("ak")
+                .accessKeySecret("sk")
+                .securityToken("token")
+                .type(AuthConstant.STS)
+                .providerName("rsa_key_pair")
+                .build());
+        CredentialsProviderFactory factory = Mockito.mock(CredentialsProviderFactory.class);
+        Mockito.when(factory.createCredentialsProvider(Mockito.any(RsaKeyPairCredentialProvider.class))).thenReturn(rsa);
+
+        CredentialModel credential = (CredentialModel) method.invoke(provider, client, factory);
+        Assert.assertEquals("ak", credential.getAccessKeyId());
+        Assert.assertEquals("sk", credential.getAccessKeySecret());
+        Assert.assertEquals("token", credential.getSecurityToken());
+        Assert.assertEquals("profile/rsa_key_pair", credential.getProviderName());
+    }
+
 
     @Test
     public void createCredentialsProviderTest() throws
