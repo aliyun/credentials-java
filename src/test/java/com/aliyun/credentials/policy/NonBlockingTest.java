@@ -3,6 +3,11 @@ package com.aliyun.credentials.policy;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.mockito.Mockito.*;
@@ -45,5 +50,38 @@ public class NonBlockingTest {
 
         // Close the executor
         strategy.close();
+    }
+
+    @Test
+    public void testPrefetchSkipsWhenRefreshPermitsAreExhausted() throws Exception {
+        CountDownLatch started = new CountDownLatch(NonBlocking.MAX_CONCURRENT_REFRESHES);
+        CountDownLatch release = new CountDownLatch(1);
+        List<NonBlocking> holders = new ArrayList<NonBlocking>();
+        try {
+            for (int i = 0; i < NonBlocking.MAX_CONCURRENT_REFRESHES; i++) {
+                NonBlocking holder = new NonBlocking();
+                holders.add(holder);
+                holder.prefetch(() -> {
+                    started.countDown();
+                    try {
+                        release.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                });
+            }
+            Assert.assertTrue(started.await(10, TimeUnit.SECONDS));
+            NonBlocking extra = new NonBlocking();
+            AtomicBoolean ran = new AtomicBoolean(false);
+            extra.prefetch(() -> ran.set(true));
+            Thread.sleep(300);
+            Assert.assertFalse(ran.get());
+            extra.close();
+        } finally {
+            release.countDown();
+            for (NonBlocking holder : holders) {
+                holder.close();
+            }
+        }
     }
 }

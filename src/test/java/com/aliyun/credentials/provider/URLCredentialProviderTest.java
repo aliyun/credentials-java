@@ -182,4 +182,90 @@ public class URLCredentialProviderTest {
 
     }
 
+    @Test
+    public void configConstructorCopiesTimeouts() {
+        Config config = new Config();
+        config.credentialsURI = "http://127.0.0.1/credentials";
+        config.connectTimeout = 1500;
+        config.timeout = 2500;
+        URLCredentialProvider provider = new URLCredentialProvider(config);
+        Assert.assertEquals("http://127.0.0.1/credentials", provider.getURL());
+        Assert.assertEquals(1500, provider.getConnectTimeout());
+        Assert.assertEquals(2500, provider.getReadTimeout());
+        provider.close();
+    }
+
+    @Test
+    public void builderRejectsMalformedUri() {
+        try {
+            URLCredentialProvider.builder().credentialsURI("not a url").build();
+            Assert.fail();
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals("Credential URI is not valid.", e.getMessage());
+        }
+    }
+
+    @Test
+    public void getNewSessionCredentialsRejectsIncompletePayload() throws Exception {
+        URLCredentialProvider provider = new URLCredentialProvider("http://127.0.0.1/credentials");
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+
+        HttpResponse denied = new HttpResponse("http://127.0.0.1/credentials");
+        denied.setResponseCode(200);
+        denied.setHttpContent("{\"Code\":\"Failed\"}".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(denied);
+        try {
+            provider.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error retrieving credentials from credentialsURI result"));
+        }
+
+        HttpResponse missing = new HttpResponse("http://127.0.0.1/credentials");
+        missing.setResponseCode(200);
+        missing.setHttpContent("{\"Code\":\"Success\",\"AccessKeyId\":\"ak\"}".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(missing);
+        try {
+            provider.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error retrieving credentials from credentialsURI result"));
+        }
+
+        HttpResponse empty = new HttpResponse("http://127.0.0.1/credentials");
+        empty.setResponseCode(200);
+        empty.setHttpContent("null".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(empty);
+        try {
+            provider.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error retrieving credentials from credentialsURI result"));
+        }
+        provider.close();
+    }
+
+    @Test
+    public void refreshCredentialsReadsLocalServer() throws Exception {
+        com.sun.net.httpserver.HttpServer server = com.sun.net.httpserver.HttpServer.create(
+                new java.net.InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/credentials", exchange -> {
+            byte[] body = ("{\"Code\":\"Success\",\"AccessKeyId\":\"ak\",\"AccessKeySecret\":\"sk\","
+                    + "\"SecurityToken\":\"token\",\"Expiration\":\"2030-01-01T00:00:00Z\"}").getBytes("UTF-8");
+            exchange.sendResponseHeaders(200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+        try {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort() + "/credentials";
+            URLCredentialProvider provider = URLCredentialProvider.builder().credentialsURI(url).build();
+            Assert.assertEquals("ak", provider.getCredentials().getAccessKeyId());
+            Assert.assertEquals("credentials_uri", provider.getCredentials().getProviderName());
+            provider.close();
+        } finally {
+            server.stop(0);
+        }
+    }
+
 }

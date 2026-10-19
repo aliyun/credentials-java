@@ -99,6 +99,64 @@ public class OIDCRoleArnCredentialProviderTest {
         config1.STSEndpoint = "sts.cn-hangzhou.aliyuncs.com";
         provider = new OIDCRoleArnCredentialProvider(config);
         Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+
+        provider = new OIDCRoleArnCredentialProvider(config1);
+        Assert.assertEquals("sts.cn-hangzhou.aliyuncs.com", provider.getSTSEndpoint());
+    }
+
+    @Test
+    public void deprecatedConstructorFallsBackToEnvironment() {
+        String filePath = OIDCRoleArnCredentialProviderTest.class.getClassLoader().
+                getResource("OIDCToken.txt").getPath();
+        AuthUtils.setEnvironmentRoleArn("env-role");
+        AuthUtils.setEnvironmentOIDCProviderArn("env-provider");
+        AuthUtils.setEnvironmentOIDCTokenFilePath(filePath);
+        AuthUtils.setEnvironmentRoleSessionName("env-session");
+        try {
+            OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider("", "", "");
+            Assert.assertEquals("env-role", provider.getRoleArn());
+            Assert.assertEquals("env-provider", provider.getOIDCProviderArn());
+            Assert.assertTrue(provider.getOIDCTokenFilePath().contains("OIDCToken.txt"));
+            Assert.assertEquals("env-session", provider.getRoleSessionName());
+            provider.close();
+        } finally {
+            AuthUtils.setEnvironmentRoleArn(null);
+            AuthUtils.setEnvironmentOIDCProviderArn(null);
+            AuthUtils.setEnvironmentOIDCTokenFilePath(null);
+            AuthUtils.setEnvironmentRoleSessionName(null);
+        }
+    }
+
+    @Test
+    public void createCredentialRejectsIncompletePayload() {
+        String filePath = OIDCRoleArnCredentialProviderTest.class.getClassLoader().
+                getResource("OIDCToken.txt").getPath();
+        Configuration config = new Configuration();
+        config.setRoleArn("test");
+        config.setOIDCProviderArn("test");
+        config.setOIDCTokenFilePath(filePath);
+        OIDCRoleArnCredentialProvider provider = new OIDCRoleArnCredentialProvider(config);
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        HttpResponse response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
+        response.setHttpContent("null".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error retrieving credentials from OIDC result"));
+        }
+
+        response.setHttpContent("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\"}}".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error retrieving credentials from OIDC result"));
+        }
+        provider.close();
     }
 
     @Test

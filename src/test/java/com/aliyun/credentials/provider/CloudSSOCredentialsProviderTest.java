@@ -199,4 +199,58 @@ public class CloudSSOCredentialsProviderTest {
         Assert.assertEquals("cloud_sso", provider.getProviderName());
         provider.close();
     }
+
+    @Test
+    public void testInvalidUrlTransportAndIncompleteCredential() {
+        CloudSSOCredentialsProvider provider = validProvider("not a url");
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        try {
+            provider.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("Invalid CloudSSO sign in url"));
+        }
+
+        CloudSSOCredentialsProvider connected = validProvider("https://signin.aliyuncs.com");
+        org.mockito.Mockito.doThrow(new RuntimeException("down"))
+                .when(client).syncInvoke(ArgumentMatchers.<HttpRequest>any());
+        try {
+            connected.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("Failed to connect CloudSSO service: down"));
+        }
+
+        HttpResponse response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
+        response.setHttpContent("{\"CloudCredential\":{\"AccessKeyId\":\"ak\"}}".getBytes(), "UTF-8", FormatType.JSON);
+        org.mockito.Mockito.doReturn(response).when(client).syncInvoke(ArgumentMatchers.<HttpRequest>any());
+        try {
+            connected.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("fail to get credentials"));
+        }
+
+        response.setHttpContent("null".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            connected.getNewSessionCredentials(client);
+            Assert.fail();
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("Get session token from CloudSSO failed"));
+        }
+        provider.close();
+        connected.close();
+    }
+
+    private static CloudSSOCredentialsProvider validProvider(String signInUrl) {
+        return CloudSSOCredentialsProvider.builder()
+                .signInUrl(signInUrl)
+                .accountId("123456")
+                .accessConfig("ac-config")
+                .accessToken("valid-token")
+                .accessTokenExpire(System.currentTimeMillis() / 1000 + 3600)
+                .build();
+    }
 }

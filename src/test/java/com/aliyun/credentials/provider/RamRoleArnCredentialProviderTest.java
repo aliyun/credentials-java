@@ -118,6 +118,48 @@ public class RamRoleArnCredentialProviderTest {
     }
 
     @Test
+    public void createCredentialSendsSecurityTokenAndRejectsIncompleteResult() {
+        RamRoleArnCredentialProvider provider = RamRoleArnCredentialProvider.builder()
+                .credentialsProvider(StaticCredentialsProvider.builder()
+                        .credential(com.aliyun.credentials.models.CredentialModel.builder()
+                                .accessKeyId("ak")
+                                .accessKeySecret("sk")
+                                .securityToken("source-token")
+                                .type(AuthConstant.STS)
+                                .providerName("static_sts")
+                                .build())
+                        .build())
+                .roleArn("acs:ram::123:role/test")
+                .build();
+        CompatibleUrlConnClient client = mock(CompatibleUrlConnClient.class);
+        HttpResponse response = new HttpResponse("test?test=test");
+        response.setResponseCode(200);
+        response.setHttpContent(new String("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\",\"AccessKeyId\":\"test\"," +
+                "\"AccessKeySecret\":\"test\",\"SecurityToken\":\"test\"}}").getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        Assert.assertEquals("test", provider.createCredential(client).value().getAccessKeyId());
+
+        response.setHttpContent("null".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error retrieving credentials from RamRoleArn result"));
+        }
+
+        response.setHttpContent("{\"Credentials\":{\"Expiration\":\"2019-12-12T1:1:1Z\"}}".getBytes(), "UTF-8", FormatType.JSON);
+        when(client.syncInvoke(ArgumentMatchers.<HttpRequest>any())).thenReturn(response);
+        try {
+            provider.createCredential(client);
+            Assert.fail();
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("Error retrieving credentials from RamRoleArn result"));
+        }
+        provider.close();
+    }
+
+    @Test
     public void createCredentialTransportErrorPreservesCause() {
         Configuration config = new Configuration();
         RamRoleArnCredentialProvider provider = new RamRoleArnCredentialProvider(config);
