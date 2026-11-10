@@ -5,17 +5,127 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+
+import com.aliyun.credentials.http.CompatibleUrlConnClient;
+import com.aliyun.credentials.http.HttpRequest;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+
 
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.EnvTestSupport;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
 public class CLIProfileCredentialsProviderTest {
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    @Test
+    public void sharedCloudSSOReadsUpdatedSessionOnRefresh() throws Exception {
+        Path config = folder.newFile("custom.json").toPath().toRealPath();
+        Files.write(config, ("{\"current\":\"dev\",\"profiles\":[{\"name\":\"dev\",\"mode\":\"CloudSSO\","
+                + "\"sso_session\":\"company\",\"cloud_sso_account_id\":\"account\",\"cloud_sso_access_config\":\"role\"}]}")
+                .getBytes(StandardCharsets.UTF_8));
+        byte[] hash = MessageDigest.getInstance("SHA-256").digest(config.toString().getBytes(StandardCharsets.UTF_8));
+        StringBuilder namespace = new StringBuilder();
+        for (byte value : hash) {
+            namespace.append(String.format("%02x", value & 0xff));
+        }
+        Path session = Files.createDirectories(config.getParent().resolve("sso").resolve(namespace.toString()))
+                .resolve("company.json");
+        CLIProfileCredentialsProvider cli = CLIProfileCredentialsProvider.builder().build();
+        CloudSSOCredentialsProvider provider = (CloudSSOCredentialsProvider)
+                cli.reloadCredentialsProvider(cli.parseProfile(config.toString()), "dev");
+        CompatibleUrlConnClient transport = mock(CompatibleUrlConnClient.class);
+        java.util.List<String> authorization = new java.util.ArrayList<>();
+        when(transport.syncInvoke(any(HttpRequest.class))).thenAnswer(call -> {
+            HttpRequest request = call.getArgument(0);
+            authorization.add(request.getSysHeaders().get("Authorization"));
+            throw new java.io.IOException("stop after checking request");
+        });
+        for (String token : new String[] {"first", "second"}) {
+            Files.write(session, String.format("{\"name\":\"company\",\"sign_in_url\":\"https://example.test/sign-in\","
+                    + "\"access_token\":\"%s\",\"expires_at\":4102444800}", token).getBytes(StandardCharsets.UTF_8));
+            try {
+                provider.getNewSessionCredentials(transport);
+                Assert.fail("Expected the mock transport to stop the request");
+            } catch (CredentialException e) {
+                Assert.assertTrue(e.getMessage().contains("stop after checking request"));
+            }
+        }
+        Assert.assertEquals(java.util.Arrays.asList("Bearer first", "Bearer second"), authorization);
+        Files.delete(session);
+        try {
+            provider.getNewSessionCredentials(transport);
+            Assert.fail("Expected missing session to fail before sending a request");
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("Unable to read CloudSSO session"));
+        }
+        Assert.assertEquals(2, authorization.size());
+    }
+
+    @Test
+    public void sharedCloudSSOValidatesDefaultSessionBeforeExchange() throws Exception {
+        Path home = folder.newFolder("home").toPath();
+        Path config = Files.createFile(Files.createDirectory(home.resolve(".aliyun")).resolve("config.json"));
+        Path session = Files.createDirectory(config.getParent().resolve("sso")).resolve("company.json");
+        String profile = "{\"current\":\"dev\",\"profiles\":[{\"name\":\"dev\",\"mode\":\"CloudSSO\","
+                + "\"sso_session\":\"company\",\"cloud_sso_account_id\":\"account\",\"cloud_sso_access_config\":\"role\"}]}";
+        CLIProfileCredentialsProvider cli;
+        String originalHome = System.getProperty("user.home");
+        try {
+            System.setProperty("user.home", home.toString());
+            cli = CLIProfileCredentialsProvider.builder().build();
+        } finally {
+            System.setProperty("user.home", originalHome);
+        }
+
+        CLIProfileCredentialsProvider.Config parsed = new Gson().fromJson(profile, CLIProfileCredentialsProvider.Config.class);
+        CloudSSOCredentialsProvider provider = (CloudSSOCredentialsProvider) cli.reloadCredentialsProvider(parsed, "dev");
+        CompatibleUrlConnClient transport = mock(CompatibleUrlConnClient.class);
+        String signInUrl = "https://example.test/sign-in";
+        String[][] invalidSessions = {
+                {"", "Invalid CloudSSO session company"},
+                {"{\"name\":\"other\"}", "Invalid CloudSSO session company"},
+                {"{\"name\":\"company\"}", "Invalid CloudSSO session company"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"\"}", "Invalid CloudSSO session company"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"" + signInUrl + "\"}", "access token is empty or expired"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"" + signInUrl + "\",\"access_token\":\"\"}", "access token is empty or expired"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"" + signInUrl + "\",\"access_token\":\"expired\",\"expires_at\":1}", "access token is empty or expired"},
+                {"{", "Unable to read CloudSSO session company"}
+        };
+        for (String[] invalid : invalidSessions) {
+            Files.write(session, invalid[0].getBytes(StandardCharsets.UTF_8));
+            try {
+                provider.getNewSessionCredentials(transport);
+                Assert.fail("Expected invalid shared session to fail: " + invalid[0]);
+            } catch (CredentialException e) {
+                Assert.assertTrue(e.getMessage(), e.getMessage().contains(invalid[1]));
+            }
+        }
+
+        parsed = new Gson().fromJson(profile.replace("company", "../outside"), CLIProfileCredentialsProvider.Config.class);
+        CloudSSOCredentialsProvider invalidProvider = (CloudSSOCredentialsProvider) cli.reloadCredentialsProvider(parsed, "dev");
+        try {
+            invalidProvider.getNewSessionCredentials(transport);
+            Assert.fail("Expected invalid session name to fail");
+        } catch (CredentialException e) {
+            Assert.assertEquals("Invalid CloudSSO session name.", e.getMessage());
+        }
+        org.mockito.Mockito.verifyNoInteractions(transport);
+    }
 
     @Test
     public void getProfileNameTest() {
@@ -337,7 +447,7 @@ public class CLIProfileCredentialsProviderTest {
 
     @Test
     public void oauthCallbackPersistsTokensAndFollowsSourceProfile() throws Exception {
-        withCliHome(oauthConfig(), home -> {
+        withCliHome(withSharedProfile(oauthConfig()), home -> {
             CLIProfileCredentialsProvider plain = CLIProfileCredentialsProvider.builder()
                     .profileName("plain")
                     .build();
@@ -351,6 +461,12 @@ public class CLIProfileCredentialsProviderTest {
                     .build();
             invokeOAuthUpdate(provider, config, "oauth");
             String updated = new String(Files.readAllBytes(cliConfig(home)), StandardCharsets.UTF_8);
+            JsonObject before = new Gson().fromJson(withSharedProfile(oauthConfig()), JsonObject.class);
+            JsonObject after = new Gson().fromJson(updated, JsonObject.class);
+            Assert.assertEquals(before.get("future_config"), after.get("future_config"));
+            int sharedIndex = before.getAsJsonArray("profiles").size() - 1;
+            Assert.assertEquals(before.getAsJsonArray("profiles").get(sharedIndex),
+                    after.getAsJsonArray("profiles").get(sharedIndex));
             Assert.assertTrue(updated.contains("new-refresh"));
             Assert.assertTrue(updated.contains("new-access"));
             Assert.assertTrue(updated.contains("new-ak"));
@@ -423,7 +539,7 @@ public class CLIProfileCredentialsProviderTest {
 
     @Test
     public void externalCallbackPersistsCredentialsAndFollowsSourceProfile() throws Exception {
-        withCliHome(externalConfig(), home -> {
+        withCliHome(withSharedProfile(externalConfig()), home -> {
             CLIProfileCredentialsProvider plain = CLIProfileCredentialsProvider.builder()
                     .profileName("plain")
                     .build();
@@ -436,6 +552,12 @@ public class CLIProfileCredentialsProviderTest {
                     .build();
             invokeExternalUpdate(provider, config, "external");
             String updated = new String(Files.readAllBytes(cliConfig(home)), StandardCharsets.UTF_8);
+            JsonObject before = new Gson().fromJson(withSharedProfile(externalConfig()), JsonObject.class);
+            JsonObject after = new Gson().fromJson(updated, JsonObject.class);
+            Assert.assertEquals(before.get("future_config"), after.get("future_config"));
+            int sharedIndex = before.getAsJsonArray("profiles").size() - 1;
+            Assert.assertEquals(before.getAsJsonArray("profiles").get(sharedIndex),
+                    after.getAsJsonArray("profiles").get(sharedIndex));
             Assert.assertTrue(updated.contains("ext-ak"));
             Assert.assertTrue(updated.contains("ext-sk"));
             Assert.assertTrue(updated.contains("ext-token"));
@@ -600,6 +722,12 @@ public class CLIProfileCredentialsProviderTest {
                 + "{\"name\":\"AK\",\"mode\":\"AK\",\"access_key_id\":\"akid\",\"access_key_secret\":\"secret\"},"
                 + "{\"name\":\"StsToken\",\"mode\":\"StsToken\",\"access_key_id\":\"accessKeyId\",\"access_key_secret\":\"accessKeySecret\",\"sts_token\":\"stsToken\"}"
                 + "]}";
+    }
+
+    private static String withSharedProfile(String config) {
+        return config.replaceFirst("\\]\\}$",
+                ",{\"name\":\"shared\",\"mode\":\"CloudSSO\",\"sso_session\":\"company\",\"future_profile\":null}],"
+                        + "\"future_config\":{\"empty\":{},\"number\":9007199254740993}}");
     }
 
     private static String oauthConfig() {
