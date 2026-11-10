@@ -5,6 +5,17 @@ import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+
+import com.aliyun.credentials.http.CompatibleUrlConnClient;
+import com.aliyun.credentials.http.HttpRequest;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+
 
 import com.aliyun.credentials.exception.CredentialException;
 import com.aliyun.credentials.models.CredentialModel;
@@ -16,6 +27,53 @@ import org.junit.Assume;
 import org.junit.Test;
 
 public class CLIProfileCredentialsProviderTest {
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    @Test
+    public void sharedCloudSSOReadsUpdatedSessionOnRefresh() throws Exception {
+        Path config = folder.newFile("custom.json").toPath().toRealPath();
+        Files.write(config, ("{\"current\":\"dev\",\"profiles\":[{\"name\":\"dev\",\"mode\":\"CloudSSO\","
+                + "\"sso_session\":\"company\",\"cloud_sso_account_id\":\"account\",\"cloud_sso_access_config\":\"role\"}]}")
+                .getBytes(StandardCharsets.UTF_8));
+        byte[] hash = MessageDigest.getInstance("SHA-256").digest(config.toString().getBytes(StandardCharsets.UTF_8));
+        StringBuilder namespace = new StringBuilder();
+        for (byte value : hash) {
+            namespace.append(String.format("%02x", value & 0xff));
+        }
+        Path session = Files.createDirectories(config.getParent().resolve("sso").resolve(namespace.toString()))
+                .resolve("company.json");
+        CLIProfileCredentialsProvider cli = CLIProfileCredentialsProvider.builder().build();
+        CloudSSOCredentialsProvider provider = (CloudSSOCredentialsProvider)
+                cli.reloadCredentialsProvider(cli.parseProfile(config.toString()), "dev");
+        CompatibleUrlConnClient transport = mock(CompatibleUrlConnClient.class);
+        java.util.List<String> authorization = new java.util.ArrayList<>();
+        when(transport.syncInvoke(any(HttpRequest.class))).thenAnswer(call -> {
+            HttpRequest request = call.getArgument(0);
+            authorization.add(request.getSysHeaders().get("Authorization"));
+            throw new java.io.IOException("stop after checking request");
+        });
+        for (String token : new String[] {"first", "second"}) {
+            Files.write(session, String.format("{\"name\":\"company\",\"sign_in_url\":\"https://example.test/sign-in\","
+                    + "\"access_token\":\"%s\",\"expires_at\":4102444800}", token).getBytes(StandardCharsets.UTF_8));
+            try {
+                provider.getNewSessionCredentials(transport);
+                Assert.fail("Expected the mock transport to stop the request");
+            } catch (CredentialException e) {
+                Assert.assertTrue(e.getMessage().contains("stop after checking request"));
+            }
+        }
+        Assert.assertEquals(java.util.Arrays.asList("Bearer first", "Bearer second"), authorization);
+        Files.delete(session);
+        try {
+            provider.getNewSessionCredentials(transport);
+            Assert.fail("Expected missing session to fail before sending a request");
+        } catch (CredentialException e) {
+            Assert.assertTrue(e.getMessage().contains("Unable to read CloudSSO session"));
+        }
+        Assert.assertEquals(2, authorization.size());
+    }
 
     @Test
     public void getProfileNameTest() {

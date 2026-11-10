@@ -11,11 +11,13 @@ import com.google.gson.Gson;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.function.Supplier;
 import java.util.Map;
 
 public class CloudSSOCredentialsProvider extends SessionCredentialsProvider {
 
     private final String signInUrl;
+    private final Supplier<CloudSSOSession> loadSession;
     private final String accountId;
     private final String accessConfig;
     private final String accessToken;
@@ -26,15 +28,16 @@ public class CloudSSOCredentialsProvider extends SessionCredentialsProvider {
     private CloudSSOCredentialsProvider(BuilderImpl builder) {
         super(builder);
 
-        if (StringUtils.isEmpty(builder.accessToken) || builder.accessTokenExpire == 0
-                || builder.accessTokenExpire - System.currentTimeMillis() / 1000 <= 0) {
+        if (builder.loadSession == null && (StringUtils.isEmpty(builder.accessToken)
+                || builder.accessTokenExpire <= System.currentTimeMillis() / 1000)) {
             throw new IllegalArgumentException("CloudSSO access token is empty or expired, please re-login with cli.");
         }
-        if (StringUtils.isEmpty(builder.signInUrl) || StringUtils.isEmpty(builder.accountId)
+        if ((builder.loadSession == null && StringUtils.isEmpty(builder.signInUrl)) || StringUtils.isEmpty(builder.accountId)
                 || StringUtils.isEmpty(builder.accessConfig)) {
             throw new IllegalArgumentException("CloudSSO sign in url, account id, and access config cannot be empty.");
         }
 
+        this.loadSession = builder.loadSession;
         this.signInUrl = builder.signInUrl;
         this.accountId = builder.accountId;
         this.accessConfig = builder.accessConfig;
@@ -42,6 +45,15 @@ public class CloudSSOCredentialsProvider extends SessionCredentialsProvider {
         this.accessTokenExpire = builder.accessTokenExpire;
         this.connectTimeout = builder.connectTimeout == null ? 5000 : builder.connectTimeout;
         this.readTimeout = builder.readTimeout == null ? 10000 : builder.readTimeout;
+    }
+
+    static CloudSSOCredentialsProvider forSharedSession(String accountId, String accessConfig,
+                                                        Supplier<CloudSSOSession> loadSession) {
+        BuilderImpl builder = new BuilderImpl();
+        builder.accountId = accountId;
+        builder.accessConfig = accessConfig;
+        builder.loadSession = loadSession;
+        return builder.build();
     }
 
     public static Builder builder() {
@@ -56,9 +68,10 @@ public class CloudSSOCredentialsProvider extends SessionCredentialsProvider {
     }
 
     RefreshResult<CredentialModel> getNewSessionCredentials(CompatibleUrlConnClient client) {
+        CloudSSOSession session = loadSession == null ? null : loadSession.get();
         URL parsedUrl;
         try {
-            parsedUrl = new URL(this.signInUrl);
+            parsedUrl = new URL(session == null ? this.signInUrl : session.signInUrl);
         } catch (MalformedURLException e) {
             throw new CredentialException("Invalid CloudSSO sign in url: " + e.getMessage(), e);
         }
@@ -74,7 +87,7 @@ public class CloudSSOCredentialsProvider extends SessionCredentialsProvider {
         httpRequest.setHttpContent(body.getBytes(), "UTF-8", FormatType.JSON);
         httpRequest.putHeaderParameter("Accept", "application/json");
         httpRequest.putHeaderParameter("Content-Type", "application/json");
-        httpRequest.putHeaderParameter("Authorization", "Bearer " + this.accessToken);
+        httpRequest.putHeaderParameter("Authorization", "Bearer " + (session == null ? this.accessToken : session.accessToken));
 
         HttpResponse httpResponse;
         try {
@@ -151,6 +164,7 @@ public class CloudSSOCredentialsProvider extends SessionCredentialsProvider {
             extends SessionCredentialsProvider.BuilderImpl<CloudSSOCredentialsProvider, Builder>
             implements Builder {
         private String signInUrl;
+        private Supplier<CloudSSOSession> loadSession;
         private String accountId;
         private String accessConfig;
         private String accessToken;
