@@ -22,6 +22,7 @@ import com.aliyun.credentials.models.CredentialModel;
 import com.aliyun.credentials.utils.AuthUtils;
 import com.aliyun.credentials.utils.EnvTestSupport;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
@@ -446,7 +447,7 @@ public class CLIProfileCredentialsProviderTest {
 
     @Test
     public void oauthCallbackPersistsTokensAndFollowsSourceProfile() throws Exception {
-        withCliHome(oauthConfig(), home -> {
+        withCliHome(withSharedProfile(oauthConfig()), home -> {
             CLIProfileCredentialsProvider plain = CLIProfileCredentialsProvider.builder()
                     .profileName("plain")
                     .build();
@@ -460,6 +461,12 @@ public class CLIProfileCredentialsProviderTest {
                     .build();
             invokeOAuthUpdate(provider, config, "oauth");
             String updated = new String(Files.readAllBytes(cliConfig(home)), StandardCharsets.UTF_8);
+            JsonObject before = new Gson().fromJson(withSharedProfile(oauthConfig()), JsonObject.class);
+            JsonObject after = new Gson().fromJson(updated, JsonObject.class);
+            Assert.assertEquals(before.get("future_config"), after.get("future_config"));
+            int sharedIndex = before.getAsJsonArray("profiles").size() - 1;
+            Assert.assertEquals(before.getAsJsonArray("profiles").get(sharedIndex),
+                    after.getAsJsonArray("profiles").get(sharedIndex));
             Assert.assertTrue(updated.contains("new-refresh"));
             Assert.assertTrue(updated.contains("new-access"));
             Assert.assertTrue(updated.contains("new-ak"));
@@ -532,7 +539,7 @@ public class CLIProfileCredentialsProviderTest {
 
     @Test
     public void externalCallbackPersistsCredentialsAndFollowsSourceProfile() throws Exception {
-        withCliHome(externalConfig(), home -> {
+        withCliHome(withSharedProfile(externalConfig()), home -> {
             CLIProfileCredentialsProvider plain = CLIProfileCredentialsProvider.builder()
                     .profileName("plain")
                     .build();
@@ -545,6 +552,12 @@ public class CLIProfileCredentialsProviderTest {
                     .build();
             invokeExternalUpdate(provider, config, "external");
             String updated = new String(Files.readAllBytes(cliConfig(home)), StandardCharsets.UTF_8);
+            JsonObject before = new Gson().fromJson(withSharedProfile(externalConfig()), JsonObject.class);
+            JsonObject after = new Gson().fromJson(updated, JsonObject.class);
+            Assert.assertEquals(before.get("future_config"), after.get("future_config"));
+            int sharedIndex = before.getAsJsonArray("profiles").size() - 1;
+            Assert.assertEquals(before.getAsJsonArray("profiles").get(sharedIndex),
+                    after.getAsJsonArray("profiles").get(sharedIndex));
             Assert.assertTrue(updated.contains("ext-ak"));
             Assert.assertTrue(updated.contains("ext-sk"));
             Assert.assertTrue(updated.contains("ext-token"));
@@ -709,6 +722,12 @@ public class CLIProfileCredentialsProviderTest {
                 + "{\"name\":\"AK\",\"mode\":\"AK\",\"access_key_id\":\"akid\",\"access_key_secret\":\"secret\"},"
                 + "{\"name\":\"StsToken\",\"mode\":\"StsToken\",\"access_key_id\":\"accessKeyId\",\"access_key_secret\":\"accessKeySecret\",\"sts_token\":\"stsToken\"}"
                 + "]}";
+    }
+
+    private static String withSharedProfile(String config) {
+        return config.replaceFirst("\\]\\}$",
+                ",{\"name\":\"shared\",\"mode\":\"CloudSSO\",\"sso_session\":\"company\",\"future_profile\":null}],"
+                        + "\"future_config\":{\"empty\":{},\"number\":9007199254740993}}");
     }
 
     private static String oauthConfig() {
