@@ -76,6 +76,57 @@ public class CLIProfileCredentialsProviderTest {
     }
 
     @Test
+    public void sharedCloudSSOValidatesDefaultSessionBeforeExchange() throws Exception {
+        Path home = folder.newFolder("home").toPath();
+        Path config = Files.createFile(Files.createDirectory(home.resolve(".aliyun")).resolve("config.json"));
+        Path session = Files.createDirectory(config.getParent().resolve("sso")).resolve("company.json");
+        String profile = "{\"current\":\"dev\",\"profiles\":[{\"name\":\"dev\",\"mode\":\"CloudSSO\","
+                + "\"sso_session\":\"company\",\"cloud_sso_account_id\":\"account\",\"cloud_sso_access_config\":\"role\"}]}";
+        CLIProfileCredentialsProvider cli;
+        String originalHome = System.getProperty("user.home");
+        try {
+            System.setProperty("user.home", home.toString());
+            cli = CLIProfileCredentialsProvider.builder().build();
+        } finally {
+            System.setProperty("user.home", originalHome);
+        }
+
+        CLIProfileCredentialsProvider.Config parsed = new Gson().fromJson(profile, CLIProfileCredentialsProvider.Config.class);
+        CloudSSOCredentialsProvider provider = (CloudSSOCredentialsProvider) cli.reloadCredentialsProvider(parsed, "dev");
+        CompatibleUrlConnClient transport = mock(CompatibleUrlConnClient.class);
+        String signInUrl = "https://example.test/sign-in";
+        String[][] invalidSessions = {
+                {"", "Invalid CloudSSO session company"},
+                {"{\"name\":\"other\"}", "Invalid CloudSSO session company"},
+                {"{\"name\":\"company\"}", "Invalid CloudSSO session company"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"\"}", "Invalid CloudSSO session company"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"" + signInUrl + "\"}", "access token is empty or expired"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"" + signInUrl + "\",\"access_token\":\"\"}", "access token is empty or expired"},
+                {"{\"name\":\"company\",\"sign_in_url\":\"" + signInUrl + "\",\"access_token\":\"expired\",\"expires_at\":1}", "access token is empty or expired"},
+                {"{", "Unable to read CloudSSO session company"}
+        };
+        for (String[] invalid : invalidSessions) {
+            Files.write(session, invalid[0].getBytes(StandardCharsets.UTF_8));
+            try {
+                provider.getNewSessionCredentials(transport);
+                Assert.fail("Expected invalid shared session to fail: " + invalid[0]);
+            } catch (CredentialException e) {
+                Assert.assertTrue(e.getMessage(), e.getMessage().contains(invalid[1]));
+            }
+        }
+
+        parsed = new Gson().fromJson(profile.replace("company", "../outside"), CLIProfileCredentialsProvider.Config.class);
+        CloudSSOCredentialsProvider invalidProvider = (CloudSSOCredentialsProvider) cli.reloadCredentialsProvider(parsed, "dev");
+        try {
+            invalidProvider.getNewSessionCredentials(transport);
+            Assert.fail("Expected invalid session name to fail");
+        } catch (CredentialException e) {
+            Assert.assertEquals("Invalid CloudSSO session name.", e.getMessage());
+        }
+        org.mockito.Mockito.verifyNoInteractions(transport);
+    }
+
+    @Test
     public void getProfileNameTest() {
         CLIProfileCredentialsProvider provider = CLIProfileCredentialsProvider.builder().build();
         Assert.assertNull(provider.getProfileName());
