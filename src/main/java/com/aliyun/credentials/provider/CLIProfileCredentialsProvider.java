@@ -19,6 +19,7 @@ import com.aliyun.credentials.utils.StringUtils;
 import com.aliyun.tea.utils.Validate;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 
 public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsProvider {
@@ -160,6 +161,11 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                                     .externalId(profile.getExternalId())
                                     .build();
                         case "CloudSSO":
+                            if (!StringUtils.isEmpty(profile.ssoSession)) {
+                                String path = config.configFilePath == null ? CLI_CREDENTIALS_CONFIG_PATH : config.configFilePath;
+                                return CloudSSOCredentialsProvider.forSharedSession(profile.getAccountId(), profile.getAccessConfig(),
+                                        () -> CloudSSOSession.load(path, CLI_CREDENTIALS_CONFIG_PATH, profile.ssoSession));
+                            }
                             return CloudSSOCredentialsProvider.builder()
                                     .signInUrl(profile.getSignInUrl())
                                     .accountId(profile.getAccountId())
@@ -210,7 +216,11 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 sb.append(line);
             }
             String jsonContent = sb.toString();
-            return gson.fromJson(jsonContent, Config.class);
+            Config config = gson.fromJson(jsonContent, Config.class);
+            if (config != null) {
+                config.configFilePath = configFilePath;
+            }
+            return config;
         } catch (Exception e) {
             throw new CredentialException(String.format("Failed to parse credential form CLI credentials file: %s.", configFile.getAbsolutePath()));
         }
@@ -261,7 +271,8 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
             String jsonContent = new String(bytes, "UTF-8");
 
             Gson gson = new Gson();
-            Config config = gson.fromJson(jsonContent, Config.class);
+            JsonObject document = gson.fromJson(jsonContent, JsonObject.class);
+            Config config = gson.fromJson(document, Config.class);
             if (config == null || config.getProfiles() == null) {
                 return;
             }
@@ -276,16 +287,18 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 return;
             }
 
-            oauthProfile.setOauthRefreshToken(refreshToken);
-            oauthProfile.setOauthAccessToken(accessToken);
-            oauthProfile.setOauthAccessTokenExpire(accessTokenExpire);
-            oauthProfile.setAccessKeyId(accessKeyId);
-            oauthProfile.setAccessKeySecret(accessKeySecret);
-            oauthProfile.setSecurityToken(securityToken);
-            oauthProfile.setStsExpire(stsExpire);
+            JsonObject profile = document.getAsJsonArray("profiles")
+                    .get(config.getProfiles().indexOf(oauthProfile)).getAsJsonObject();
+            profile.addProperty("oauth_refresh_token", refreshToken);
+            profile.addProperty("oauth_access_token", accessToken);
+            profile.addProperty("oauth_access_token_expire", accessTokenExpire);
+            profile.addProperty("access_key_id", accessKeyId);
+            profile.addProperty("access_key_secret", accessKeySecret);
+            profile.addProperty("sts_token", securityToken);
+            profile.addProperty("sts_expiration", stsExpire);
 
-            Gson writer = new GsonBuilder().setPrettyPrinting().create();
-            String updatedJson = writer.toJson(config);
+            Gson writer = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+            String updatedJson = writer.toJson(document);
 
             raf.seek(0);
             raf.setLength(0);
@@ -314,7 +327,8 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
             String jsonContent = new String(bytes, "UTF-8");
 
             Gson gson = new Gson();
-            Config config = gson.fromJson(jsonContent, Config.class);
+            JsonObject document = gson.fromJson(jsonContent, JsonObject.class);
+            Config config = gson.fromJson(document, Config.class);
             if (config == null || config.getProfiles() == null) {
                 return;
             }
@@ -329,13 +343,15 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
                 return;
             }
 
-            externalProfile.setAccessKeyId(accessKeyId);
-            externalProfile.setAccessKeySecret(accessKeySecret);
-            externalProfile.setSecurityToken(securityToken);
-            externalProfile.setStsExpire(expiration);
+            JsonObject profile = document.getAsJsonArray("profiles")
+                    .get(config.getProfiles().indexOf(externalProfile)).getAsJsonObject();
+            profile.addProperty("access_key_id", accessKeyId);
+            profile.addProperty("access_key_secret", accessKeySecret);
+            profile.addProperty("sts_token", securityToken);
+            profile.addProperty("sts_expiration", expiration);
 
-            Gson writer = new GsonBuilder().setPrettyPrinting().create();
-            String updatedJson = writer.toJson(config);
+            Gson writer = new GsonBuilder().serializeNulls().setPrettyPrinting().create();
+            String updatedJson = writer.toJson(document);
 
             raf.seek(0);
             raf.setLength(0);
@@ -399,6 +415,7 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
     }
 
     static class Config {
+        private transient String configFilePath;
         @SerializedName("current")
         private String current;
         @SerializedName("profiles")
@@ -414,6 +431,8 @@ public class CLIProfileCredentialsProvider implements AlibabaCloudCredentialsPro
     }
 
     static class Profile {
+        @SerializedName("sso_session")
+        private String ssoSession;
         @SerializedName("name")
         private String name;
         @SerializedName("mode")
